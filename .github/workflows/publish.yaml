@@ -1,0 +1,40 @@
+name: Publish container image
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+permissions:
+  packages: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup common
+        uses: ./.github/actions/common
+      - name: Login to ghcr
+        uses: ./.github/actions/docker-login-ghcr
+      - name: Setup buildx
+        uses: ./.github/actions/setup-buildx
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.PUBLISH_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{raw}}
+            type=sha
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
