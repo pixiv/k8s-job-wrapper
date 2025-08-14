@@ -18,4 +18,5 @@ runs:
           hack/go-licenses/go.sum
     - name: Download go modules
       if: ${{ steps.setup-go.outputs.cache-hit != 'true' }}
+      shell: bash
       run: go mod download
