@@ -13,9 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Setup common
-        uses: ./.github/actions/common/action.yaml
+        uses: ./.github/actions/common
       - name: Setup go
-        uses: ./.github/actions/setup-go/action.yaml
+        uses: ./.github/actions/setup-go
         with:
           version: '${{ env.GO_VERSION }}'
       - name: Lint
