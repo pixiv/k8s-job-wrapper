@@ -13,10 +13,10 @@ runs:
       with:
         go-version: '${{ inputs.version }}'
         check-latest: true
-        # cache-dependency-path: |
-        #   go.sum
-        #   hack/tools/go.sum
-        #   hack/go-licenses/go.sum
+        cache-dependency-path: |
+          go.sum
+          hack/tools/go.sum
+          hack/go-licenses/go.sum
     - name: Download go modules
       if: ${{ steps.setup-go.outputs.cache-hit != 'true' }}
       shell: bash
