@@ -23,8 +23,8 @@ jobs:
         with:
           node_image: '${{ env.KIND_IMAGE_NAME }}'
           kubectl_version: '${{ env.KUBECTL_VERSION }}'
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Setup buildx
+        uses: ./.github/actions/setup-buildx
       - name: Build
         uses: docker/build-push-action@v6
         with:
