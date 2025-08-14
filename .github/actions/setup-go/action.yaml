@@ -12,6 +12,7 @@ runs:
       id: setup-go
       with:
         go-version: '${{ inputs.version }}'
+        check-latest: true
         cache-dependency-path: |
           go.sum
           hack/tools/go.sum
