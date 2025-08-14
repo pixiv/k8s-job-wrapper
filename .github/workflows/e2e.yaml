@@ -1,0 +1,28 @@
+name: E2E Test
+on:
+  pull_request:
+  push:
+    branches:
+      - 'main'
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup common
+        uses: ./.github/actions/common
+      - name: Setup go
+        uses: ./.github/actions/setup-go
+        with:
+          version: '${{ env.GO_VERSION }}'
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.12.0
+        with:
+          node_image: '${{ env.KIND_IMAGE_NAME }}'
+          cluster_name: kind
+          kubectl_version: '${{ env.KUBECTL_VERSION }}'
+      - name: E2E test
+        run: make test-e2e

@@ -128,14 +128,8 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
-ifeq ($(CI),true)
-docker-build: ## Rename controller image for test-e2e.
-	$(CONTAINER_TOOL) pull $(IMAGE_REPO):$(IMAGE_TAG)
-	$(CONTAINER_TOOL) tag $(IMAGE_REPO):$(IMAGE_TAG) ${IMG}
-else
 docker-build: ## Build docker image with the manager.
 	$(CONTAINER_TOOL) build -t ${IMG} --build-arg GO_VERSION=$(GO_VERSION) --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) .
-endif
 
 ##@ Deployment
 
