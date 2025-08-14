@@ -7,6 +7,8 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # helm/kind-action failed to load local container image for unknown reason
+    # so use kind binary directly
     - name: Install kind
       shell: bash
       run: |
