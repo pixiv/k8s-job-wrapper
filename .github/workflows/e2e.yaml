@@ -33,5 +33,7 @@ jobs:
           build-args: |
             GO_VERSION=${{ env.GO_VERSION }}
             KUBECTL_VERSION=${{ env.KUBECTL_VERSION }}
+      - name: Check
+        run: docker images
       - name: E2E test
         run: make test-e2e
