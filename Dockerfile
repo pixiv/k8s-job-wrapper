@@ -14,7 +14,7 @@ RUN --mount=type=bind,source=hack,target=. \
 RUN --mount=type=cache,target=/go/pkg/mod,id=gomodcache \
     --mount=type=bind,source=go.mod,target=go.mod \
     --mount=type=bind,source=go.sum,target=go.sum \
-    go mod download -x
+    go mod download
 # Build
 # the GOARCH has not a default value to allow the binary be built according to the host where the command
 # was called. For example, if we call make docker-build in a local env which has the Apple Silicon M1 SO
