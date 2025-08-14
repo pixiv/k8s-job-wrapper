@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  creationTimestamp: "2025-04-21T07:58:23Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/created-by: pixiv-job-controller
+    cronjobs.pixiv.net/name: cronjob-sample
+  name: cronjob-sample-pxvcjob
+  namespace: default
+  ownerReferences:
+  - apiVersion: pixiv.net/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: CronJob
+    name: cronjob-sample
+    uid: 6b35de70-fcd0-4a6d-a35d-5f8cfe08a5de
+  resourceVersion: "10603"
+  uid: 364495ba-0239-4e7b-9911-f85059726f68
+spec:
+  concurrencyPolicy: Allow
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      creationTimestamp: null
+    spec:
+      activeDeadlineSeconds: 120
+      backoffLimit: 6
+      completionMode: NonIndexed
+      suspend: false
+      template:
+        metadata:
+          creationTimestamp: null
+        spec:
+          containers:
+          - command:
+            - perl
+            - -Mbignum=bpi
+            - -wle
+            - print bpi(10)
+            image: perl:5.34.0
+            imagePullPolicy: IfNotPresent
+            name: pi
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+          dnsPolicy: ClusterFirst
+          restartPolicy: Never
+          schedulerName: default-scheduler
+          securityContext: {}
+          terminationGracePeriodSeconds: 30
+  schedule: '* * * * *'
+  successfulJobsHistoryLimit: 3
+  suspend: false
+status:
+  lastScheduleTime: "2025-04-21T07:59:00Z"
+  lastSuccessfulTime: "2025-04-21T07:59:02Z"

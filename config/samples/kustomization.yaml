@@ -1,0 +1,6 @@
+## Append samples of your project ##
+resources:
+- v1_podprofile.yaml
+- v1_job.yaml
+- v1_cronjob.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

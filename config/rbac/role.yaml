@@ -1,0 +1,66 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  - jobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs/status
+  verbs:
+  - get
+  - watch
+- apiGroups:
+  - pixiv.net
+  resources:
+  - cronjobs
+  - jobs
+  - podprofiles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - pixiv.net
+  resources:
+  - cronjobs/finalizers
+  - jobs/finalizers
+  - podprofiles/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - pixiv.net
+  resources:
+  - cronjobs/status
+  - jobs/status
+  - podprofiles/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - pixiv.net
+  resources:
+  - podProfiles
+  verbs:
+  - get
+  - list
+  - watch

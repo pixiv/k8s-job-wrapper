@@ -1,0 +1,15 @@
+apiVersion: pixiv.net/v1
+kind: PodProfile
+metadata:
+  labels:
+    app.kubernetes.io/name: k8s-job-wrapper
+    app.kubernetes.io/managed-by: kustomize
+  name: podprofile-simple
+spec:
+  template:
+    spec:
+      containers:
+        - name: pi
+          image: perl:5.34.0
+          command: ["perl", "-Mbignum=bpi", "-wle", "print bpi(100)"]
+      restartPolicy: Never

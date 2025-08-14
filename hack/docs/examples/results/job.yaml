@@ -1,0 +1,79 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: "2025-04-21T07:58:23Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/created-by: pixiv-job-controller
+    jobs.pixiv.net/job-spec-hash: 7dc5d648b9
+    jobs.pixiv.net/name: job-sample
+    pod-template-hash: 76bbc6b896
+  name: job-sample-76bbc6b896
+  namespace: default
+  ownerReferences:
+  - apiVersion: pixiv.net/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Job
+    name: job-sample
+    uid: 6d239c5f-8b88-47d2-8983-5d1b190d90e9
+  resourceVersion: "10518"
+  uid: 44d44c3f-78d2-416c-8638-3f375dce7aea
+spec:
+  activeDeadlineSeconds: 120
+  backoffLimit: 6
+  completionMode: NonIndexed
+  completions: 1
+  manualSelector: false
+  parallelism: 1
+  podReplacementPolicy: TerminatingOrFailed
+  selector:
+    matchLabels:
+      batch.kubernetes.io/controller-uid: 44d44c3f-78d2-416c-8638-3f375dce7aea
+  suspend: false
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        batch.kubernetes.io/controller-uid: 44d44c3f-78d2-416c-8638-3f375dce7aea
+        batch.kubernetes.io/job-name: job-sample-76bbc6b896
+        controller-uid: 44d44c3f-78d2-416c-8638-3f375dce7aea
+        job-name: job-sample-76bbc6b896
+    spec:
+      containers:
+      - command:
+        - perl
+        - -Mbignum=bpi
+        - -wle
+        - print bpi(100)
+        image: perl:5.34.0
+        imagePullPolicy: IfNotPresent
+        name: pi
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  completionTime: "2025-04-21T07:58:26Z"
+  conditions:
+  - lastProbeTime: "2025-04-21T07:58:26Z"
+    lastTransitionTime: "2025-04-21T07:58:26Z"
+    message: Reached expected number of succeeded pods
+    reason: CompletionsReached
+    status: "True"
+    type: SuccessCriteriaMet
+  - lastProbeTime: "2025-04-21T07:58:26Z"
+    lastTransitionTime: "2025-04-21T07:58:26Z"
+    message: Reached expected number of succeeded pods
+    reason: CompletionsReached
+    status: "True"
+    type: Complete
+  ready: 0
+  startTime: "2025-04-21T07:58:23Z"
+  succeeded: 1
+  terminating: 0
+  uncountedTerminatedPods: {}

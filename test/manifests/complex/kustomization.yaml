@@ -1,0 +1,3 @@
+resources:
+- v1_podprofile.yaml
+- v1_job.yaml

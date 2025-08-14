@@ -1,0 +1,17 @@
+apiVersion: pixiv.net/v1
+kind: Job
+metadata:
+  labels:
+    app.kubernetes.io/name: k8s-job-wrapper
+    app.kubernetes.io/managed-by: kustomize
+  name: job-complex
+spec:
+  profile:
+    podProfileRef: podprofile-complex
+    patches:
+      - op: add
+        path: /spec/containers/-
+        value:
+          name: complex
+          image: perl:5.34.0
+          command: ["perl", "-Mbignum=bpi", "-wle", "print bpi(10)"]

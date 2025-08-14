@@ -1,0 +1,17 @@
+apiVersion: pixiv.net/v1
+kind: CronJob
+metadata:
+  labels:
+    app.kubernetes.io/name: k8s-job-wrapper
+    app.kubernetes.io/managed-by: kustomize
+  name: cronjob-sample
+spec:
+  schedule: "* * * * *"
+  jobProfile:
+    podProfileRef: podprofile-sample
+    patches:
+      - op: replace
+        path: /spec/containers/0/command
+        value: ["perl", "-Mbignum=bpi", "-wle", "print bpi(10)"]
+    jobParams:
+      activeDeadlineSeconds: 120

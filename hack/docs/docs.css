@@ -1,0 +1,17 @@
+table {
+  border-collapse: collapse; /* 隣接するボーダーを重ねて一本線にする */
+  width: 100%;
+}
+
+th, td {
+  padding: 8px;
+  text-align: left;
+}
+
+tbody tr {
+  border-bottom: 1px solid #eee8d5; /* solarized lightのベース背景色に近い色 */
+}
+
+tbody tr:last-child {
+  border-bottom: none; /* 最後の行の下線は不要 */
+}

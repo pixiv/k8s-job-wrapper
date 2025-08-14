@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#
+# kubectl を呼ぶ箇所が多いのでバイパスを定義しておく
+#
+
+readonly d="$(cd "$(dirname "$0")" || exit ; pwd)"
+"${d}/tools.sh" kubectl "$@"
