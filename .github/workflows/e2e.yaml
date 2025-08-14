@@ -24,7 +24,5 @@ jobs:
           node_image: '${{ env.KIND_IMAGE_NAME }}'
       - name: Build
         run: make docker-build
-      - name: Check
-        run: docker images
       - name: E2E test
         run: make test-e2e
