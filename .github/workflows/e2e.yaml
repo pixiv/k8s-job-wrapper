@@ -19,7 +19,6 @@ jobs:
         with:
           version: '${{ env.GO_VERSION }}'
       - name: Setup kind
-        id: setup-kind
         uses: ./.github/actions/setup-kind
         with:
           node_image: '${{ env.KIND_IMAGE_NAME }}'
@@ -29,8 +28,8 @@ jobs:
       - name: Build
         uses: docker/build-push-action@v6
         with:
-          push: true
-          tags: '${{ steps.setup-kind.outputs.registry }}/${{ env.CONTROLLER_IMAGE_NAME }}'
+          load: true
+          tags: '${{ env.CONTROLLER_IMAGE_NAME }}'
           build-args: |
             GO_VERSION=${{ env.GO_VERSION }}
             KUBECTL_VERSION=${{ env.KUBECTL_VERSION }}
@@ -38,5 +37,3 @@ jobs:
         run: docker images
       - name: E2E test
         run: make test-e2e
-        env:
-          CONTROLLER_IMAGE_NAME: '${{ steps.setup-kind.outputs.registry }}/${{ env.CONTROLLER_IMAGE_NAME }}'
