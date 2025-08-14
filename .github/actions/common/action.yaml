@@ -1,0 +1,9 @@
+name: Comon
+description: Common setup
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v5
+    - name: Import environment variables
+      run: |
+        cat ".github/.env" >> "$GITHUB_ENV"

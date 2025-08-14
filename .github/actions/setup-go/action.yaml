@@ -1,0 +1,21 @@
+name: Go Setup
+description: Install Go
+inputs:
+  version:
+    description: "go version"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install Go
+      uses: actions/setup-go@v5
+      id: setup-go
+      with:
+        go-version: '${{ inputs.version }}'
+        cache-dependency-path: |
+          go.sum
+          hack/tools/go.sum
+          hack/go-licenses/go.sum
+    - name: Download go modules
+      if: ${{ steps.setup-go.outputs.cache-hit != 'true' }}
+      run: go mod download

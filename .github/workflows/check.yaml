@@ -1,0 +1,21 @@
+name: Check
+on:
+  pull_request:
+  push:
+    branches:
+      - 'main'
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup common
+        uses: ./.github/actions/common/action.yaml
+      - name: Setup go
+        uses: ./.github/actions/setup-go/action.yaml
+        with:
+          version: '${{ env.GO_VERSION }}'
+      - name: Lint
+        run: make lint
