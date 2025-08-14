@@ -69,7 +69,7 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: test
-test: manifests generate fmt vet ## Run tests.
+test: manifests generate ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST))" go test -v $$(go list ./... | grep -v /e2e) -coverprofile cover.out
 
 # TODO(user): To use a different vendor for e2e tests, modify the setup under 'tests/e2e'.
@@ -77,7 +77,7 @@ test: manifests generate fmt vet ## Run tests.
 # CertManager is installed by default; skip with:
 # - CERT_MANAGER_INSTALL_SKIP=true
 .PHONY: test-e2e
-test-e2e: manifests generate fmt vet ## Run the e2e tests. Expected an isolated environment using Kind.
+test-e2e: manifests generate ## Run the e2e tests. Expected an isolated environment using Kind.
 	@command -v kind >/dev/null 2>&1 || { \
 		echo "Kind is not installed. Please install Kind manually."; \
 		exit 1; \
@@ -95,11 +95,11 @@ endif
 	go test ./test/e2e/ -v -ginkgo.v
 
 .PHONY: lint
-lint: lint-plugins lint-licenses ## Run golangci-lint linter
+lint: lint-plugins lint-licenses fmt vet ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run
 
 .PHONY: lint-fix
-lint-fix: lint-plugins ## Run golangci-lint linter and perform fixes
+lint-fix: lint-plugins fmt vet ## Run golangci-lint linter and perform fixes
 	$(GOLANGCI_LINT) run --fix
 
 .PHONY: lint-config
