@@ -17,7 +17,11 @@ jobs:
       - name: Setup common
         uses: ./.github/actions/common
       - name: Login to ghcr
-        uses: ./.github/actions/docker-login-ghcr
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup buildx
         uses: ./.github/actions/setup-buildx
       - name: Docker meta
