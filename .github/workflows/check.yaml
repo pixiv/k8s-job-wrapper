@@ -11,6 +11,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v5
       - name: Setup common
         uses: ./.github/actions/common/action.yaml
       - name: Setup go
