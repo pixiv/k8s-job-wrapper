@@ -7,12 +7,19 @@ inputs:
   kubectl_version:
     description: "The kubectl version to use"
     required: true
+outputs:
+  registry:
+    description: "The local registry address"
+    value: ${{ steps.kind.outputs.LOCAL_REGISTRY }}
 runs:
   using: "composite"
   steps:
     - name: Create kind cluster
+      id: kind
       uses: helm/kind-action@v1.12.0
       with:
+        registry: true
+        registry_enable_delete: true
         cluster_name: kind
         node_image: '${{ inputs.node_image }}'
         kubectl_version: '${{ inputs.kubectl_version }}'
