@@ -4,15 +4,16 @@ inputs:
   node_image:
     description: "The Docker image for the cluster nodes"
     required: true
-  kubectl_version:
-    description: "The kubectl version to use"
-    required: true
 runs:
   using: "composite"
   steps:
+    - name: Install kind
+      shell: bash
+      run: |
+        curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
+        chmod +x ./kind
+        sudo mv ./kind /usr/local/bin/kind
+        kind version
     - name: Create kind cluster
-      uses: helm/kind-action@v1.12.0
-      with:
-        cluster_name: kind
-        node_image: '${{ inputs.node_image }}'
-        kubectl_version: '${{ inputs.kubectl_version }}'
+      shell: bash
+      run: kind create cluster --image '${{ inputs.node_image }}'

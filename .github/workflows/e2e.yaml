@@ -22,17 +22,8 @@ jobs:
         uses: ./.github/actions/setup-kind
         with:
           node_image: '${{ env.KIND_IMAGE_NAME }}'
-          kubectl_version: '${{ env.KUBECTL_VERSION }}'
-      - name: Setup buildx
-        uses: ./.github/actions/setup-buildx
       - name: Build
-        uses: docker/build-push-action@v6
-        with:
-          load: true
-          tags: '${{ env.CONTROLLER_IMAGE_NAME }}'
-          build-args: |
-            GO_VERSION=${{ env.GO_VERSION }}
-            KUBECTL_VERSION=${{ env.KUBECTL_VERSION }}
+        run: make docker-build
       - name: Check
         run: docker images
       - name: E2E test
