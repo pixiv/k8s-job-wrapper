@@ -1,14 +1,15 @@
 name: E2E Test
+permissions: {}
 on:
   pull_request:
   push:
     branches:
       - 'main'
-permissions:
-  contents: read
 
 jobs:
   test:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

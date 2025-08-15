@@ -1,16 +1,17 @@
 name: Publish container image
+permissions: {}
 on:
   push:
     branches:
       - 'main'
     tags:
       - 'v*'
-permissions:
-  packages: write
-  contents: read
 
 jobs:
   publish:
+    permissions:
+      packages: write # for ghcr
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
