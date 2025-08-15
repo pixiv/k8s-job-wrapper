@@ -9,7 +9,6 @@ runs:
   steps:
     - name: Install Go
       uses: actions/setup-go@v5.5.0
-      id: setup-go
       with:
         go-version: '${{ inputs.version }}'
         check-latest: true
@@ -18,6 +17,8 @@ runs:
           hack/tools/go.sum
           hack/go-licenses/go.sum
     - name: Download go modules
-      if: ${{ steps.setup-go.outputs.cache-hit != 'true' }}
       shell: bash
-      run: go mod download
+      run: |
+        go mod download
+        go -C hack/tools mod download
+        go -C hack/go-licenses mod download
