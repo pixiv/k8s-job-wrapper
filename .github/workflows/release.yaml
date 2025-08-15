@@ -109,7 +109,7 @@ jobs:
         uses: ./.github/actions/setup-kind
         with:
           node_image: '${{ env.KIND_NODE_IMAGE }}'
-      - name: Install chart
+      - name: Install chart for testing
         run: |
           ./hack/tools.sh helm install test "${{ needs.generate.outputs.chart-package-file }}"
       - name: Check status
