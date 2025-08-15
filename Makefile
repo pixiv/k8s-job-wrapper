@@ -1,7 +1,7 @@
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 # Image URL to use all building/pushing image targets
-IMG = $(CONTROLLER_IMAGE)
+IMG = $(CONTROLLER_IMAGE_NAME):$(CONTROLLER_IMAGE_TAG)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
