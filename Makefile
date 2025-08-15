@@ -133,7 +133,7 @@ docker-build: ## Build docker image with the manager.
 
 .PHONY: chart-local
 chart-local: ## Build helm chart for development
-	$(HACK)/chart/make.sh 0.0.0-dev $(CONTROLLER_IMAGE_NAME) $(CONTROLLER_IMAGE_TAG) $(CHART_PACKAGE_DIR)
+	$(HACK)/chart/make.sh 0.0.0 $(CONTROLLER_IMAGE_NAME) $(CONTROLLER_IMAGE_TAG) $(CHART_PACKAGE_DIR)
 
 ##@ Deployment
 
