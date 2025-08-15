@@ -131,6 +131,10 @@ run: manifests generate fmt vet ## Run a controller from your host.
 docker-build: ## Build docker image with the manager.
 	$(CONTAINER_TOOL) build -t ${IMG} --build-arg GO_VERSION=$(GO_VERSION) --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) .
 
+.PHONY: chart-local
+chart-local: ## Build helm chart for development
+	$(HACK)/chart/make.sh 0.0.0-dev $(CONTROLLER_IMAGE_NAME) $(CONTROLLER_IMAGE_TAG) $(CHART_PACKAGE_DIR)
+
 ##@ Deployment
 
 ifndef ignore-not-found
