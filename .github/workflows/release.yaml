@@ -1,17 +1,17 @@
 name: Release chart
 permissions: {}
 on:
-  push:
-    branches:
-      - 'main'
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: [Publish container image]
+    types:
+      - completed
 
 jobs:
   generate:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     outputs:
       chart-package-file: ${{ steps.generate-chart.outputs.chart-package-file }}
     steps:
