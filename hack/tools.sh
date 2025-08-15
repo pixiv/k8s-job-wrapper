@@ -26,6 +26,10 @@ readonly bind="${d}/../bin"
 mkdir -p "${bind}"
 readonly binary="${bind}/${name}"
 case "$name" in
+    "helm")
+        # helm は tool に取り込むとビルドに時間がかかったのでバイナリを落としてくる
+        "${d}/setup-helm.sh" "$HELM_VERSION"
+        ;;
     "go-licenses")
         # tools/ に追加すると go version が古いせいかビルドが通らないので分離している
         "${d}/setup-go-licenses.sh"
