@@ -90,7 +90,7 @@ ifeq ($(CI),true)
 else
 	@echo "To avoid errors caused by pre-existing resources in the kind cluster before make test-e2e, we will recreate the cluster."
 	kind delete cluster || true
-	kind create cluster --image $(KIND_IMAGE_NAME)
+	kind create cluster --image $(KIND_NODE_IMAGE)
 endif
 	go test ./test/e2e/ -v -ginkgo.v
 
@@ -164,7 +164,7 @@ delete-controller:
 
 .PHONY: deploy-local
 deploy-local: ## Install CRDs and deploy controller into the kind cluster.
-	$(HACK)/deploy-local.sh $(KIND_IMAGE_NAME) $(CONTROLLER_IMAGE_NAME)
+	$(HACK)/deploy-local.sh $(KIND_NODE_IMAGE) $(CONTROLLER_IMAGE_NAME)
 
 ##@ Dependencies
 
