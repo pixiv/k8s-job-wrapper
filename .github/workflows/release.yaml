@@ -1,0 +1,80 @@
+name: Release chart
+permissions: {}
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
+
+jobs:
+  generate:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    outputs:
+      chart-package-file: ${{ steps.generate-chart.outputs.chart-package-file }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup common
+        uses: ./.github/actions/common
+      - name: Setup go
+        uses: ./.github/actions/setup-go
+        with:
+          version: '${{ env.GO_VERSION }}'
+      - name: Setup chart meta for release
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          # remove 'v' for chart version
+          echo "RELEASE_CHART_VERSION=${GITHUB_REF_NAME#v}" >> "$GIHUB_ENV"
+          echo "RELEASE_IMAGE_NAME=$PUBLISH_CONTROLLER_IMAGE_NAME" >> "$GIHUB_ENV"
+          echo "RELEASE_IMAGE_TAG=$GITHUB_REF_NAME" >> "$GIHUB_ENV"
+      - name: Setup chart meta for testing
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          echo "RELEASE_CHART_VERSION=0.0.0" >> "$GIHUB_ENV"
+          echo "RELEASE_IMAGE_NAME=$CONTROLLER_IMAGE_NAME" >> "$GIHUB_ENV"
+          echo "RELEASE_IMAGE_TAG=$CONTROLLER_IMAGE_TAG" >> "$GIHUB_ENV"
+      - name: Generate chart
+        id: generate-chart
+        run: |
+          ./hack/chart/make.sh "$RELEASE_CHART_VERSION" "$RELEASE_IMAGE_NAME" "$RELEASE_IMAGE_TAG" "$CHART_PACKAGE_DIR"
+          name="k8s-job-wrapper-${RELEASE_CHART_VERSION}.tgz"
+          echo "chart-package-file=${name}" >> "$GITHUB_OUTPUT"
+          echo "chart-package-path=${CHART_PACKAGE_DIR}/${name}" >> "$GITHUB_OUTPUT"
+      - name: Upload chart package
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: chart-package
+          path: ${{ steps.generate-chart.outputs.chart-package-path }}
+          retention-days: 1
+
+  publish:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    needs:
+      - generate
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Setup common
+        uses: ./.github/actions/common
+      - name: Setup go
+        uses: ./.github/actions/setup-go
+        with:
+          version: '${{ env.GO_VERSION }}'
+      - name: Download chart package
+        uses: actions/download-artifact@v5
+        with:
+          name: chart-package
+      - name: Setup kind
+        uses: ./.github/actions/setup-kind
+        with:
+          node_image: '${{ env.KIND_NODE_IMAGE }}'
+      - name: Install chart
+        run: |
+          ./hack/tools.sh helm install test "${{ needs.generate.outputs.chart-package-file }}"
+      - name: Check status
+        run: ./hack/tools.sh helm status test
