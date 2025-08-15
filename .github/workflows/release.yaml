@@ -9,7 +9,7 @@ on:
 
 jobs:
   publish:
-    name: Publish container image
+    name: Build container image and publish on push tag
     permissions:
       packages: write # for ghcr
       contents: read
@@ -86,7 +86,7 @@ jobs:
           retention-days: 1
 
   release:
-    name: Release chart
+    name: Release chart on push tag
     permissions:
       contents: read
     runs-on: ubuntu-latest
