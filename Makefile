@@ -1,7 +1,7 @@
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 # Image URL to use all building/pushing image targets
-IMG = $(CONTROLLER_IMAGE_NAME)
+IMG = $(CONTROLLER_IMAGE)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -164,7 +164,7 @@ delete-controller:
 
 .PHONY: deploy-local
 deploy-local: ## Install CRDs and deploy controller into the kind cluster.
-	$(HACK)/deploy-local.sh $(KIND_NODE_IMAGE) $(CONTROLLER_IMAGE_NAME)
+	$(HACK)/deploy-local.sh $(KIND_NODE_IMAGE) ${IMG}
 
 ##@ Dependencies
 
