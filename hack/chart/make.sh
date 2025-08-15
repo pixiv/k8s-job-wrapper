@@ -71,4 +71,5 @@ fi
 
 generate_chart
 edit_chart "$chart_version" "$controller_image_repo" "$controller_image_tag"
+helm lint --strict "$chartd"
 helm package --destination "$destination" "$chartd"
