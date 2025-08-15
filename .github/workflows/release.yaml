@@ -88,7 +88,8 @@ jobs:
   release:
     name: Release chart on push tag
     permissions:
-      contents: read
+      packages: write # for ghcr
+      contents: write # for github release
     runs-on: ubuntu-latest
     needs:
       - generate
@@ -114,3 +115,17 @@ jobs:
           ./hack/tools.sh helm install test "${{ needs.generate.outputs.chart-package-file }}"
       - name: Check status
         run: ./hack/tools.sh helm status test
+      - name: Fetch history
+        run: git fetch --prune --unshallow
+      - name: Login to ghcr
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push chart
+        run: |
+          ./hack/tools.sh helm push "${{ needs.generate.outputs.chart-package-file }}" "oci://ghcr.io/pixiv/k8s-job-wrapper/charts"
+      - name: Create release
+        run: |
+          gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes "${{ needs.generate.outputs.chart-package-file }}"
