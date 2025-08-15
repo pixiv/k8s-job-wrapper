@@ -30,7 +30,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.PUBLISH_IMAGE_NAME }}
+            ${{ env.PUBLISH_CONTROLLER_IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=semver,pattern={{raw}}
