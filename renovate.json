@@ -38,7 +38,7 @@
   "packageRules": [
     {
       "description": "Group github-actions dependencies",
-      "groupName": "github-actions({{depName}})",
+      "groupName": "github-actions({{packageName}})",
       "addLabels": ["github-actions"],
       "matchManagers": ["github-actions"]
     },
