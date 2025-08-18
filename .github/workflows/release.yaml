@@ -157,7 +157,7 @@ jobs:
           echo "docs-package-path=${CRD_DOCS_DIR}" >> "$GITHUB_OUTPUT"
       - name: Upload CRD document
         id: upload
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ steps.generate-docs.outputs.docs-package-path }}/
       - name: Deploy to GitHub Pages
