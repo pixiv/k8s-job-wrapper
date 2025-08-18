@@ -48,7 +48,11 @@
       "groupName": "docker({{updateType}}): {{depName}}",
       "matchUpdateTypes": ["digest", "pin", "patch", "minor", "major"],
       "addLabels": ["docker"],
-      "matchDatasources": ["docker"]
+      "matchDatasources": ["docker"],
+      "matchDepNames": [
+        "*",
+        "!golang"
+      ]
     },
     {
       "description": "Group go dependencies",
@@ -66,7 +70,8 @@
       "groupName": "go-version({{updateType}})",
       "matchUpdateTypes": ["digest", "pin", "patch", "minor", "major"],
       "addLabels": ["go-version"],
-      "matchDepNames": ["go"]
+      "matchDepNames": ["go", "golang"],
+      "matchDatasources": ["go", "docker"]
     }
   ],
   "customManagers":[
