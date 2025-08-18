@@ -44,7 +44,7 @@
     },
     {
       "description": "Group docker dependencies",
-      "groupName": "docker({{depName}})",
+      "groupName": "docker({{updateType}}): {{depName}}",
       "addLabels": ["docker"],
       "matchDatasources": ["docker"],
       "matchDepNames": [
