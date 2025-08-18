@@ -35,13 +35,10 @@
   "major": {
     "addLabels": ["major"]
   },
+  "github-actions": {
+    "enabled": false
+  },
   "packageRules": [
-    {
-      "description": "Group github-actions dependencies",
-      "groupName": "github-actions({{packageName}})",
-      "addLabels": ["github-actions"],
-      "matchManagers": ["github-actions"]
-    },
     {
       "description": "Group docker dependencies",
       "groupName": "docker({{updateType}}): {{depName}}",
