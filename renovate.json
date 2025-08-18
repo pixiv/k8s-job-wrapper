@@ -54,7 +54,7 @@
     },
     {
       "description": "Group go dependencies",
-      "groupName": "go in {{packageFile}}",
+      "groupName": "go({{updateType}}) in {{packageFile}}",
       "addLabels": ["go"],
       "matchDatasources": ["go"],
       "matchDepNames": [
