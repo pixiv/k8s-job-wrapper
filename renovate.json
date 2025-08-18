@@ -10,7 +10,8 @@
     ":prConcurrentLimitNone",
     ":rebaseStalePrs",
     ":disableDependencyDashboard",
-    "helpers:pinGitHubActionDigests"
+    "helpers:pinGitHubActionDigests",
+    "schedule:monthly"
   ],
   "platformAutomerge": true,
   "fetchChangeLogs": "off",
