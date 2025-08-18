@@ -18,6 +18,7 @@
   "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
   "postUpdateOptions": ["gomodTidy"],
+  "ignorePaths": ["config/manager/*"],
   "digest": {
     "addLabels": ["digest"]
   },
