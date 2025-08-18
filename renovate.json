@@ -137,7 +137,7 @@
       "description": "Manage kind node version",
       "customType": "regex",
       "fileMatch": ["^.github/.env$"],
-      "matchStrings":["KIND_NODE_IMAGE=kindest/node:(?<currentValue>v\\d+\\.\\d+\\.\\d@sha256:.+)"],
+      "matchStrings":["KIND_NODE_IMAGE=kindest/node:(?<currentValue>v\\d+\\.\\d+\\.\\d)"],
       "datasourceTemplate": "docker",
       "depNameTemplate": "kindest/node"
     },
