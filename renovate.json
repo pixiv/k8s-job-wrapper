@@ -60,9 +60,9 @@
       "matchUpdateTypes": ["major"]
     },
     {
-      "description": "Group dependencies in hack/",
-      "groupName": "hack",
-      "addLabels": ["hack"]
+      "description": "Add hack label to dependencies in hack/",
+      "addLabels": ["hack"],
+      "matchFileNames": ["hack/**"]
     },
     {
       "description": "Group dependencies in go-licenses/",
