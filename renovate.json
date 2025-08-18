@@ -1,0 +1,153 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "baseBranches": ["main"],
+  "assignees": ["lyluck-pixiv"],
+  "extends": [
+    "config:recommended",
+    ":label(renovate)",
+    ":timezone(Asia/Tokyo)",
+    ":prHourlyLimitNone",
+    ":prConcurrentLimitNone",
+    ":rebaseStalePrs",
+    ":disableDependencyDashboard",
+    "helpers:pinGitHubActionDigests",
+    "schedule:monthly"
+  ],
+  "platformAutomerge": true,
+  "fetchChangeLogs": "off",
+  "rangeStrategy": "auto",
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+  "postUpdateOptions": ["gomodTidy"],
+  "ignorePaths": ["config/manager/*"],
+  "digest": {
+    "addLabels": ["digest"]
+  },
+  "pin": {
+    "addLabels": ["pin"]
+  },
+  "patch": {
+    "addLabels": ["patch"]
+  },
+  "minor": {
+    "addLabels": ["minor"]
+  },
+  "major": {
+    "addLabels": ["major"]
+  },
+  "packageRules": [
+    {
+      "description": "Group digest dependencies",
+      "groupName": "digest",
+      "matchUpdateTypes": ["digest"]
+    },
+    {
+      "description": "Group pin dependencies",
+      "groupName": "pin",
+      "matchUpdateTypes": ["pin"]
+    },
+    {
+      "description": "Group patch dependencies",
+      "groupName": "patch",
+      "matchUpdateTypes": ["patch"]
+    },
+    {
+      "description": "Group minor dependencies",
+      "groupName": "minor",
+      "matchUpdateTypes": ["minor"]
+    },
+    {
+      "description": "Group major dependencies",
+      "groupName": "major",
+      "matchUpdateTypes": ["major"]
+    },
+    {
+      "description": "Add hack label to dependencies in hack/",
+      "addLabels": ["hack"],
+      "matchFileNames": ["hack/**"]
+    },
+    {
+      "description": "Group dependencies in go-licenses/",
+      "groupName": "go-licenses",
+      "addLabels": ["go-licenses"],
+      "matchFileNames": ["go-licenses/*"]
+    },
+    {
+      "description": "Group dependencies in tools/",
+      "groupName": "tools",
+      "addLabels": ["tools"],
+      "matchFileNames": ["tools/*"]
+    },
+    {
+      "description": "Group go dependencies",
+      "groupName": "go",
+      "addLabels": ["go"],
+      "matchDatasources": ["go"],
+      "matchDepNames": [
+        "*",
+        "!go"
+      ]
+    },
+    {
+      "description": "Group golang version",
+      "groupName": "go-version",
+      "addLabels": ["go-version"],
+      "matchDepNames": ["go"]
+    },
+    {
+      "description": "Group docker dependencies",
+      "groupName": "docker",
+      "addLabels": ["docker"],
+      "matchDatasources": ["docker"]
+    },
+    {
+      "description": "Group github-actions dependencies",
+      "groupName": "github-actions: {{depName}}",
+      "addLabels": ["github-actions"],
+      "matchManagers": ["github-actions"]
+    }
+  ],
+  "customManagers":[
+    {
+      "description": "Manage go version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings": ["^GO_VERSION=(?<currentValue>\\d+\\.\\d+)$"],
+      "datasourceTemplate": "go",
+      "depNameTemplate": "go",
+      "versioningTemplate": "go-mod"
+    },
+    {
+      "description": "Manage helm version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["^HELM_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d)$"],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "helm/helm"
+    },
+    {
+      "description": "Manage kubectl version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["^KUBECTL_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d)$"],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "kubernetes/kubernetes"
+    },
+    {
+      "description": "Manage kind node version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["^KIND_NODE_IMAGE=kindest/node:(?<currentValue>v\\d+\\.\\d+\\.\\d@sha256:.+)$"],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "kindest/node"
+    },
+    {
+      "description": "Manage pandoc version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["^PANCOD_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d)$"],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "jgm/pandoc"
+    }
+  ]
+}
