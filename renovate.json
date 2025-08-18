@@ -110,7 +110,7 @@
     {
       "description": "Manage go version",
       "customType": "regex",
-      "fileMatch": ["^.env$"],
+      "fileMatch": ["^.github/.env$"],
       "matchStrings": ["^GO_VERSION=(?<currentValue>\\d+\\.\\d+)$"],
       "datasourceTemplate": "go",
       "depNameTemplate": "go",
@@ -119,7 +119,7 @@
     {
       "description": "Manage helm version",
       "customType": "regex",
-      "fileMatch": ["^.env$"],
+      "fileMatch": ["^.github/.env$"],
       "matchStrings":["^HELM_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d)$"],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "helm/helm"
@@ -127,7 +127,7 @@
     {
       "description": "Manage kubectl version",
       "customType": "regex",
-      "fileMatch": ["^.env$"],
+      "fileMatch": ["^.github/.env$"],
       "matchStrings":["^KUBECTL_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d)$"],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "kubernetes/kubernetes"
@@ -135,7 +135,7 @@
     {
       "description": "Manage kind node version",
       "customType": "regex",
-      "fileMatch": ["^.env$"],
+      "fileMatch": ["^.github/.env$"],
       "matchStrings":["^KIND_NODE_IMAGE=kindest/node:(?<currentValue>v\\d+\\.\\d+\\.\\d@sha256:.+)$"],
       "datasourceTemplate": "docker",
       "depNameTemplate": "kindest/node"
@@ -143,7 +143,7 @@
     {
       "description": "Manage pandoc version",
       "customType": "regex",
-      "fileMatch": ["^.env$"],
+      "fileMatch": ["^.github/.env$"],
       "matchStrings":["^PANCOD_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d)$"],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "jgm/pandoc"
