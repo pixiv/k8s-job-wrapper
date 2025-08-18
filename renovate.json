@@ -80,7 +80,11 @@
       "description": "Group go dependencies",
       "groupName": "go",
       "addLabels": ["go"],
-      "matchDatasources": ["go"]
+      "matchDatasources": ["go"],
+      "matchDepNames": [
+        "*",
+        "!go"
+      ]
     },
     {
       "description": "Group golang version",
@@ -106,9 +110,9 @@
       "description": "Manage go version",
       "customType": "regex",
       "fileMatch": ["^.env$"],
-      "matchManagers": ["gomod"],
       "matchStrings": ["^GO_VERSION=(?<currentValue>\\d+\\.\\d+)$"],
-      "matchDepNames": ["go"],
+      "datasourceTemplate": "go",
+      "depNameTemplate": "go",
       "versioning": "go-mod"
     },
     {
