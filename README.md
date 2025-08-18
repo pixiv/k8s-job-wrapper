@@ -1,6 +1,6 @@
 # k8s-job-wrapper
 
-`batch/v1 Job` や `batch/v1 CronJob` をテンプレート化して使いやすくする CRD を提供します
+`Job` や `CronJob` をテンプレート化して使いやすくする CRD を提供します
 
 > [!WARNING]
 > This repository does not actively accept external contributions.
