@@ -37,52 +37,52 @@
   },
   "packageRules": [
     {
-      "description": "Group digest dependencies",
-      "groupName": "digest",
-      "matchUpdateTypes": ["digest"]
+      "description": "Group github-actions dependencies",
+      "groupName": "github-actions({{updateType}}): {{depName}}",
+      "matchUpdateTypes": ["digest", "pin", "patch", "minor", "major"],
+      "addLabels": ["github-actions"],
+      "matchManagers": ["github-actions"]
     },
     {
-      "description": "Group pin dependencies",
-      "groupName": "pin",
-      "matchUpdateTypes": ["pin"]
-    },
-    {
-      "description": "Group patch dependencies",
-      "groupName": "patch",
-      "matchUpdateTypes": ["patch"]
-    },
-    {
-      "description": "Group minor dependencies",
-      "groupName": "minor",
-      "matchUpdateTypes": ["minor"]
-    },
-    {
-      "description": "Group major dependencies",
-      "groupName": "major",
-      "matchUpdateTypes": ["major"]
-    },
-    {
-      "description": "Add hack label to dependencies in hack/",
-      "addLabels": ["hack"],
-      "matchFileNames": ["hack/**"]
+      "description": "Group docker dependencies",
+      "groupName": "docker({{updateType}}): {{depName}}",
+      "matchUpdateTypes": ["digest", "pin", "patch", "minor", "major"],
+      "addLabels": ["docker"],
+      "matchDatasources": ["docker"]
     },
     {
       "description": "Group dependencies in go-licenses/",
-      "groupName": "go-licenses",
+      "groupName": "go-licenses({{updateType}})",
+      "matchUpdateTypes": ["digest", "pin", "patch", "minor", "major"],
       "addLabels": ["go-licenses"],
-      "matchFileNames": ["go-licenses/*"]
+      "matchFileNames": ["go-licenses/*"],
+      "matchDepNames": [
+        "*",
+        "!go"
+      ]
     },
     {
       "description": "Group dependencies in tools/",
-      "groupName": "tools",
+      "groupName": "tools({{updateType}})",
+      "matchUpdateTypes": ["digest", "pin", "patch", "minor", "major"],
       "addLabels": ["tools"],
-      "matchFileNames": ["tools/*"]
+      "matchFileNames": ["tools/*"],
+      "matchDepNames": [
+        "*",
+        "!go"
+      ]
     },
     {
       "description": "Group go dependencies",
       "groupName": "go",
+      "matchUpdateTypes": ["digest", "pin", "patch", "minor", "major"],
       "addLabels": ["go"],
       "matchDatasources": ["go"],
+      "matchFileNames": [
+        "*",
+        "!tools/*",
+        "!go-licenses/*"
+      ],
       "matchDepNames": [
         "*",
         "!go"
@@ -90,21 +90,10 @@
     },
     {
       "description": "Group golang version",
-      "groupName": "go-version",
+      "groupName": "go-version({{updateType}})",
+      "matchUpdateTypes": ["digest", "pin", "patch", "minor", "major"],
       "addLabels": ["go-version"],
       "matchDepNames": ["go"]
-    },
-    {
-      "description": "Group docker dependencies",
-      "groupName": "docker",
-      "addLabels": ["docker"],
-      "matchDatasources": ["docker"]
-    },
-    {
-      "description": "Group github-actions dependencies",
-      "groupName": "github-actions: {{depName}}",
-      "addLabels": ["github-actions"],
-      "matchManagers": ["github-actions"]
     }
   ],
   "customManagers":[
