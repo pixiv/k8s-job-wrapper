@@ -113,7 +113,7 @@
       "customType": "regex",
       "fileMatch": ["^.github/.env$"],
       "matchStrings": ["GO_VERSION=(?<currentValue>\\d+\\.\\d+)"],
-      "datasourceTemplate": "go",
+      "datasourceTemplate": "golang-version",
       "depNameTemplate": "go",
       "versioningTemplate": "go-mod"
     },
