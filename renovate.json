@@ -38,8 +38,7 @@
   "packageRules": [
     {
       "description": "Group github-actions dependencies",
-      "groupName": "github-actions({{depName}}): {{updateType}}",
-      "matchUpdateTypes": ["digest", "pin", "patch", "minor", "major"],
+      "groupName": "github-actions({{depName}})",
       "addLabels": ["github-actions"],
       "matchManagers": ["github-actions"]
     },
