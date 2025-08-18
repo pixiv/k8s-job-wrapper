@@ -51,38 +51,11 @@
       "matchDatasources": ["docker"]
     },
     {
-      "description": "Group dependencies in go-licenses/",
-      "groupName": "go-licenses({{updateType}})",
-      "matchUpdateTypes": ["digest", "pin", "patch", "minor", "major"],
-      "addLabels": ["go-licenses"],
-      "matchFileNames": ["go-licenses/*"],
-      "matchDepNames": [
-        "*",
-        "!go"
-      ]
-    },
-    {
-      "description": "Group dependencies in tools/",
-      "groupName": "tools({{updateType}})",
-      "matchUpdateTypes": ["digest", "pin", "patch", "minor", "major"],
-      "addLabels": ["tools"],
-      "matchFileNames": ["tools/*"],
-      "matchDepNames": [
-        "*",
-        "!go"
-      ]
-    },
-    {
       "description": "Group go dependencies",
-      "groupName": "go",
+      "groupName": "go({{updateType}}) in {{packageFileDir}}",
       "matchUpdateTypes": ["digest", "pin", "patch", "minor", "major"],
       "addLabels": ["go"],
       "matchDatasources": ["go"],
-      "matchFileNames": [
-        "*",
-        "!tools/*",
-        "!go-licenses/*"
-      ],
       "matchDepNames": [
         "*",
         "!go"
