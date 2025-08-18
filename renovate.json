@@ -113,7 +113,7 @@
       "matchStrings": ["^GO_VERSION=(?<currentValue>\\d+\\.\\d+)$"],
       "datasourceTemplate": "go",
       "depNameTemplate": "go",
-      "versioning": "go-mod"
+      "versioningTemplate": "go-mod"
     },
     {
       "description": "Manage helm version",
