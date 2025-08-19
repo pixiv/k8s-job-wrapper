@@ -15,7 +15,7 @@
 
 - [direnv](https://github.com/direnv/direnv)
 - [kind](https://github.com/kubernetes-sigs/kind)
-- go version v1.24.4+
+- go version v1.25.0+
 - docker version 28.3.2+.
 
 ## License

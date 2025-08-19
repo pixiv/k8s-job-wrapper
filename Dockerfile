@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.24
+ARG GO_VERSION=1.25
 # Build the manager binary
 FROM golang:$GO_VERSION AS builder
 ARG KUBECTL_VERSION=v1.32.3
