@@ -70,13 +70,13 @@ func (r *CronJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 	if !cronJob.DeletionTimestamp.IsZero() {
-		// finalizer による削除が開始されている
-		// https://kubernetes.io/ja/docs/concepts/overview/working-with-objects/finalizers/#%E3%83%95%E3%82%A1%E3%82%A4%E3%83%8A%E3%83%A9%E3%82%A4%E3%82%B6%E3%83%BC%E3%81%AF%E3%81%A9%E3%81%AE%E3%82%88%E3%81%86%E3%81%AB%E5%8B%95%E4%BD%9C%E3%81%99%E3%82%8B%E3%81%8B
+		// Finalizers are deleting the CronJob.
+		// https://kubernetes.io/docs/concepts/overview/working-with-objects/finalizers/
 		return ctrl.Result{}, nil
 	}
 
 	logger = logger.WithValues("podProfile", cronJob.Spec.Profile.PodProfileRef)
-	// cronjob が取得できたのでなんらかのステータスの更新をする
+
 	var (
 		updateStatus = func() error {
 			err := r.Status().Update(ctx, cronJob)
@@ -89,12 +89,11 @@ func (r *CronJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			meta.SetStatusCondition(&cronJob.Status.Conditions, cond)
 		}
 		setFailedConditions = func(message string) {
-			// available の方に理由を書く
 			setCondition(metav1.Condition{
 				Type:    string(pixivnetv1.CronJobAvailable),
 				Status:  metav1.ConditionFalse,
 				Reason:  "Reconciling",
-				Message: message,
+				Message: message, // Set the message to `Available`.
 			})
 			setCondition(metav1.Condition{
 				Type:   string(pixivnetv1.CronJobDegraded),
@@ -103,7 +102,7 @@ func (r *CronJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			})
 		}
 	)
-	// デフォルトを成功のステータスにする
+	// Set the default status to OK.
 	setCondition(metav1.Condition{
 		Type:   string(pixivnetv1.CronJobAvailable),
 		Status: metav1.ConditionTrue,

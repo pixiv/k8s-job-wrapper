@@ -37,14 +37,14 @@ const (
 	batchJobGroup   = "batch"
 	batchJobVersion = "v1"
 
-	// `jobs.v1.batch.spec` のハッシュを保持するラベル.
+	// A label that holds the hash of jobs.v1.batch.spec.
 	BatchJobLabelSpecHashKey = "jobs.pixiv.net/job-spec-hash"
-	// 何が起因で生成されたかを保持するラベル.
+	// A label to track the generation source.
 	BatchJobLabelCreatedBy      = "app.kubernetes.io/created-by"
 	BatchJobLabelCreatedByValue = "pixiv-job-controller"
-	// 生成元の [pixivnetv1.Job] の名前を保持するラベル.
+	// A label that holds the name of the source [pixivnetv1.Job].
 	BatchJobLabelName = "jobs.pixiv.net/name"
-	// TTLSecondsAfterFinished を保持するアノテーション
+	// An annotation that holds TTLSecondsAfterFinished.
 	BatchJobAnnotationTTLSecondsAfterFinished = "jobs.pixiv.net/ttl-seconds-after-finished"
 )
 
@@ -60,7 +60,7 @@ func BatchJobTTLSecondsAfterFinishedFromAnnotations(batchJob *batchv1.Job) (int3
 	return int32(ttl), true
 }
 
-// 生成される batch Job に付与するラベルのうちで batch Job 一覧取得するために利用するもの.
+// A label used to retrieve a list of the generated batch Jobs.
 func BatchJobLabelsForList(job *pixivnetv1.Job) map[string]string {
 	return map[string]string{
 		BatchJobLabelCreatedBy: BatchJobLabelCreatedByValue,
@@ -68,8 +68,8 @@ func BatchJobLabelsForList(job *pixivnetv1.Job) map[string]string {
 	}
 }
 
-// `jobs.v1.batch` を生成する.
-// [pixivnetv1.Job] から生成する際に特有のメタデータも付与する.
+// Create `jobs.v1.batch`.
+// Also add the metadata specific to resources generated from a [pixivnetv1.CronJob].
 func BatchJob(ctx context.Context, job *pixivnetv1.Job, podProfile *pixivnetv1.PodProfile, patcher kustomize.Patcher, scheme *runtime.Scheme) (*batchv1.Job, error) {
 	nextJobSpec, err := BatchJobSpec(ctx, &job.Spec.Profile, podProfile, patcher)
 	if err != nil {
@@ -80,59 +80,61 @@ func BatchJob(ctx context.Context, job *pixivnetv1.Job, podProfile *pixivnetv1.P
 	batchJob.Spec = *nextJobSpec
 
 	//
-	// metadata
+	// Metadata
 	//
 	batchJob.TypeMeta = metav1.TypeMeta{
 		APIVersion: batchJobGroup + "/" + batchJobVersion,
 		Kind:       batchJobKind,
 	}
 	batchJob.Namespace = job.Namespace
-	// ownerRefernce をつける
+	// Set ownerRefernce.
 	if err := ctrl.SetControllerReference(job, &batchJob, scheme); err != nil {
 		return nil, fmt.Errorf("failed to add owner reference to patched job: %w", err)
 	}
 	batchJob.Annotations = map[string]string{}
 	batchJob.Labels = map[string]string{}
-	// 追加のラベルとアノテーションを先に付与する
-	// controller のために必須なメタデータの上書きを回避する
+	// Apply additional labels and annotations first.
+	// This is to avoid overwriting essential metadata required by the controller.
 	for k, v := range job.Spec.Profile.Metadata.Annotations {
 		batchJob.Annotations[k] = v
 	}
 	for k, v := range job.Spec.Profile.Metadata.Labels {
 		batchJob.Labels[k] = v
 	}
-	// TTL をアノテーションに保存する
+	// Save TTL to the annotation.
 	if x := job.Spec.Profile.Params.TTLSecondsAfterFinished; x != nil {
 		batchJob.Annotations[BatchJobAnnotationTTLSecondsAfterFinished] = fmt.Sprintf("%d", *x)
 	}
 	for k, v := range BatchJobLabelsForList(job) {
 		batchJob.Labels[k] = v
 	}
-	// テンプレートのハッシュからジョブの名前を決める
+	// Create the name of the job from the hash of spec.template.
 	podTemplateHash := controller.ComputeHash(&batchJob.Spec.Template, job.Status.CollisionCount)
 	batchJob.Labels["pod-template-hash"] = podTemplateHash
 	batchJob.Name = job.Name + "-" + podTemplateHash
-	// spec の同一性を比較するためにハッシュを記録しておく
+	// Store the hash of the spec to compare for equality.
 	batchJob.Labels[BatchJobLabelSpecHashKey] = util.ComputeHash(&batchJob.Spec)
 
 	return &batchJob, nil
 }
 
-// `jobs.v1.batch.spec` を生成する.
+// Create `jobs.v1.batch.spec`.
 func BatchJobSpec(ctx context.Context, jobProfileSpec *pixivnetv1.JobProfileSpec, podProfile *pixivnetv1.PodProfile, patcher kustomize.Patcher) (*batchv1.JobSpec, error) {
 	var batchJob batchv1.Job
 
 	//
-	// metadata
+	// Metadata
 	//
 	batchJob.TypeMeta = metav1.TypeMeta{
 		APIVersion: batchJobGroup + "/" + batchJobVersion,
 		Kind:       batchJobKind,
 	}
-	batchJob.Name = "next-job" // 仮の名前. パッチをあてるために PatchRunner 呼び出しよりも前に設定する必要がある
+	// A placeholder name.
+	// This must be set before calling PatchRunner in order to apply the patch.
+	batchJob.Name = "next-job"
 
 	//
-	// Job トップレベルのパラメータを設定する
+	// Set the top-level parameters for the Job
 	//
 	var (
 		spec   = &batchJob.Spec
@@ -148,20 +150,20 @@ func BatchJobSpec(ctx context.Context, jobProfileSpec *pixivnetv1.JobProfileSpec
 	spec.MaxFailedIndexes = params.MaxFailedIndexes
 	spec.Selector = params.Selector
 	spec.ManualSelector = params.ManualSelector
-	// TTLSecondsAfterFinished は CRD Job 側で管理する
+	// CRD Job manages TTLSecondsAfterFinished.
 	// spec.TTLSecondsAfterFinished = params.TTLSecondsAfterFinished
 	spec.CompletionMode = params.CompletionMode
 	spec.Suspend = params.Suspend
 	spec.PodReplacementPolicy = params.PodReplacementPolicy
 	spec.ManagedBy = params.ManagedBy
-	spec.Template = podProfile.Spec.Template // パッチをあてる対象として podprofile をそのままセットする
+	spec.Template = podProfile.Spec.Template // Set the podprofile directly as the target for patching.
 
-	if len(jobProfileSpec.Patches) == 0 { // パッチがない場合はあてる必要がない
+	if len(jobProfileSpec.Patches) == 0 { // If no patch is provided, no action is necessary.
 		return &batchJob.Spec, nil
 	}
 
 	//
-	// batch Job にパッチをあてる
+	// Apply the patch to batch Job.
 	//
 	jobYaml, err := yaml.Marshal(batchJob)
 	if err != nil {
@@ -169,9 +171,9 @@ func BatchJobSpec(ctx context.Context, jobProfileSpec *pixivnetv1.JobProfileSpec
 	}
 	patches := jobProfileSpec.DeepCopy().Patches
 	for i := range patches {
-		// ユーザーは podprofile.spec.template つまり
-		// batch/v1.job.spec.template をパッチの path のルートとしてパッチを書いている
-		// path を書き換えて実際にそうなるよう調整する
+		// The user writes the patch assuming the root path is podprofile.spec.template,
+		// which is equivalent to batch/v1.job.spec.template.
+		// We rewrite the path to adjust for this and make it work as expected.
 		patches[i].Path = "/spec/template" + patches[i].Path
 	}
 

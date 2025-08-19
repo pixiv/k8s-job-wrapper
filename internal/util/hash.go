@@ -24,7 +24,7 @@ import (
 	hashutil "k8s.io/kubernetes/pkg/util/hash"
 )
 
-// オブジェクトをハッシュ化した安全な文字列にする.
+// Converts an object into a secure string by hashing it.
 func ComputeHash(v any) string {
 	hasher := fnv.New32a()
 	hashutil.DeepHashObject(hasher, v)

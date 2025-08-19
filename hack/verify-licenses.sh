@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Check for licenses that are not allowed
+# Check for licenses that are not allowed.
 #
 
 set -e

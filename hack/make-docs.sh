@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Generate CRD documents
+# Generate CRD documents.
 #
 
 set -e

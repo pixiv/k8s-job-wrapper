@@ -34,19 +34,19 @@ const (
 	batchCronJobVersion = "v1"
 
 	// BatchCronJobLabelSpecHashKey    = "cronjobs.pixiv.net/cronjob-spec-hash"
-	// 何が起因で生成されたかを保持するラベル.
+	// A label to track the generation source.
 	BatchCronJobLabelCreatedBy      = "app.kubernetes.io/created-by"
 	BatchCronJobLabelCreatedByValue = "pixiv-job-controller"
-	// 生成元の [pixivnetv1.CronJob] の名前を保持するラベル.
+	// A label that holds the name of the source [pixivnetv1.CronJob].
 	BatchCronJobLabelName = "cronjobs.pixiv.net/name"
 
-	// 生成する batch cronjob のサフィックス
-	// cronjob だと重複するケースが多そう
-	// 長くとも11文字以内にしたい(Job は11文字のサフィックスを使う)
+	// The suffix for the generated batch CronJob.
+	// Using just "cronjob" would likely result in many duplicate names.
+	// This should be 11 characters or less at most (since Job uses an 11-character suffix).
 	batchCronJobNameSuffix = "-pxvcjob"
 )
 
-// cronjob から batch cronjob の名前を作る.
+// Create the name of batch CronJob from CronJob.
 func BatchCronJobName(cronJob *pixivnetv1.CronJob) string {
 	return cronJob.Name + batchCronJobNameSuffix
 }
@@ -58,10 +58,10 @@ func BatchCronJobLabelsForList(cronJob *pixivnetv1.CronJob) map[string]string {
 	}
 }
 
-// `cronjobs.v1.batch` を生成する.
-// [pixivnetv1.CronJob] から生成された時の特有のメタデータも付与する.
+// Create `cronjobs.v1.batch`.
+// Also add the metadata specific to resources generated from a [pixivnetv1.CronJob].
 func BatchCronJob(ctx context.Context, cronJob *pixivnetv1.CronJob, podProfile *pixivnetv1.PodProfile, patcher kustomize.Patcher, scheme *runtime.Scheme) (*batchv1.CronJob, error) {
-	// cronjob.spec.jobTemplate を生成する
+	// Create cronjob.spec.jobTemplate
 	batchJobSpec, err := BatchJobSpec(ctx, &cronJob.Spec.Profile, podProfile, patcher)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func BatchCronJob(ctx context.Context, cronJob *pixivnetv1.CronJob, podProfile *
 	var batchCronJob batchv1.CronJob
 
 	//
-	// metadata
+	// Metadata
 	//
 	batchCronJob.TypeMeta = metav1.TypeMeta{
 		APIVersion: batchCronJobGroup + "/" + batchCronJobVersion,
@@ -78,15 +78,16 @@ func BatchCronJob(ctx context.Context, cronJob *pixivnetv1.CronJob, podProfile *
 	}
 	batchCronJob.Namespace = cronJob.Namespace
 	batchCronJob.Name = BatchCronJobName(cronJob)
-	// ownerRefernce をつける
+	// Set ownerRefernce.
 	if err := ctrl.SetControllerReference(cronJob, &batchCronJob, scheme); err != nil {
 		return nil, fmt.Errorf("failed to add owner reference to patched cron job: %w", err)
 	}
 
 	batchCronJob.Annotations = map[string]string{}
 	batchCronJob.Labels = map[string]string{}
-	// 追加のラベルとアノテーションを先に付与する
-	// controller のために必須なメタデータの上書きを回避する
+
+	// Apply additional labels and annotations first.
+	// This is to avoid overwriting essential metadata required by the controller.
 	for k, v := range cronJob.Spec.Profile.Metadata.Annotations {
 		batchCronJob.Annotations[k] = v
 	}
@@ -97,7 +98,7 @@ func BatchCronJob(ctx context.Context, cronJob *pixivnetv1.CronJob, podProfile *
 		batchCronJob.Labels[k] = v
 	}
 	//
-	// CronJob トップレベルのパラメータを設定する
+	// Set the top-level parameters for the CronJob.
 	//
 	var (
 		spec   = &batchCronJob.Spec
@@ -110,7 +111,7 @@ func BatchCronJob(ctx context.Context, cronJob *pixivnetv1.CronJob, podProfile *
 	spec.Suspend = params.Suspend
 	spec.SuccessfulJobsHistoryLimit = params.SuccessfulJobsHistoryLimit
 	spec.FailedJobsHistoryLimit = params.FailedJobsHistoryLimit
-	// 生成した batch JobSpec とメタデータを設定する
+	// Set the batch JobSpec and the metadata.
 	spec.JobTemplate = batchv1.JobTemplateSpec{
 		Spec: *batchJobSpec,
 	}

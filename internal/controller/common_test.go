@@ -26,12 +26,12 @@ import (
 )
 
 //
-// テストに共通で使う関数など
+// Common functions for testing.
 //
 
 const testNamespace = "default"
 
-// k8sClient.Get() に渡すためのキーを作る.
+// Create a key for k8sClient.Get().
 func newKey(resourceName string) types.NamespacedName {
 	return types.NamespacedName{
 		Name:      resourceName,

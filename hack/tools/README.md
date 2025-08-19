@@ -1,11 +1,11 @@
-# tools
+# Tools
 
-開発ツールのバージョン管理のためのディレクトリ
+A directory for managing the versions of development tools.
 
-## なぜあるのか
+To simplify the version management of development tools by leveraging the Go tools mechanism.
 
-開発ツールのバージョン管理を go tool の仕組みに乗っかることで楽するため
+## Usage
 
-## 使い方
+Invoke the development tools by specifying them in the [`tools.sh`](../tools.sh) script.
 
-[tools.sh](../tools.sh) から開発ツールを指定して呼び出す
+For example: `tools.sh TOOL_NAME ARGS...`

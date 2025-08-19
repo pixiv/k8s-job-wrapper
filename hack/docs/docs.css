@@ -1,5 +1,5 @@
 table {
-  border-collapse: collapse; /* 隣接するボーダーを重ねて一本線にする */
+  border-collapse: collapse; /* Collapse adjacent borders into a single line */
   width: 100%;
 }
 
@@ -9,9 +9,9 @@ th, td {
 }
 
 tbody tr {
-  border-bottom: 1px solid #eee8d5; /* solarized lightのベース背景色に近い色 */
+  border-bottom: 1px solid #eee8d5; /* A color similar to the base background color of Solarized Light */
 }
 
 tbody tr:last-child {
-  border-bottom: none; /* 最後の行の下線は不要 */
+  border-bottom: none; /* No underline for the last line */
 }

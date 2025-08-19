@@ -79,13 +79,13 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 	if !job.DeletionTimestamp.IsZero() {
-		// finalizer による削除が開始されている
-		// https://kubernetes.io/ja/docs/concepts/overview/working-with-objects/finalizers/#%E3%83%95%E3%82%A1%E3%82%A4%E3%83%8A%E3%83%A9%E3%82%A4%E3%82%B6%E3%83%BC%E3%81%AF%E3%81%A9%E3%81%AE%E3%82%88%E3%81%86%E3%81%AB%E5%8B%95%E4%BD%9C%E3%81%99%E3%82%8B%E3%81%8B
+		// Finalizers are deleting the Job.
+		// https://kubernetes.io/docs/concepts/overview/working-with-objects/finalizers/
 		return ctrl.Result{}, nil
 	}
 
 	logger = logger.WithValues("podProfile", job.Spec.Profile.PodProfileRef)
-	// job が取得できたのでなんらかのステータスの更新をする
+
 	var (
 		updateStatus = func() error {
 			err := r.Status().Update(ctx, job)
@@ -98,12 +98,11 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			meta.SetStatusCondition(&job.Status.Conditions, cond)
 		}
 		setFailedConditions = func(message string) {
-			// available の方に理由を書く
 			setCondition(metav1.Condition{
 				Type:    string(pixivnetv1.JobAvailable),
 				Status:  metav1.ConditionFalse,
 				Reason:  "Reconciling",
-				Message: message,
+				Message: message, // Set the message to `Available`.
 			})
 			setCondition(metav1.Condition{
 				Type:   string(pixivnetv1.JobDegraded),
@@ -112,7 +111,7 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			})
 		}
 	)
-	// デフォルトを成功のステータスにする
+	// Set the default status to OK.
 	setCondition(metav1.Condition{
 		Type:   string(pixivnetv1.JobAvailable),
 		Status: metav1.ConditionTrue,
@@ -189,7 +188,6 @@ func (r *JobReconciler) onDeleted(ctx context.Context, req ctrl.Request) (ctrl.R
 	return ctrl.Result{}, nil
 }
 
-// batch Job を生成する.
 func (r *JobReconciler) createBatchJob(ctx context.Context, job *pixivnetv1.Job, nextJob *batchv1.Job) error {
 	logger := log.FromContext(ctx).WithValues("batchJob", nextJob.Name)
 
@@ -198,7 +196,7 @@ func (r *JobReconciler) createBatchJob(ctx context.Context, job *pixivnetv1.Job,
 	case err == nil:
 		logger.Info("batch job created")
 		return nil
-	case apierrors.IsAlreadyExists(err): // 過去に作った batch job の名前(ハッシュ)が衝突した
+	case apierrors.IsAlreadyExists(err): // The name (hash) of a past batch job conflicted.
 		if job.Status.CollisionCount == nil {
 			job.Status.CollisionCount = new(int32)
 		}
@@ -217,7 +215,7 @@ func (r *JobReconciler) createBatchJob(ctx context.Context, job *pixivnetv1.Job,
 	}
 }
 
-// 保持する上限を超えた古い batch Job を消す.
+// Prune old batch jobs that exceed the history limit.
 func (r *JobReconciler) deleteOldBatchJobs(ctx context.Context, job *pixivnetv1.Job) error {
 	history, err := r.listBatchJobsOrderByCreationTimestampDesc(ctx, job)
 	if err != nil {
@@ -231,11 +229,11 @@ func (r *JobReconciler) deleteOldBatchJobs(ctx context.Context, job *pixivnetv1.
 		errs []error
 	)
 	for _, x := range history {
-		// まだ終了していないかすでに削除されようとしているものを見逃す
+		// Skip items that have not yet finished or are already pending deletion.
 		if !r.isBatchJobTerminated(&x) || x.DeletionTimestamp != nil {
 			continue
 		}
-		// 上記以外で保持上限に含まれるなら見逃す
+		// Otherwise, skip it if it falls within the history limit.
 		if kept < *job.Spec.JobsHistoryLimit {
 			kept++
 			continue
@@ -256,8 +254,8 @@ func (r *JobReconciler) deleteOldBatchJobs(ctx context.Context, job *pixivnetv1.
 	return errors.Join(errs...)
 }
 
-// 終了時刻から TTLSecondsAfterFinished だけ経過した batch Job を消す.
-// TTL 設定されているがまだ期限切れではない batch Job があれば将来に [JobReconciler.Reconcile] を予約する.
+// Delete batch Jobs where TTLSecondsAfterFinished has passed since their completion time.
+// If there are any batch Jobs with a TTL set that have not yet expired, schedule a future [JobReconciler.Reconcile].
 func (r *JobReconciler) processBatchJobsTTL(ctx context.Context, now time.Time, job *pixivnetv1.Job) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
@@ -276,9 +274,9 @@ func (r *JobReconciler) processBatchJobsTTL(ctx context.Context, now time.Time, 
 		errs        = []error{}
 		delays      = []time.Duration{}
 		deleted     int
-		allowDelete = len(results) - 1 // すべての batch job を消してしまうと [JobReconciler.Reconcile] による再生成が起動してしまう
+		allowDelete = len(results) - 1 // If all of the batch jobs are deleted, it will trigger JobReconciler.Reconcile to regenerate them.
 	)
-	// 古い順にチェックしていく
+	// Check from oldest to newest.
 	slices.Reverse(results)
 	for _, x := range results {
 		if x.shouldDelete && deleted < allowDelete {
@@ -319,8 +317,8 @@ func (r *JobReconciler) processBatchJobsTTL(ctx context.Context, now time.Time, 
 }
 
 const (
-	// batch job が TTL で消滅したことを示すアノテーション
-	// TTL での消去時に [JobReconciler.Reconcile] を呼びたくないのでこれで判別する
+	// An annotation that indicates the batch job was deleted due to its TTL.
+	// We use this to distinguish this case, as we don't want to call [JobReconciler.Reconcile] on a TTL-based deletion.
 	BatchJobAnnotationTTLExpired = "jobs.pixiv.net/ttl-expired"
 )
 
@@ -340,13 +338,13 @@ func (r *JobReconciler) addTTLExpiredAnnotationToBatchJob(ctx context.Context, j
 
 type processBatchJobTTL struct {
 	job          *batchv1.Job
-	shouldDelete bool           // true ならば TTL 期限切れなので消すべき
-	delay        *time.Duration // not nil ならば後ほど reconcile するべき
+	shouldDelete bool           // true indicates ttl expired
+	delay        *time.Duration // not nil indicates that reconcile should be executed
 	err          error
 }
 
-// batch Job が終了していて TTL 切れていれば消す.
-// TTL まだ残っていれば残り時間を返す.
+// If the batch Job has finished and its TTL has expired, delete it.
+// If the TTL has not yet expired, return the remaining time.
 func (r *JobReconciler) processBatchJobTTL(ctx context.Context, now time.Time, job *batchv1.Job) processBatchJobTTL {
 	logger := log.FromContext(ctx).WithValues("batchJob", job.Name)
 
@@ -366,9 +364,9 @@ func (r *JobReconciler) processBatchJobTTL(ctx context.Context, now time.Time, j
 	logger = logger.WithValues("expireAt", expireAt)
 
 	if delay := expireAt.Sub(now); delay > 0 {
-		// 今ではなく後の reconcile で消す
+		// Delete this in a later reconcile, not now.
 		logger.Info("found finished batch Job with remaining TTL", "remaining", delay)
-		delay += 3 * time.Second // ぎりぎりで reconcile するとまた delay > 0 になるかもしれないので3秒間遅らせる
+		delay += 3 * time.Second // Reconciling at the last minute might result in delay > 0 again, so we'll add a 3-second delay.
 		return processBatchJobTTL{
 			job:   job,
 			delay: &delay,
@@ -388,10 +386,10 @@ func (r *JobReconciler) processBatchJobTTL(ctx context.Context, now time.Time, j
 	}
 }
 
-// TTL を持つ batch job がいつ期限切れで消去されるのかを計算する.
+// Calculate when a batch job with a TTL will expire and be deleted.
 func (r *JobReconciler) batchJobExpireAt(_ context.Context, job *batchv1.Job) (*time.Time, bool) {
 	info := util.GetFinishedBatchJobInfo(job)
-	// 終了してないものと終了時刻がわからないものと既に削除されているものはスキップする
+	// Skip items that have not finished, have an unknown completion time, or have already been deleted.
 	if !info.Finished || info.FinishedAt.IsZero() || job.DeletionTimestamp != nil {
 		return nil, false
 	}
@@ -411,25 +409,25 @@ type jobCreationStatus struct {
 func (r *JobReconciler) shouldCreateBatchJob(latestJob, nextJob *batchv1.Job) jobCreationStatus {
 	switch {
 	case latestJob == nil:
-		// 既存ジョブがないなら作る
+		// Create a new job if not exists.
 		return jobCreationStatus{
 			shouldCreate: true,
 			reason:       "no existing job",
 		}
 	case !r.isBatchJobTerminated(latestJob):
-		// 既存ジョブが終了していないなら作らない
+		// Do not create a new job while an existing one is still active.
 		return jobCreationStatus{
 			shouldCreate: false,
 			reason:       "existing job is running",
 		}
 	case r.getBatchJobSpecHash(latestJob) == r.getBatchJobSpecHash(nextJob):
-		// spec に変化がないなら作らない
+		// Do not create a new job without changes.
 		return jobCreationStatus{
 			shouldCreate: false,
 			reason:       "job spec is not changed",
 		}
 	default:
-		// spec に変化があるので作る
+		// Create a new job with changes.
 		return jobCreationStatus{
 			shouldCreate: true,
 			reason:       "job spec is changed",
@@ -441,17 +439,17 @@ func (*JobReconciler) isBatchJobTerminated(job *batchv1.Job) bool {
 	return util.IsBatchJobFinished(job)
 }
 
-// batch Job spec のハッシュを取得する.
+// Get the hash of batchJob.spec.
 func (*JobReconciler) getBatchJobSpecHash(job *batchv1.Job) string {
 	return job.GetLabels()[construct.BatchJobLabelSpecHashKey]
 }
 
-// 生成される batch Job に付与するラベルのうちで batch Job 一覧取得するために利用するもの.
+// A label used to retrieve a list of the generated batch Jobs.
 func (*JobReconciler) batchJobLabels(job *pixivnetv1.Job) map[string]string {
 	return construct.BatchJobLabelsForList(job)
 }
 
-// batch Job オブジェクトを生成する.
+// Create a batchJob object.
 func (r *JobReconciler) constructBatchJob(ctx context.Context, job *pixivnetv1.Job, podProfile *pixivnetv1.PodProfile) (*batchv1.Job, error) {
 	logger := log.FromContext(ctx).WithValues("podProfile", podProfile.Name)
 	nextJob, err := construct.BatchJob(ctx, job, podProfile, r.Patcher, r.Scheme)
@@ -472,7 +470,7 @@ func (r *JobReconciler) listBatchJobsOrderByCreationTimestampDesc(ctx context.Co
 		return nil, err
 	}
 
-	// 作成時刻が新しい順に並べ替える
+	// Sort by creation time desc.
 	items := batchJobs.Items
 	slices.SortFunc(items, func(x, y batchv1.Job) int {
 		if x.CreationTimestamp.Before(&y.CreationTimestamp) {
@@ -509,9 +507,9 @@ func (r *JobReconciler) getPodProfile(ctx context.Context, namespace, podProfile
 }
 
 /*
-batch Job が次を満たす時, [JobReconciler.Reconcile] する.
+Run [JobReconciler.Reconcile] when a batch Job meets the following conditions.
 
-  - jobs.pixiv.net/v1 を owner に持つ
+  - holds jobs.pixiv.net/v1 as owner
 */
 func (r *JobReconciler) watchBatchJobHandler() handler.EventHandler {
 	return handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
@@ -531,7 +529,7 @@ func (r *JobReconciler) watchBatchJobHandler() handler.EventHandler {
 	})
 }
 
-// ownerReferences に jobs.pixiv.net/v1 があればその名前を返す.
+// If an ownerReference with `jobs.pixiv.net/v1` exists, return its name.
 func (*JobReconciler) getOwnerName(ownerReferences []metav1.OwnerReference) (string, bool) {
 	for _, x := range ownerReferences {
 		if v := x.Controller; v == nil || !*v {
@@ -544,7 +542,7 @@ func (*JobReconciler) getOwnerName(ownerReferences []metav1.OwnerReference) (str
 	return "", false
 }
 
-// batch Job が変化したというイベントを [JobReconciler.watchBatchJobHandler] に渡すかどうかを決める.
+// Decides whether to pass a "batch Job changed" event to the JobReconciler.watchBatchJobHandler.
 func (r *JobReconciler) watchBatchJobPredicates() builder.Predicates {
 	return builder.WithPredicates(predicate.Funcs{
 		UpdateFunc: func(_ event.UpdateEvent) bool {
@@ -554,7 +552,7 @@ func (r *JobReconciler) watchBatchJobPredicates() builder.Predicates {
 			return true
 		},
 		DeleteFunc: func(e event.DeleteEvent) bool {
-			// TTL 期限切れが原因で消された場合は無視する
+			// Ignore if it was deleted due to TTL expiration.
 			return !hasTTLExpiredAnnotation(e.Object)
 		},
 		GenericFunc: func(_ event.GenericEvent) bool {

@@ -26,7 +26,7 @@ import (
 )
 
 type Patcher interface {
-	// 単一リソースにパッチを適用し, そのマニフェストを返す
+	// Patch a single resource and return its manifest.
 	Patch(ctx context.Context, req *PatchRequest) (*PatchResponse, error)
 }
 
@@ -37,8 +37,8 @@ type PatchRequest struct {
 	Version  string
 	Kind     string
 	Name     string
-	Resource string // オリジナルのマニフェスト
-	Patches  string // パッチの内容
+	Resource string // original manifest
+	Patches  string // patch contents
 }
 
 type PatchResponse struct {

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Install CRDs and deploy controller into the kind cluster
+# Install CRDs and deploy controller into the kind cluster.
 #
 
 log() {

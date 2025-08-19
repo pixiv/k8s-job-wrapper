@@ -26,13 +26,13 @@ import (
 )
 
 type Runner interface {
-	// kubectl コマンドを実行する
+	// Execute kubetl.
 	Run(ctx context.Context, arg ...string) (string, error)
 }
 
 var _ Runner = &Command{}
 
-// kubectl バイナリのパスから [Command] を作る
+// Create [Command] from kubectl executable.
 func NewCommand(executable string) *Command {
 	return &Command{
 		executable: executable,

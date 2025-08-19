@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Install golangci-lint plugins
+# Install golangci-lint plugins.
 #
 
 set -e

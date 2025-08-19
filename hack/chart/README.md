@@ -1,14 +1,16 @@
 # chart
 
-CRD の Helm チャートを `./make.sh ${CHART_VERSION} ${CONTROLLER_IMAGE_REPO} ${CONTROLLER_IMAGE_TAG}` で生成できます
+You can generate the Helm chart for the CRD by running the following command: `./make.sh ${CHART_VERSION} ${CONTROLLER_IMAGE_REPO} ${CONTROLLER_IMAGE_TAG}`.
 
-## 仕組み
+## How it works
 
-[kubebuilder の Helm Plugin](https://book.kubebuilder.io/plugins/available/helm-v1-alpha) を使って Helm チャートを生成し [make.sh](./make.sh) によってチャートのバージョンや controller のイメージなどを置換します
+This project uses the [Kubebuilder Helm Plugin](https://book.kubebuilder.io/plugins/available/helm-v1-alpha) to generate Helm charts.
+The [`./make.sh`](./make.sh) script then replaces values such as the chart version and the controller image.
 
-Chart.yaml については置換ではなく [テンプレート](./Chart.yaml.tmpl) から生成したもので上書きします
-## 成果物
+The `Chart.yaml` file is not modified directly. Instead, it is overwritten with a new file generated from its [template](./Chart.yaml.tmpl).
 
-`./make.sh ${CHART_VERSION} ${CONTROLLER_IMAGE_REPO} ${CONTROLLER_IMAGE_TAG} ${DESTINATION}` と実行した場合は `${DESTINATION}/k8s-job-wrapper-${CHART_VERSION}.tgz` が生成されます
+## Artifacts
 
-DESTINATION を省略した場合はカレントディレクトリに生成されます
+Running the script as `./make.sh ${CHART_VERSION} ${CONTROLLER_IMAGE_REPO} ${CONTROLLER_IMAGE_TAG} ${DESTINATION}` will generate the file `${DESTINATION}/k8s-job-wrapper-${CHART_VERSION}.tgz`.
+
+If you omit the `DESTINATION` argument, the file will be generated in the current directory.

@@ -1,7 +1,5 @@
 # go-licenses
 
-https://github.com/google/go-licenses のバージョン管理のためだけのディレクトリ
+A directory for managing the version of [go-licenses](https://github.com/google/go-licenses).
 
-## なぜあるのか
-
-go-licenses の go version が古くて [tools](../tools/README.md) で管理できなかった
+The Go version for `go-licenses` was too old, so it couldn't be managed in [tools](../tools/README.md).

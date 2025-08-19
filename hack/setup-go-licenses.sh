@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Install go-licenses binary
+# Install go-licenses binary.
 #
 
 set -e

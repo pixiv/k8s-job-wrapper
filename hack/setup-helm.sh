@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Install helm binary
+# Install helm binary.
 #
 
 set -e

@@ -1,9 +1,8 @@
 #!/bin/bash
 
 #
-# Entrypoint of dev tools
+# Entrypoint of dev tools.
 #
-# 開発のためのツールの呼び出しとバージョン管理をまとめる
 
 set -e
 set -o pipefail
@@ -27,29 +26,29 @@ mkdir -p "${bind}"
 readonly binary="${bind}/${name}"
 case "$name" in
     "helm")
-        # helm は tool に取り込むとビルドに時間がかかったのでバイナリを落としてくる
+        # The build took too long when helm was incorporated into our tools, so we download the binary directly instead.
         "${d}/setup-helm.sh" "$HELM_VERSION"
         ;;
     "go-licenses")
-        # tools/ に追加すると go version が古いせいかビルドが通らないので分離している
+        # Separated from tools/ because the build won't pass, probably due to an outdated Go version.
         "${d}/setup-go-licenses.sh"
         ;;
     "pandoc")
         "${d}/setup-pandoc.sh" "$PANDOC_VERSION"
         ;;
     "setup-envtest")
-        # setup-envtest は他のライブラリのバージョンに依存するので専用のセットアップが必要
+        # setup-envtest requires a dedicated setup because of its dependencies on other library versions.
         "${d}/setup-envtest.sh"
-        # 特別に引数を渡して実行することはない
+        # You don't need to pass any particular arguments to run this.
         exit
         ;;
     "kubectl")
-        # kubectl は tool に取り込むと依存関係が増えすぎるのでバイナリを落としてくる
+        # To avoid an excessive number of dependencies, we download the kubectl binary rather than managing it as part of tools/.
         "${d}/setup-kubectl.sh" "$KUBECTL_VERSION"
         ;;
     *)
-        # 呼び出し元のディレクトリが重要なツールがあるので
-        # go tool から直接呼び出すと意図しない結果になる場合がある
+        # Some tools rely on the calling directory, so invoking them directly from go tool can lead to unintended results.
+        # Therefore, we build the binary first and then execute it.
         if [[ ! -x "$binary" ]] ; then
             echo >&2 "$(basename "$0"): build ${binary}..."
             go -C "$toold" build -o "$binary" "$(find_package "$name")"

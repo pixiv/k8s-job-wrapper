@@ -49,7 +49,7 @@ type PodProfileReconciler struct {
 func (r *PodProfileReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// noop
 
 	return ctrl.Result{}, nil
 }

@@ -1,6 +1,6 @@
 # k8s-job-wrapper
 
-`Job` や `CronJob` をテンプレート化して使いやすくする CRD を提供します
+Provides a CRD to make `Job` and `CronJob` easier to use through templating.
 
 > [!WARNING]
 > This repository does not actively accept external contributions.
@@ -16,7 +16,7 @@
 - [direnv](https://github.com/direnv/direnv)
 - [kind](https://github.com/kubernetes-sigs/kind)
 - go version v1.25.0+
-- docker version 28.3.2+.
+- docker version 28.3.2+
 
 ## License
 

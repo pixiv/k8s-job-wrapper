@@ -35,7 +35,7 @@ func GetFinishedBatchJobInfo(job *batchv1.Job) FinishedBatchJobInfo {
 			return false
 		}
 		switch cond.Type {
-		// Job が終了したとき Complete か Failed のどちらかが含まれる
+		// When a Job finishes, its status will contain either "Complete" or "Failed".
 		case batchv1.JobComplete, batchv1.JobFailed:
 			return true
 		default:

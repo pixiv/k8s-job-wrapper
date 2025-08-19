@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Install pandoc binary
+# Install pandoc binary.
 #
 
 set -e

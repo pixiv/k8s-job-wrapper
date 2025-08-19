@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Install kubectl binary
+# Install kubectl binary.
 #
 
 set -e
@@ -21,7 +21,7 @@ if [[ -z "$version" ]] ; then
 fi
 readonly dest="${2:-${bind}/kubectl}"
 if [[ -x "$dest" ]] ; then
-    # e2e テストでは stderr も参照するので stderr 出力すると失敗する
+    # The e2e tests also check stderr, so any output to stderr will cause a failure.
     exit
 fi
 

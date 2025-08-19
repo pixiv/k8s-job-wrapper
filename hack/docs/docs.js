@@ -1,7 +1,7 @@
 //
-// Examples 内部のコードブロックの中の特定の語句を強調する
+// Highlights specific terms within code blocks inside "Examples".
 //
-// NOTE: Examples セクションの配下にしぼってないので別の場所のコードブロックにも適用される
+// NOTE: This is not scoped to the "Examples" section, so it also applies to code blocks elsewhere.
 //
 document.addEventListener('DOMContentLoaded', function() {
   const emphasizeTargets = [

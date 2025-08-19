@@ -57,7 +57,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			return err
 		}
 
-		// List() のための selector
+		// Selector for List().
 		newBatchJobLabels := func(resourceName string) map[string]string {
 			return map[string]string{
 				"app.kubernetes.io/created-by": "pixiv-job-controller",
@@ -65,7 +65,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			}
 		}
 
-		// テストケースの初めに用意する Job
+		// The initial Job prepared for the test case.
 		newJob := func(resourceName string) *pixivnetv1.Job {
 			return &pixivnetv1.Job{
 				ObjectMeta: metav1.ObjectMeta{
@@ -92,7 +92,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			}
 		}
 
-		// テストケースの初めに用意する TTL 指定ありの Job
+		// The initial Job with TTL prepared for the test case.
 		newJobWithTTL := func(resourceName string, ttl int) *pixivnetv1.Job {
 			return &pixivnetv1.Job{
 				ObjectMeta: metav1.ObjectMeta{
@@ -119,7 +119,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			}
 		}
 
-		// テストケースの初めに用意する JobHistoryLimit 指定ありの Job
+		// The initial Job with JobHistoryLimit prepared for the test case.
 		newJobWithHistoryLimit := func(resourceName string, limit int) *pixivnetv1.Job {
 			return &pixivnetv1.Job{
 				ObjectMeta: metav1.ObjectMeta{
@@ -144,7 +144,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			}
 		}
 
-		// テストケースの初めに用意する複雑なパッチを持つ Job
+		// The initial Job with complex patch prepared for the test case.
 		newComplexJob := func(resourceName string) *pixivnetv1.Job {
 			return &pixivnetv1.Job{
 				ObjectMeta: metav1.ObjectMeta{
@@ -172,7 +172,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			}
 		}
 
-		// テストケースの初めに用意するメタデータつきの Job
+		// The initial Job with metadata prepared for the test case.
 		newJobWithMeta := func(resourceName string) *pixivnetv1.Job {
 			return &pixivnetv1.Job{
 				ObjectMeta: metav1.ObjectMeta{
@@ -207,8 +207,8 @@ var _ = Describe("Job Controller", Serial, func() {
 			}
 		}
 
-		// それぞれのテストケースの先頭で呼ぶ関数
-		// テストケースに使うリソース名をテストケースごとにユニークにしつつ生成する
+		// A function to be called at the start of each test case.
+		// It generates resource names, ensuring they are unique for each test case.
 		beforeEach := func(resourceName string) {
 			By(fmt.Sprintf("creating the custom resource for the Kind PodProfile: %s", resourceName))
 			Expect(k8sClient.Create(ctx, newPodProfile(resourceName))).To(Succeed())
@@ -315,7 +315,7 @@ var _ = Describe("Job Controller", Serial, func() {
 
 		It("should not delete expired without multiple batch jobs", func() {
 			const resourceName = "job-ttl-single-batch-job"
-			now := time.Now() // expired 判定には現在時刻との差が重要
+			now := time.Now()
 			By("making sure the PodProfile created successfully")
 			Expect(k8sClient.Create(ctx, newPodProfile(resourceName))).To(Succeed())
 			By("making sure the Job with ttl created successfully")
@@ -342,14 +342,14 @@ var _ = Describe("Job Controller", Serial, func() {
 				batchJobs := listBatchJobs(resourceName)
 				g.Expect(batchJobs.Items).Should(HaveLen(1))
 				batchJob := batchJobs.Items[0]
-				g.Expect(batchJob.DeletionTimestamp).To(BeNil())                                    // 削除されていない
-				g.Expect(batchJob.GetAnnotations()["jobs.pixiv.net/ttl-expired"]).To(Equal("true")) // 削除予定のマークはある
+				g.Expect(batchJob.DeletionTimestamp).To(BeNil())
+				g.Expect(batchJob.GetAnnotations()["jobs.pixiv.net/ttl-expired"]).To(Equal("true")) // marked to be deleted
 			}).Should(Succeed())
 		})
 
 		It("should delete expired batch jobs", func() {
 			const resourceName = "job-ttl"
-			now := time.Now() // expired 判定には現在時刻との差が重要
+			now := time.Now()
 			By("making sure the PodProfile created successfully")
 			Expect(k8sClient.Create(ctx, newPodProfile(resourceName))).To(Succeed())
 			By("making sure the Job with ttl created successfully")
@@ -417,8 +417,8 @@ var _ = Describe("Job Controller", Serial, func() {
 				})
 				Expect(idx > 0).To(BeTrue())
 				batchJob := batchJobs.Items[idx]
-				Expect(batchJob.DeletionTimestamp).To(BeNil())                                    // まだ削除はされてない
-				Expect(batchJob.GetAnnotations()["jobs.pixiv.net/ttl-expired"]).To(Equal("true")) // 削除予定のマーク
+				Expect(batchJob.DeletionTimestamp).To(BeNil())
+				Expect(batchJob.GetAnnotations()["jobs.pixiv.net/ttl-expired"]).To(Equal("true")) // marked to be deleted
 			}
 			By("Reconciling the created resource")
 			Expect(reconcile(resourceName)).To(Succeed())
@@ -433,7 +433,7 @@ var _ = Describe("Job Controller", Serial, func() {
 					return x.GetUID() == batchJob2UID
 				})
 				Expect(idx1 >= 0).To(BeTrue())
-				Expect(idx2 >= 0).To(BeFalse()) // 削除された
+				Expect(idx2 >= 0).To(BeFalse()) // deleted
 				Expect(batchJobs.Items[idx1].DeletionTimestamp).To(BeNil())
 			}
 		})
@@ -506,7 +506,7 @@ var _ = Describe("Job Controller", Serial, func() {
 				batchJobs := listBatchJobs(resourceName)
 				items := []batchv1.Job{}
 				for _, x := range batchJobs.Items {
-					// controller が delete している batch job を除外する
+					// Exclude batch jobs that the controller is deleting.
 					if x.DeletionTimestamp == nil {
 						items = append(items, x)
 					}
@@ -524,7 +524,7 @@ var _ = Describe("Job Controller", Serial, func() {
 		})
 
 		//
-		// batch Job 再生成のテスト
+		// Tests for regeneration of batch Job
 		//
 		var (
 			now        = metav1.NewTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC))
@@ -550,11 +550,11 @@ var _ = Describe("Job Controller", Serial, func() {
 		)
 		for caseNo, tc := range []struct {
 			title      string
-			job        func(string) *pixivnetv1.Job        // job 変更用, nil なら変更なし
-			podprofile func(string) *pixivnetv1.PodProfile // profile 変更用, nil なら変更なし
-			status     *batchv1.JobStatus                  // status 変更用, nil なら変更なし
-			recreated  bool                                // batch job 再生成を期待するなら true
-			assertJob  func(*batchv1.Job)                  // 更新後の job のアサーション, nil なら何もしない
+			job        func(string) *pixivnetv1.Job        // For changing the job; no change if nil.
+			podprofile func(string) *pixivnetv1.PodProfile // For changing the profile; no change if nil.
+			status     *batchv1.JobStatus                  // For changing the status; no change if nil.
+			recreated  bool                                // Set to true if regeneration of the batch job is expected.
+			assertJob  func(*batchv1.Job)                  // Assertion for the updated job; does nothing if nil.
 		}{
 			{
 				title:     "batch Job is not recreated because it is running (conditions is empty)",
@@ -631,7 +631,7 @@ var _ = Describe("Job Controller", Serial, func() {
 
 				By("making sure the batch Job created")
 				var (
-					uid                     types.UID // 最初の batch Job を判別するための id
+					uid                     types.UID // The id to identify the first batch Job
 					batchTypeNamespacedName types.NamespacedName
 				)
 				{
@@ -671,8 +671,8 @@ var _ = Describe("Job Controller", Serial, func() {
 				}
 
 				By("reconcile")
-				// batch Job 作る時に名前が衝突することがある
-				// Reconcile() 呼び直すことで生成の seed が変わるので回避される
+				// A name collision can sometimes occur when creating a batch Job.
+				// This is avoided because re-running Reconcile() changes the seed for generation.
 				Eventually(func() error {
 					return reconcile(resourceName)
 				}).Should(Succeed())

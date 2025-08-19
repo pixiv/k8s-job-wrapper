@@ -1,3 +1,3 @@
 # hack
 
-開発ツールやCI/CDの効率化のためのスクリプトを置くディレクトリ
+A directory for scripts to streamline development tools and CI/CD.
