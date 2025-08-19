@@ -88,7 +88,10 @@
     {
       "description": "Manage kubectl version",
       "customType": "regex",
-      "fileMatch": ["^.github/.env$"],
+      "fileMatch": [
+        "^.github/.env$",
+        "^Dockerfile$"
+      ],
       "matchStrings":["KUBECTL_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d)"],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "kubernetes/kubernetes"
