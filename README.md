@@ -58,6 +58,17 @@ Edit following files:
 - [tools/go.mod](./hack/tools/go.mod)
 - [go-licenses/go.mod](./hack/go-licenses/go.mod)
 
+#### Release
+
+When you create and push a new tag, the following actions will be executed:
+
+- Build and push the controller image to ghcr.
+- Generate and push the Helm chart to ghcr.
+- Create a release.
+- Deploy the documentation for CRD to GitHub Pages.
+
+Confirm that CI on the main branch is green before creating a tag.
+
 ## License
 
 [Apache 2.0 License](./LICENSE).
