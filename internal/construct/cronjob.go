@@ -80,7 +80,7 @@ func BatchCronJob(ctx context.Context, cronJob *pixivnetv1.CronJob, podProfile *
 	batchCronJob.Name = BatchCronJobName(cronJob)
 	// Set ownerRefernce.
 	if err := ctrl.SetControllerReference(cronJob, &batchCronJob, scheme); err != nil {
-		return nil, fmt.Errorf("failed to add owner reference to patched cron job: %w", err)
+		return nil, fmt.Errorf("%w: failed to add owner reference to patched cron job", err)
 	}
 
 	batchCronJob.Annotations = map[string]string{}

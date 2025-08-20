@@ -53,25 +53,25 @@ func (c Command) Run(ctx context.Context, arg ...string) (string, error) {
 	cmd := exec.CommandContext(ctx, escapedExecutable, escapedArgs...)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return "", fmt.Errorf("failed to open stdout pipe: %w", err)
+		return "", fmt.Errorf("%w: failed to open stdout pipe", err)
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return "", fmt.Errorf("failed to open stderr pipe: %w", err)
+		return "", fmt.Errorf("%w: failed to open stderr pipe", err)
 	}
 	if err := cmd.Start(); err != nil {
-		return "", fmt.Errorf("failed to start command: %w", err)
+		return "", fmt.Errorf("%w: failed to start command", err)
 	}
 
 	out, err := io.ReadAll(stdout)
 	if err != nil {
 		_ = cmd.Wait()
-		return "", fmt.Errorf("failed to read stdout: %w", err)
+		return "", fmt.Errorf("%w: failed to read stdout", err)
 	}
 	errOut, err := io.ReadAll(stderr)
 	if err != nil {
 		_ = cmd.Wait()
-		return "", fmt.Errorf("failed to read stderr: %w", err)
+		return "", fmt.Errorf("%w: failed to read stderr", err)
 	}
 	if err := cmd.Wait(); err != nil {
 		return "", fmt.Errorf("%w: stderr=%s", err, errOut)

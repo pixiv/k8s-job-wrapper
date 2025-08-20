@@ -89,7 +89,7 @@ func BatchJob(ctx context.Context, job *pixivnetv1.Job, podProfile *pixivnetv1.P
 	batchJob.Namespace = job.Namespace
 	// Set ownerRefernce.
 	if err := ctrl.SetControllerReference(job, &batchJob, scheme); err != nil {
-		return nil, fmt.Errorf("failed to add owner reference to patched job: %w", err)
+		return nil, fmt.Errorf("%w: failed to add owner reference to patched job", err)
 	}
 	batchJob.Annotations = map[string]string{}
 	batchJob.Labels = map[string]string{}
@@ -167,7 +167,7 @@ func BatchJobSpec(ctx context.Context, jobProfileSpec *pixivnetv1.JobProfileSpec
 	//
 	jobYaml, err := yaml.Marshal(batchJob)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal batch job seed: %w", err)
+		return nil, fmt.Errorf("%w: failed to marshal batch job seed", err)
 	}
 	patches := jobProfileSpec.DeepCopy().Patches
 	for i := range patches {
@@ -179,7 +179,7 @@ func BatchJobSpec(ctx context.Context, jobProfileSpec *pixivnetv1.JobProfileSpec
 
 	patchesYaml, err := yaml.Marshal(patches)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal job patches: %w", err)
+		return nil, fmt.Errorf("%w: failed to marshal job patches", err)
 	}
 
 	// kubectl kustomize
@@ -192,12 +192,12 @@ func BatchJobSpec(ctx context.Context, jobProfileSpec *pixivnetv1.JobProfileSpec
 		Patches:  string(patchesYaml),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to apply job patches: %w", err)
+		return nil, fmt.Errorf("%w: failed to apply job patches", err)
 	}
 
 	var patchedJob batchv1.Job
 	if err := yaml.Unmarshal([]byte(patched.Manifest), &patchedJob); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal pacthed job: %w", err)
+		return nil, fmt.Errorf("%w: failed to unmarshal pacthed job", err)
 	}
 
 	return &patchedJob.Spec, nil
