@@ -15,7 +15,8 @@ if [[ -z "$name" ]] ; then
 fi
 shift
 
-# Install the tool
+# Install the tool.
+# If a tool called by this script does not exist, its binary must be installed.
 readonly toold="${d}/tools"
 find_package() {
     grep "$1" "${toold}/go.mod" | grep -v 'indirect' | xargs
