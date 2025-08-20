@@ -58,7 +58,7 @@ Edit following files:
 - [tools/go.mod](./hack/tools/go.mod)
 - [go-licenses/go.mod](./hack/go-licenses/go.mod)
 
-#### Release
+### Release
 
 When you create and push a new tag, the following actions will be executed:
 
