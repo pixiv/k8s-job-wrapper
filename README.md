@@ -11,12 +11,52 @@ Provides a CRD to make `Job` and `CronJob` easier to use through templating.
 
 ## Usage
 
-## Development Prerequisites
+## Contribution
+
+### Prerequisites
 
 - [direnv](https://github.com/direnv/direnv)
 - [kind](https://github.com/kubernetes-sigs/kind)
 - go version v1.25.0+
 - docker version 28.3.2+
+
+### Development
+
+The repository layout conforms to the [Kubebuilder](https://github.com/kubernetes-sigs/kubebuilder).
+Run `make help` to list all available development tasks.
+
+#### Deploy
+
+To deploy controller to your local development environment, run `make deploy-local`.
+
+#### Tools
+
+See the [hack](./hack) for development tools and scripts.
+Development tool versions are managed in [.env](./.github/.env) and [go tool](./hack/tools).
+
+To reinstall the development tools, run `make clean`.
+Afterwards, they will be automatically reinstalled the next time you invoke them.
+For more details, please see [tools.sh](./hack/tools.sh).
+
+#### Documentation for the CRD
+
+See the [docs](./hack/docs) for documentation for the CRD.
+To generate the documentation, run `make docs`.
+
+#### Helm chart
+
+See the [chart](./hack/chart) for Helm chart for the CRD.
+To create the Helm chart for your local development environment, run `make chart-local`.
+
+#### How to upgrade Go
+
+Edit following files:
+
+- [.env](./.github/.env)
+- [Dockerfile](./Dockerfile)
+- [go.mod](./go.mod)
+- [tools/go.mod](./hack/tools/go.mod)
+- [go-licenses/go.mod](./hack/go-licenses/go.mod)
 
 ## License
 
