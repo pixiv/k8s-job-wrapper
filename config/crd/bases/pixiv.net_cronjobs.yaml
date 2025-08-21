@@ -15,16 +15,16 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .spec.profile.cronJobParams.schedule
+    - jsonPath: .spec.schedule
       name: Schedule
       type: string
-    - jsonPath: .spec.profile.cronJobParams.timeZone
+    - jsonPath: .spec.timeZone
       name: Timezone
       type: string
-    - jsonPath: .spec.profile.cronJobParams.suspend
+    - jsonPath: .spec.suspend
       name: Suspend
       type: boolean
-    - jsonPath: .spec.profile.jobProfile.podProfileRef
+    - jsonPath: .spec.jobProfile.podProfileRef
       name: Profile
       type: string
     - jsonPath: .status.conditions[?(@.type=="Available")].status

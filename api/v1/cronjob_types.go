@@ -124,10 +124,10 @@ const (
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Schedule",type="string",JSONPath=".spec.profile.cronJobParams.schedule"
-// +kubebuilder:printcolumn:name="Timezone",type="string",JSONPath=".spec.profile.cronJobParams.timeZone"
-// +kubebuilder:printcolumn:name="Suspend",type="boolean",JSONPath=".spec.profile.cronJobParams.suspend"
-// +kubebuilder:printcolumn:name="Profile",type="string",JSONPath=".spec.profile.jobProfile.podProfileRef"
+// +kubebuilder:printcolumn:name="Schedule",type="string",JSONPath=".spec.schedule"
+// +kubebuilder:printcolumn:name="Timezone",type="string",JSONPath=".spec.timeZone"
+// +kubebuilder:printcolumn:name="Suspend",type="boolean",JSONPath=".spec.suspend"
+// +kubebuilder:printcolumn:name="Profile",type="string",JSONPath=".spec.jobProfile.podProfileRef"
 // +kubebuilder:printcolumn:name="Available",type="string",JSONPath=".status.conditions[?(@.type==\"Available\")].status"
 // +kubebuilder:printcolumn:name="Reason",type="string",JSONPath=".status.conditions[?(@.type==\"Available\")].reason"
 // +kubebuilder:printcolumn:name="Message",type="string",JSONPath=".status.conditions[?(@.type==\"Available\")].message"
