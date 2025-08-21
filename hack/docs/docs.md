@@ -625,9 +625,9 @@ _Appears in:_
 
 <script>
 //
-// Highlights specific terms within code blocks inside "Examples"
+// Highlights specific terms within code blocks inside "Examples".
 //
-// NOTE: This is not scoped to the "Examples" section, so it also applies to code blocks elsewhere
+// NOTE: This is not scoped to the "Examples" section, so it also applies to code blocks elsewhere.
 //
 document.addEventListener('DOMContentLoaded', function() {
   const emphasizeTargets = [
