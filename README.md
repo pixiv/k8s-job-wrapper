@@ -11,6 +11,20 @@ Provides a CRD to make `Job` and `CronJob` easier to use through templating.
 
 ## Usage
 
+[DOcumentation for the CRD](https://pixiv.github.io/k8s-job-wrapper/).
+
+### Install
+
+``` shell
+helm install [RELEASE_NAME] oci://ghcr.io/pixiv/k8s-job-wrapper/charts/k8s-job-wrapper
+```
+
+To show the configurable values for the chart:
+
+``` shell
+helm show values oci://ghcr.io/pixiv/k8s-job-wrapper/charts/k8s-job-wrapper
+```
+
 ## Contribution
 
 ### Prerequisites
