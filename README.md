@@ -11,7 +11,7 @@ Provides a CRD to make `Job` and `CronJob` easier to use through templating.
 
 ## Usage
 
-[DOcumentation for the CRD](https://pixiv.github.io/k8s-job-wrapper/).
+[Documentation for the CRD](https://pixiv.github.io/k8s-job-wrapper/).
 
 ### Install
 
