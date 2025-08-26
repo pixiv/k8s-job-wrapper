@@ -6,6 +6,12 @@ This is a custom resource for efficiently generating multiple similar [Job](http
 - The [Job CRD](#job) can generate a [Job](https://kubernetes.io/docs/concepts/workloads/controllers/job/). It includes parameters for the Job and a patch for the [PodProfile CRD](#podprofile).
 - The [CronJob CRD](#cronjob) can generate a [CronJob](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/). It includes parameters for the CronJob and a patch for the [PodProfile CRD](#podprofile).
 
+To use k8s-job-wrapper with kustomize, add [transform.yaml](./kustomize/transform.yaml) to the configurations section of your kustomization.yaml.
+
+<pre><code>configurations:
+  - https://pixiv.github.io/k8s-job-wrapper/kustomize/transform.yaml
+</code></pre>
+
 ## Examples
 ### Example of CronJob
 There are [PodProfile](#podprofile) and [CronJob](#cronjob):

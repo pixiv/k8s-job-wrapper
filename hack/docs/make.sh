@@ -60,12 +60,23 @@ This is a custom resource for efficiently generating multiple similar [Job](http
 - The [PodProfile CRD](#podprofile) allows you to define a Pod's spec as the common part.
 - The [Job CRD](#job) can generate a [Job](https://kubernetes.io/docs/concepts/workloads/controllers/job/). It includes parameters for the Job and a patch for the [PodProfile CRD](#podprofile).
 - The [CronJob CRD](#cronjob) can generate a [CronJob](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/). It includes parameters for the CronJob and a patch for the [PodProfile CRD](#podprofile).
+
+To use k8s-job-wrapper with kustomize, add [transform.yaml](./kustomize/transform.yaml) to the configurations section of your kustomization.yaml.
+
+<pre><code>configurations:
+  - https://pixiv.github.io/k8s-job-wrapper/kustomize/transform.yaml
+</code></pre>
 EOS
     # without a line break, the "examples" heading disappears
     echo
     generate_examples
     # remaining
     tail -n +2 "$__out_md"
+}
+
+copy_assets() {
+    local -r __dest="$1"
+    cp -r "${d}/kustomize" "$__dest"
 }
 
 # Generate css file.
@@ -138,4 +149,5 @@ generate_docs "${config}" "${source_path}" "${tmp_out_md}"
 readonly out_md="${d}/docs.md"
 insert_summary_and_examples "${tmp_out_md}" > "${out_md}"
 generate_script "${js_file}" >> "${out_md}"
-generate_html "${out_md}" "${css}" "${title}" > "${dest}"
+copy_assets "$dest"
+generate_html "${out_md}" "${css}" "${title}" > "${dest}/index.html"

@@ -1,0 +1,232 @@
+# https://github.com/kubernetes-sigs/kustomize/blob/master/api/internal/konfig/builtinpluginconsts/namereference.go
+nameReference:
+- kind: ConfigMap
+  version: v1
+  fieldSpecs:
+  - path: spec/template/spec/volumes/configMap/name
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+  - path: spec/template/spec/containers/env/valueFrom/configMapKeyRef/name
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+  - path: spec/template/spec/initContainers/env/valueFrom/configMapKeyRef/name
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+  - path: spec/template/spec/containers/envFrom/configMapRef/name
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+  - path: spec/template/spec/initContainers/envFrom/configMapRef/name
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+  - path: spec/template/spec/volumes/projected/sources/configMap/name
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+- kind: Secret
+  version: v1
+  fieldSpecs:
+  - path: spec/template/spec/volumes/secret/secretName
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+  - path: spec/template/spec/containers/env/valueFrom/secretKeyRef/name
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+  - path: spec/template/spec/initContainers/env/valueFrom/secretKeyRef/name
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+  - path: spec/template/spec/containers/envFrom/secretRef/name
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+  - path: spec/template/spec/initContainers/envFrom/secretRef/name
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+  - path: spec/template/spec/imagePullSecrets/name
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+  - path: spec/template/spec/volumes/projected/sources/secret/name
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+- kind: ServiceAccount
+  version: v1
+  fieldSpecs:
+  - path: spec/template/spec/serviceAccountName
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+- kind: PersistentVolumeClaim
+  version: v1
+  fieldSpecs:
+  - path: spec/template/spec/volumes/persistentVolumeClaim/claimName
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+- kind: PriorityClass
+  version: v1
+  group: scheduling.k8s.io
+  fieldSpecs:
+  - path: spec/template/spec/priorityClassName
+    group: pixiv.net
+    version: v1
+    kind: PodProfile
+- kind: PodProfile
+  version: v1
+  group: pixiv.net
+  fieldSpecs:
+  - path: spec/jobProfile/podProfileRef
+    group: pixiv.net
+    version: v1
+    kind: CronJob
+  - path: spec/profile/podProfileRef
+    group: pixiv.net
+    version: v1
+    kind: Job
+
+# https://github.com/kubernetes-sigs/kustomize/blob/master/api/internal/konfig/builtinpluginconsts/commonlabels.go
+commonLabels:
+- path: spec/template/metadata/labels
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/template/spec/affinity/podAffinity/preferredDuringSchedulingIgnoredDuringExecution/podAffinityTerm/labelSelector/matchLabels
+  create: false
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/template/spec/affinity/podAffinity/requiredDuringSchedulingIgnoredDuringExecution/labelSelector/matchLabels
+  create: false
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/template/spec/affinity/podAntiAffinity/preferredDuringSchedulingIgnoredDuringExecution/podAffinityTerm/labelSelector/matchLabels
+  create: false
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/template/spec/affinity/podAntiAffinity/requiredDuringSchedulingIgnoredDuringExecution/labelSelector/matchLabels
+  create: false
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+# https://github.com/kubernetes-sigs/kustomize/blob/master/api/internal/konfig/builtinpluginconsts/metadatalabels.go
+- path: spec/template/metadata/labels
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/cronJobMetadata/labels
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: CronJob
+- path: spec/jobProfile/jobMetadata/labels
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: CronJob
+- path: spec/profile/jobMetadata/labels
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: Job
+
+# https://github.com/kubernetes-sigs/kustomize/blob/master/api/internal/konfig/builtinpluginconsts/templatelabels.go
+templateLabels:
+- path: spec/template/metadata/labels
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/cronJobMetadata/labels
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: CronJob
+- path: spec/jobProfile/jobMetadata/labels
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: CronJob
+- path: spec/profile/jobMetadata/labels
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: Job
+
+# https://github.com/kubernetes-sigs/kustomize/blob/master/api/internal/konfig/builtinpluginconsts/commonannotations.go
+commonAnnotations:
+- path: spec/template/metadata/annotations
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/cronJobMetadata/annotations
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: CronJob
+- path: spec/jobProfile/jobMetadata/annotations
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: CronJob
+- path: spec/profile/jobMetadata/annotations
+  create: true
+  group: pixiv.net
+  version: v1
+  kind: Job
+
+# https://github.com/kubernetes-sigs/kustomize/blob/master/api/internal/konfig/builtinpluginconsts/varreference.go
+varReference:
+- path: spec/template/spec/containers/args
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/template/spec/containers/command
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/template/spec/containers/env/value
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/template/spec/containers/volumeMounts/mountPath
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/template/spec/initContainers/args
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/template/spec/initContainers/command
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/template/spec/initContainers/env/value
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/template/spec/initContainers/volumeMounts/mountPath
+  group: pixiv.net
+  version: v1
+  kind: PodProfile
+- path: spec/jobProfile/podProfileRef
+  group: pixiv.net
+  version: v1
+  kind: CronJob
+- path: spec/profile/podProfileRef
+  group: pixiv.net
+  version: v1
+  kind: Job

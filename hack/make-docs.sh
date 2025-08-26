@@ -25,4 +25,4 @@ k8s_version() {
 }
 
 mkdir -p "$dest"
-"${d}/docs/make.sh" "${dest}/index.html" "$(k8s_version)"
+"${d}/docs/make.sh" "$dest" "$(k8s_version)"
