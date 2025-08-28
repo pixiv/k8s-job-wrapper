@@ -46,9 +46,7 @@ jobs:
           flavor: |
             latest=false
             prefix=
-            prefixLatest=false
             suffix=
-            suffixLatest=false
           tags: |
             type=schedule,pattern=nightly,enable=true,priority=1000
             type=ref,event=branch,enable=true,priority=600
