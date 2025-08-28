@@ -26,11 +26,32 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup buildx
         uses: ./.github/actions/setup-buildx
+      - name: Check latest
+        id: latest
+        run: |
+          if echo "$GITHUB_REF_NAME" | grep -q -E '^v[0-9]+\.[0-9]+\.[0-9]+$' ; then
+            echo "enable=true" >> "$GITHUB_OUTPUT"
+          else
+            # pre-release
+            echo "enable=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/pixiv/k8s-job-wrapper
+          flavor: |
+            latest=false
+            prefix=
+            prefixLatest=false
+            suffix=
+            suffixLatest=false
+          tags: |
+            type=schedule,pattern=nightly,enable=true,priority=1000
+            type=ref,event=branch,enable=true,priority=600
+            type=ref,event=tag,enable=true,priority=600
+            type=ref,event=pr,prefix=pr-,enable=true,priority=600
+            type=raw,value=latest,enable=${{ steps.latest.outputs.enable }}
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
