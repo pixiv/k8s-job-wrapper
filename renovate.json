@@ -81,7 +81,7 @@
       "description": "Manage helm version",
       "customType": "regex",
       "fileMatch": ["^.github/.env$"],
-      "matchStrings":["HELM_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d)"],
+      "matchStrings":["HELM_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "helm/helm"
     },
@@ -92,7 +92,7 @@
         "^.github/.env$",
         "^Dockerfile$"
       ],
-      "matchStrings":["KUBECTL_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d)"],
+      "matchStrings":["KUBECTL_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "kubernetes/kubernetes"
     },
@@ -100,7 +100,7 @@
       "description": "Manage kind node version",
       "customType": "regex",
       "fileMatch": ["^.github/.env$"],
-      "matchStrings":["KIND_NODE_IMAGE=kindest/node:(?<currentValue>v\\d+\\.\\d+\\.\\d)"],
+      "matchStrings":["KIND_NODE_IMAGE=kindest/node:(?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "docker",
       "depNameTemplate": "kindest/node"
     },
@@ -108,7 +108,7 @@
       "description": "Manage pandoc version",
       "customType": "regex",
       "fileMatch": ["^.github/.env$"],
-      "matchStrings":["PANCOD_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d)"],
+      "matchStrings":["PANCOD_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "github-tags",
       "depNameTemplate": "jgm/pandoc"
     }
