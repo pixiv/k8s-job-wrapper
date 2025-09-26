@@ -142,8 +142,10 @@ jobs:
         with:
           node_image: '${{ env.KIND_NODE_IMAGE }}'
       - name: Install chart for testing
+        env:
+          CHART_PACKAGE_FILE: ${{ needs.generate.outputs.chart-package-file }}
         run: |
-          ./hack/tools.sh helm install test "${{ needs.generate.outputs.chart-package-file }}"
+          ./hack/tools.sh helm install test "$CHART_PACKAGE_FILE"
       - name: Check status
         run: ./hack/tools.sh helm status test
       - name: Fetch history
@@ -155,17 +157,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Push chart
+        env:
+          CHART_PACKAGE_FILE: ${{ needs.generate.outputs.chart-package-file }}
         run: |
-          ./hack/tools.sh helm push "${{ needs.generate.outputs.chart-package-file }}" "oci://ghcr.io/pixiv/k8s-job-wrapper/charts"
+          ./hack/tools.sh helm push "$CHART_PACKAGE_FILE" "oci://ghcr.io/pixiv/k8s-job-wrapper/charts"
       - name: Create release
         run: |
           extra_args=""
-          if [ "${{ needs.publish.outputs.prerelease }}" = "true" ] ; then
+          if [ "$PRERELEASE" = "true" ] ; then
             extra_args="${extra_args} --prerelease"
           fi
-          gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes $extra_args "${{ needs.generate.outputs.chart-package-file }}"
+          gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes $extra_args "$CHART_PACKAGE_FILE"
         env:
           GH_TOKEN: ${{ github.token }}
+          CHART_PACKAGE_FILE: ${{ needs.generate.outputs.chart-package-file }}
+          PRERELEASE: ${{ needs.publish.outputs.prerelease }}
 
   pages:
     name: Deploy CRD document
