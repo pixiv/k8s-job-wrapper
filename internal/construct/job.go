@@ -53,7 +53,7 @@ func BatchJobTTLSecondsAfterFinishedFromAnnotations(batchJob *batchv1.Job) (int3
 	if !ok {
 		return 0, false
 	}
-	ttl, err := strconv.Atoi(x)
+	ttl, err := strconv.ParseInt(x, 10, 32)
 	if err != nil {
 		return 0, false
 	}
