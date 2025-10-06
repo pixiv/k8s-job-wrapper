@@ -10,7 +10,7 @@ set -o pipefail
 readonly d="$(cd "$(dirname "$0")" || exit ; pwd)"
 readonly bind="${d}/../bin"
 readonly binary="${bind}/go-licenses"
-readonly toold="${d}/go-licenses"
+readonly toold="${d}/tools"
 
 log() {
     echo >&2 "$(basename "$0"): $*"

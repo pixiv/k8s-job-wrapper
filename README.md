@@ -70,7 +70,6 @@ Edit following files:
 - [Dockerfile](./Dockerfile)
 - [go.mod](./go.mod)
 - [tools/go.mod](./hack/tools/go.mod)
-- [go-licenses/go.mod](./hack/go-licenses/go.mod)
 
 ### Release
 
