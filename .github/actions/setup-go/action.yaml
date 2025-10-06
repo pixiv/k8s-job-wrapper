@@ -15,10 +15,8 @@ runs:
         cache-dependency-path: |
           go.sum
           hack/tools/go.sum
-          hack/go-licenses/go.sum
     - name: Download go modules
       shell: bash
       run: |
         go mod download
         go -C hack/tools mod download
-        go -C hack/go-licenses mod download
