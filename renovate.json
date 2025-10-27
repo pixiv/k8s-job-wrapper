@@ -11,7 +11,7 @@
     ":rebaseStalePrs",
     ":disableDependencyDashboard",
     "helpers:pinGitHubActionDigests",
-    "schedule:monthly"
+    "schedule:weekly"
   ],
   "platformAutomerge": true,
   "fetchChangeLogs": "off",
