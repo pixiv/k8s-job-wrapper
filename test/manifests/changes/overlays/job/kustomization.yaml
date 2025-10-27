@@ -1,0 +1,9 @@
+resources:
+  - ../../base
+patches:
+  - path: ./job.patch.yaml
+    target:
+      group: pixiv.net
+      version: v1
+      kind: Job
+      name: job-sample

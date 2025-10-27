@@ -1,0 +1,7 @@
+configurations:
+- https://pixiv.github.io/k8s-job-wrapper/kustomize/transform.yaml
+namePrefix: changes-
+resources:
+- v1_podprofile.yaml
+- v1_job.yaml
+- v1_cronjob.yaml

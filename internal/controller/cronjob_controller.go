@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
 	"github.com/pixiv/k8s-job-wrapper/internal/construct"
@@ -29,11 +30,14 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	applybatchv1 "k8s.io/client-go/applyconfigurations/batch/v1"
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 // CronJobReconciler reconciles a CronJob object
@@ -149,12 +153,14 @@ func (r *CronJobReconciler) applyBatchCronJob(ctx context.Context, cronJob *pixi
 	logger := log.FromContext(ctx).WithValues("batchCronJob", batchCronJob.Name)
 
 	existingCronJob, err := r.getBatchCronJob(ctx, cronJob)
+	specJSON, _ := json.Marshal(batchCronJob.Spec)
 	if apierrors.IsNotFound(err) {
 		if err := r.Create(ctx, batchCronJob); err != nil {
-			logger.Error(err, "failed to create batch CronJob")
+			logger.Error(err, "failed to create batch CronJob", "spec", string(specJSON))
 			return err
 		}
 		logger.Info("batch CronJob created")
+		logger.V(2).Info("batch CronJob created", "spec", string(specJSON))
 		return nil
 	}
 	if err != nil {
@@ -179,15 +185,17 @@ func (r *CronJobReconciler) applyBatchCronJob(ctx context.Context, cronJob *pixi
 		return nil
 	}
 
+	patchJSON, _ := json.Marshal(patch)
 	if err := r.Patch(ctx, patch, client.Apply, &client.PatchOptions{
 		FieldManager: cronJobFieldManager,
 		Force:        ptr.To(true),
 	}); err != nil {
-		logger.Error(err, "failed to apply batch CronJob")
+		logger.Error(err, "failed to apply batch CronJob", "patch", string(patchJSON))
 		return err
 	}
 
 	logger.Info("batch CronJob applied")
+	logger.V(2).Info("batch CronJob applied", "patch", string(patchJSON))
 	return nil
 }
 
@@ -228,12 +236,59 @@ func (r *CronJobReconciler) getPodProfile(ctx context.Context, namespace, podPro
 	return &profile, nil
 }
 
+func (r *CronJobReconciler) indexByPodProfileRef() client.IndexerFunc {
+	return func(obj client.Object) []string {
+		cronJob := obj.(*pixivnetv1.CronJob)
+		return []string{cronJob.Spec.Profile.PodProfileRef}
+	}
+}
+
+const cronJobPodProfileRefKey = ".spec.jobProfile.podProfileRef"
+
+func (r *CronJobReconciler) watchPodProfileHandler() handler.EventHandler {
+	return handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
+		logger := log.FromContext(ctx).WithValues("podProfileRef", obj.GetName())
+
+		logger.Info("find cronjobs by podProfileRef")
+		var cronJobs pixivnetv1.CronJobList
+		if err := r.List(ctx, &cronJobs, client.InNamespace(obj.GetNamespace()), client.MatchingFields{
+			cronJobPodProfileRefKey: obj.GetName(),
+		}); err != nil {
+			logger.Error(err, "failed to list cronjobs by podProfileRef")
+			return []reconcile.Request{}
+		}
+
+		requests := make([]reconcile.Request, len(cronJobs.Items))
+		for i, x := range cronJobs.Items {
+			logger.V(2).Info("found cronjob by podProfileRef", "cronjob", x.GetName())
+			requests[i] = reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: x.GetNamespace(),
+					Name:      x.GetName(),
+				},
+			}
+		}
+		return requests
+	})
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *CronJobReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().IndexField(
+		context.Background(),
+		&pixivnetv1.CronJob{},
+		cronJobPodProfileRefKey,
+		r.indexByPodProfileRef()); err != nil {
+		return err
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&pixivnetv1.CronJob{}).
 		Named("cronjob").
 		Owns(&batchv1.CronJob{}).
-		Owns(&pixivnetv1.PodProfile{}).
+		Watches(
+			&pixivnetv1.PodProfile{},
+			r.watchPodProfileHandler(),
+		).
 		Complete(r)
 }

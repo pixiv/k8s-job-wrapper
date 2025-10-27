@@ -1,0 +1,9 @@
+resources:
+  - ../../base
+patches:
+  - path: ./cronjob.patch.yaml
+    target:
+      group: pixiv.net
+      version: v1
+      kind: CronJob
+      name: cronjob-sample

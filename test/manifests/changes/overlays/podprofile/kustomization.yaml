@@ -1,0 +1,9 @@
+resources:
+  - ../../base
+patches:
+  - path: ./podprofile.patch.yaml
+    target:
+      group: pixiv.net
+      version: v1
+      kind: PodProfile
+      name: podprofile-sample

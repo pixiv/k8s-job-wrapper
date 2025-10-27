@@ -299,6 +299,14 @@ var _ = Describe("Manager", Ordered, func() {
 			}
 			Eventually(apply).Should(Succeed())
 		}
+		// Check for the value of the resource
+		ensureResourceValue := func(resource, name, jsonPath, want string) {
+			Eventually(func(g Gomega) {
+				out, err := utils.Run(utils.KubectlCmd("-n", namespace, "get", resource, name, "-o", "jsonpath="+jsonPath))
+				g.Expect(err).To(Succeed())
+				g.Expect(out).To(Equal(want))
+			}).Should(Succeed())
+		}
 		// Check for the existence of a PodProfile
 		ensurePodProfile := func(name string) {
 			By(fmt.Sprintf("making ensure the PodProfile %s is created", name))
@@ -588,6 +596,88 @@ var _ = Describe("Manager", Ordered, func() {
 			ensureCronJob(cronJobName)
 			ensureBatchCronJob(cronJobName)
 			ensureBatchCronJobWorking(cronJobName)
+		})
+
+		It("should reconcile on changes", func() {
+			const (
+				beforeManifest            = "changes/overlays/before"
+				cronJobChangesManifest    = "changes/overlays/cronjob"
+				jobChangesManifest        = "changes/overlays/job"
+				podProfileChangesManifest = "changes/overlays/podprofile"
+				podProfileName            = "changes-podprofile-sample"
+				jobName                   = "changes-job-sample"
+				cronJobName               = "changes-cronjob-sample"
+			)
+			var (
+				apply = func(manifest string) {
+					By(fmt.Sprintf("reconcile manifest %s", manifest))
+					applyManifests(manifest)
+					ensurePodProfile(podProfileName)
+					ensureJob(jobName)
+					ensureCronJob(cronJobName)
+				}
+			)
+			apply(beforeManifest)
+			By("ensure cronjob schedule")
+			ensureResourceValue(cronJobResource, cronJobName, "{.spec.schedule}", "* * * * *")
+			By("ensure batch cronjob schedule")
+			ensureResourceValue("cronjob", batchCronJobName(cronJobName), "{.spec.schedule}", "* * * * *")
+			By("ensure job activeDealineSeconds")
+			ensureResourceValue(jobResource, jobName, "{.spec.profile.jobParams.activeDeadlineSeconds}", "120")
+			By("ensure batch job activeDeadlineSeconds")
+			Eventually(func() {
+				names, err := listBatchJobs(jobName)
+				Expect(err).To(Succeed())
+				Expect(names).To(HaveLen(1))
+				name := names[0]
+				ensureResourceValue("job", name, "{.spec.activeDeadlineSeconds}", "120")
+			})
+			By("ensure podprofile image")
+			ensureResourceValue(podProfileResource, podProfileName, "{.spec.template.spec.containers[0].image}", "perl:5.34.0")
+			By("ensure batch cronjob container image")
+			ensureResourceValue("cronjob", batchCronJobName(cronJobName),
+				"{.spec.jobTemplate.spec.template.spec.containers[0].image}", "perl:5.34.0")
+			By("ensure batch job container image")
+			Eventually(func() {
+				names, err := listBatchJobs(jobName)
+				Expect(err).To(Succeed())
+				Expect(names).To(HaveLen(1))
+				name := names[0]
+				ensureResourceValue("job", name, "{.spec.template.spec.containers[0].image}", "perl:5.34.0")
+			})
+
+			apply(cronJobChangesManifest)
+			By("ensure cronjob schedule change")
+			ensureResourceValue(cronJobResource, cronJobName, "{.spec.schedule}", "0 0 31 2 *")
+			By("ensure batch cronjob schedule change")
+			ensureResourceValue("cronjob", batchCronJobName(cronJobName), "{.spec.schedule}", "0 0 31 2 *")
+
+			apply(jobChangesManifest)
+			By("ensure job activeDeadlineSeconds change")
+			ensureResourceValue(jobResource, jobName, "{.spec.profile.jobParams.activeDeadlineSeconds}", "1200")
+			By("ensure batch job activeDeadlineSeconds change")
+			Eventually(func() {
+				names, err := listBatchJobs(jobName)
+				Expect(err).To(Succeed())
+				Expect(names).To(HaveLen(1))
+				name := names[0]
+				ensureResourceValue("job", name, "{.spec.activeDeadlineSeconds}", "1200")
+			})
+
+			apply(podProfileChangesManifest)
+			By("ensure podprofile container image change")
+			ensureResourceValue(podProfileResource, podProfileName, "{.spec.template.spec.containers[0].image}", "perl:5.42.0")
+			By("ensure batch cronjob container name change")
+			ensureResourceValue("cronjob", batchCronJobName(cronJobName),
+				"{.spec.jobTemplate.spec.template.spec.containers[0].image}", "perl:5.42.0")
+			By("ensure batch job container name change")
+			Eventually(func() {
+				names, err := listBatchJobs(jobName)
+				Expect(err).To(Succeed())
+				Expect(names).To(HaveLen(1))
+				name := names[0]
+				ensureResourceValue("job", name, "{.spec.template.spec.containers[0].image}", "perl:5.42.0")
+			})
 		})
 	})
 })

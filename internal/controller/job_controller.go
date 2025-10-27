@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"slices"
 	"time"
@@ -194,7 +195,9 @@ func (r *JobReconciler) createBatchJob(ctx context.Context, job *pixivnetv1.Job,
 	err := r.Create(ctx, nextJob)
 	switch {
 	case err == nil:
+		j, _ := json.Marshal(nextJob.Spec)
 		logger.Info("batch job created")
+		logger.V(2).Info("batch job created", "spec", string(j))
 		return nil
 	case apierrors.IsAlreadyExists(err): // The name (hash) of a past batch job conflicted.
 		if job.Status.CollisionCount == nil {
@@ -210,7 +213,8 @@ func (r *JobReconciler) createBatchJob(ctx context.Context, job *pixivnetv1.Job,
 		}
 		return err
 	default:
-		logger.Error(err, "failed to create batch job")
+		j, _ := json.Marshal(nextJob.Spec)
+		logger.Error(err, "failed to create batch job", "spec", string(j))
 		return err
 	}
 }
@@ -561,12 +565,58 @@ func (r *JobReconciler) watchBatchJobPredicates() builder.Predicates {
 	})
 }
 
+func (r *JobReconciler) indexByPodProfileRef() client.IndexerFunc {
+	return func(obj client.Object) []string {
+		job := obj.(*pixivnetv1.Job)
+		return []string{job.Spec.Profile.PodProfileRef}
+	}
+}
+
+const jobPodProfileRefKey = ".spec.profile.podProfileRef"
+
+func (r *JobReconciler) watchPodProfileHandler() handler.EventHandler {
+	return handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
+		logger := log.FromContext(ctx).WithValues("podProfileRef", obj.GetName())
+
+		logger.Info("find jobs by podProfileRef")
+		var jobs pixivnetv1.JobList
+		if err := r.List(ctx, &jobs, client.InNamespace(obj.GetNamespace()), client.MatchingFields{
+			jobPodProfileRefKey: obj.GetName(),
+		}); err != nil {
+			logger.Error(err, "failed to list jobs by podProfileRef")
+			return []reconcile.Request{}
+		}
+
+		requests := make([]reconcile.Request, len(jobs.Items))
+		for i, x := range jobs.Items {
+			logger.V(2).Info("found job by podProfileRef", "job", x.GetName())
+			requests[i] = reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: x.GetNamespace(),
+					Name:      x.GetName(),
+				},
+			}
+		}
+		return requests
+	})
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *JobReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().IndexField(
+		context.Background(),
+		&pixivnetv1.Job{},
+		jobPodProfileRefKey,
+		r.indexByPodProfileRef()); err != nil {
+		return err
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&pixivnetv1.Job{}).
 		Named("job").
-		Owns(&pixivnetv1.PodProfile{}).
+		Watches(
+			&pixivnetv1.PodProfile{},
+			r.watchPodProfileHandler(),
+		).
 		Watches(
 			&batchv1.Job{},
 			r.watchBatchJobHandler(),
