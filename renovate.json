@@ -16,7 +16,7 @@
   "platformAutomerge": true,
   "fetchChangeLogs": "off",
   "rangeStrategy": "auto",
-  "minimumReleaseAge": "21 days",
+  "minimumReleaseAge": "7 days",
   "internalChecksFilter": "strict",
   "postUpdateOptions": ["gomodTidy"],
   "ignorePaths": ["config/manager/*"],
