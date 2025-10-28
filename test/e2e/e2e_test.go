@@ -649,7 +649,6 @@ var _ = Describe("Manager", Ordered, func() {
 			{
 				name := getBatchJobName()
 				ensureResourceValue("job", name, "{.spec.activeDeadlineSeconds}", "120")
-				excludeBatchJobNames = append(excludeBatchJobNames, name)
 			}
 			By("ensure podprofile image")
 			ensureResourceValue(podProfileResource, podProfileName, "{.spec.template.spec.containers[0].image}", "perl:5.34.0")
