@@ -675,10 +675,10 @@ var _ = Describe("Manager", Ordered, func() {
 			apply(podProfileChangesManifest)
 			By("ensure podprofile container image change")
 			ensureResourceValue(podProfileResource, podProfileName, "{.spec.template.spec.containers[0].image}", "perl:5.42.0")
-			By("ensure batch cronjob container name change")
+			By("ensure batch cronjob container image change")
 			ensureResourceValue("cronjob", batchCronJobName(cronJobName),
 				"{.spec.jobTemplate.spec.template.spec.containers[0].image}", "perl:5.42.0")
-			By("ensure batch job container name change")
+			By("ensure batch job container image change")
 			{
 				name := getBatchJobName()
 				ensureResourceValue("job", name, "{.spec.template.spec.containers[0].image}", "perl:5.42.0")
