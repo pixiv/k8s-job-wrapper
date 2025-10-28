@@ -11,7 +11,6 @@ spec:
     patches:
       - op: replace
         path: /spec/containers/0/command
-        value: ["perl", "-Mbignum=bpi", "-wle", "print bpi(100)"]
+        value: ["perl", "-Mbignum=bpi", "-wle", "print bpi(1)"]
     jobParams:
-      suspend: true
       activeDeadlineSeconds: 120

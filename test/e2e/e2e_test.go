@@ -616,7 +616,8 @@ var _ = Describe("Manager", Ordered, func() {
 					ensureJob(jobName)
 					ensureCronJob(cronJobName)
 				}
-				getBatchJobName = func() string {
+				excludeBatchJobNames []string
+				getBatchJobName      = func() string {
 					By(fmt.Sprintf("get batch job from %s", jobName))
 					var name string
 					Eventually(func() error {
@@ -625,6 +626,9 @@ var _ = Describe("Manager", Ordered, func() {
 						if err != nil {
 							return err
 						}
+						names = slices.DeleteFunc(names, func(x string) bool {
+							return slices.Contains(excludeBatchJobNames, x)
+						})
 						if len(names) != 1 {
 							return fmt.Errorf("expect %s has just 1 job but %d", jobName, len(names))
 						}
@@ -645,6 +649,7 @@ var _ = Describe("Manager", Ordered, func() {
 			{
 				name := getBatchJobName()
 				ensureResourceValue("job", name, "{.spec.activeDeadlineSeconds}", "120")
+				excludeBatchJobNames = append(excludeBatchJobNames, name)
 			}
 			By("ensure podprofile image")
 			ensureResourceValue(podProfileResource, podProfileName, "{.spec.template.spec.containers[0].image}", "perl:5.34.0")
@@ -655,6 +660,7 @@ var _ = Describe("Manager", Ordered, func() {
 			{
 				name := getBatchJobName()
 				ensureResourceValue("job", name, "{.spec.template.spec.containers[0].image}", "perl:5.34.0")
+				excludeBatchJobNames = append(excludeBatchJobNames, name)
 			}
 
 			apply(cronJobChangesManifest)
@@ -670,6 +676,7 @@ var _ = Describe("Manager", Ordered, func() {
 			{
 				name := getBatchJobName()
 				ensureResourceValue("job", name, "{.spec.activeDeadlineSeconds}", "1200")
+				excludeBatchJobNames = append(excludeBatchJobNames, name)
 			}
 
 			apply(podProfileChangesManifest)
@@ -682,6 +689,7 @@ var _ = Describe("Manager", Ordered, func() {
 			{
 				name := getBatchJobName()
 				ensureResourceValue("job", name, "{.spec.template.spec.containers[0].image}", "perl:5.42.0")
+				excludeBatchJobNames = append(excludeBatchJobNames, name)
 			}
 		})
 	})
