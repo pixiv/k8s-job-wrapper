@@ -99,42 +99,61 @@ type JobStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// For Kubernetes API conventions, see:
-	// https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#typical-status-properties
-
-	// conditions represent the current state of the Job resource.
-	// Each condition has a unique type and reflects the status of a specific aspect of the resource.
-	//
-	// Standard condition types include:
-	// - "Available": the resource is fully functional
-	// - "Progressing": the resource is being created or updated
-	// - "Degraded": the resource failed to reach or maintain its desired state
-	//
-	// The status of each condition is one of True, False, or Unknown.
+	// Conditions represent the latest available observations of an object's state.
 	// +listType=map
 	// +listMapKey=type
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	// Count of hash collisions for the Job. The Job controller uses this
+	// field as a collision avoidance mechanism when it needs to create the name for the
+	// newest `jobs.v1.batch`.
+	// +optional
+	CollisionCount *int32 `json:"collisionCount,omitempty"`
 }
+
+type JobConditionType string
+
+const (
+	// JobAvailable means the Job applied successfully.
+	JobAvailable JobConditionType = "Available"
+	// JobDegraded means the Job failed to apply.
+	JobDegraded JobConditionType = "Degraded"
+)
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="PodProfile",type="string",JSONPath=".spec.podProfile.ref"
+// +kubebuilder:printcolumn:name="JobProfile",type="string",JSONPath=".spec.jobProfile.ref"
+// +kubebuilder:printcolumn:name="Available",type="string",JSONPath=".status.conditions[?(@.type==\"Available\")].status"
+// +kubebuilder:printcolumn:name="Reason",type="string",JSONPath=".status.conditions[?(@.type==\"Available\")].reason"
+// +kubebuilder:printcolumn:name="Message",type="string",JSONPath=".status.conditions[?(@.type==\"Available\")].message"
 
-// Job is the Schema for the jobs API
+// Job represents a template of `jobs.v1.batch`.
+//
+// The Job creates a `jobs.v1.batch` manifest from the [PodProfile] specified in `spec.podProfile.ref` and [JobProfile] specified in `spec.jobProfile.ref`, and applies patches specified in `spec.podProfile.patches` and `spec.jobProfile.patches`.
+// The generated `jobs.v1.batch` will always have the following labels:
+//
+//   - `app.kubernetes.io/created-by=pixiv-job-controller`
+//   - `jobs.pixiv.net/name=$NAME_OF_JOB`
+//   - `jobs.pixiv.net/job-spec-hash=$HASH_OF_JOB_SPEC`
+//
+// `$NAME_OF_JOB` is the value of `metadata.name`.
+// `$HASH_OF_JOB_SPEC` is the hash value of `jobs.v1.batch.spec`.
+//
+// The Job generates a `jobs.v1.batch` in the following cases:
+//
+//   - When it generates the `jobs.v1.batch` for the first time.
+//   - When it generates a manifest with a different spec called $HASH_OF_JOB_SPEC from the most recently generated jobs.v1.batch, and it has completed.
+//
+// The name of the `jobs.v1.batch` to be generated will have an 11-character suffix appended to `metadata.name`.
+// Therefore, `metadata.name` can be a maximum of 52 characters long.
+//
+// +kubebuilder:validation:XValidation:rule="self.metadata.name.size() <= 52",message="must be no more than 52 characters"
 type Job struct {
-	metav1.TypeMeta `json:",inline"`
-
-	// metadata is a standard object metadata
-	// +optional
+	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty,omitzero"`
-
-	// spec defines the desired state of Job
-	// +required
-	Spec JobSpec `json:"spec"`
-
-	// status defines the observed state of Job
-	// +optional
-	Status JobStatus `json:"status,omitempty,omitzero"`
+	Spec              JobSpec   `json:"spec"`
+	Status            JobStatus `json:"status,omitempty,omitzero"`
 }
 
 // +kubebuilder:object:root=true

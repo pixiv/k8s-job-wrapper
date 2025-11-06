@@ -51,42 +51,52 @@ type CronJobStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// For Kubernetes API conventions, see:
-	// https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#typical-status-properties
-
-	// conditions represent the current state of the CronJob resource.
-	// Each condition has a unique type and reflects the status of a specific aspect of the resource.
-	//
-	// Standard condition types include:
-	// - "Available": the resource is fully functional
-	// - "Progressing": the resource is being created or updated
-	// - "Degraded": the resource failed to reach or maintain its desired state
-	//
-	// The status of each condition is one of True, False, or Unknown.
+	// Conditions represent the latest available observations of an object's state.
 	// +listType=map
 	// +listMapKey=type
 	// +optional
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
+type CronJobConditionType string
+
+const (
+	// CronJobAvailable means the CronJob applied successfully.
+	CronJobAvailable CronJobConditionType = "Available"
+	// CronJobDegraded means the CronJob failed to apply.
+	CronJobDegraded CronJobConditionType = "Degraded"
+)
+
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="PodProfile",type="string",JSONPath=".spec.podProfile.ref"
+// +kubebuilder:printcolumn:name="JobProfile",type="string",JSONPath=".spec.jobProfile.ref"
+// +kubebuilder:printcolumn:name="CronJobProfile",type="string",JSONPath=".spec.cronJobProfile.ref"
+// +kubebuilder:printcolumn:name="Available",type="string",JSONPath=".status.conditions[?(@.type==\"Available\")].status"
+// +kubebuilder:printcolumn:name="Reason",type="string",JSONPath=".status.conditions[?(@.type==\"Available\")].reason"
+// +kubebuilder:printcolumn:name="Message",type="string",JSONPath=".status.conditions[?(@.type==\"Available\")].message"
 
-// CronJob is the Schema for the cronjobs API
+// CronJob represents a template of `cronjobs.v1.batch`.
+//
+// CronJob generates `cronjobs.v1.batch.spec` from the profiles specified in `spec.jobProfile`, `spec.podProfile`, `spec.cronJobProfile`.
+//
+// The generated `cronjobs.v1.batch` will always have the following labels applied:
+//
+//   - `app.kubernetes.io/created-by=pixiv-job-controller`
+//   - `cronjobs.pixiv.net/name=$NAME_OF_CRONJOB`
+//
+// Where `$NAME_OF_CRONJOB` is the `metadata.name`.
+//
+// The generated `cronjobs.v1.batch` will have the suffix `-pxvcjob` appended to its name.
+// The maximum length of `metadata.name` of `cronjobs.v1.batch` is 52 characters.
+// Therefore, the maximum length of `metadata.name` of [CronJob] is 44 characters.
+//
+// +kubebuilder:validation:XValidation:rule="self.metadata.name.size() <= 44",message="must be no more than 44 characters"
 type CronJob struct {
-	metav1.TypeMeta `json:",inline"`
-
-	// metadata is a standard object metadata
-	// +optional
+	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty,omitzero"`
-
-	// spec defines the desired state of CronJob
-	// +required
-	Spec CronJobSpec `json:"spec"`
-
-	// status defines the observed state of CronJob
-	// +optional
-	Status CronJobStatus `json:"status,omitempty,omitzero"`
+	Spec              CronJobSpec   `json:"spec"`
+	Status            CronJobStatus `json:"status,omitempty,omitzero"`
 }
 
 // +kubebuilder:object:root=true
