@@ -1,0 +1,9 @@
+apiVersion: pixiv.net/v2
+kind: CronJob
+metadata:
+  labels:
+    app.kubernetes.io/name: k8s-job-wrapper
+    app.kubernetes.io/managed-by: kustomize
+  name: cronjob-sample
+spec:
+  # TODO(user): Add fields here
