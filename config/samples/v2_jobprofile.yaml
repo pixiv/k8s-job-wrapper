@@ -1,0 +1,9 @@
+apiVersion: pixiv.net/v2
+kind: JobProfile
+metadata:
+  labels:
+    app.kubernetes.io/name: k8s-job-wrapper
+    app.kubernetes.io/managed-by: kustomize
+  name: jobprofile-sample
+spec:
+  # TODO(user): Add fields here

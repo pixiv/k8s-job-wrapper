@@ -42,4 +42,12 @@ resources:
   kind: CronJobProfile
   path: github.com/pixiv/k8s-job-wrapper/api/v1
   version: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: pixiv.net
+  kind: JobProfile
+  path: github.com/pixiv/k8s-job-wrapper/api/v2
+  version: v2
 version: "3"

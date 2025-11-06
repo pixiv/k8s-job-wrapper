@@ -34,6 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
+	pixivnetv2 "github.com/pixiv/k8s-job-wrapper/api/v2"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -69,6 +70,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	err = pixivnetv1.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = pixivnetv2.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	// +kubebuilder:scaffold:scheme

@@ -36,6 +36,9 @@ resources:
 # default, aiding admins in cluster management. Those roles are
 # not used by the k8s-job-wrapper itself. You can comment the following lines
 # if you do not want those helpers be installed with your Project.
+- jobprofile_admin_role.yaml
+- jobprofile_editor_role.yaml
+- jobprofile_viewer_role.yaml
 - cronjobprofile_admin_role.yaml
 - cronjobprofile_editor_role.yaml
 - cronjobprofile_viewer_role.yaml

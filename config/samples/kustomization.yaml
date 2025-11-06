@@ -4,4 +4,5 @@ resources:
 - v1_job.yaml
 - v1_cronjob.yaml
 - v1_cronjobprofile.yaml
+- v2_jobprofile.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples
