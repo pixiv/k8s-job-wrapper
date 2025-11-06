@@ -6,4 +6,15 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: job-sample
 spec:
-  # TODO(user): Add fields here
+  podProfile:
+    ref: podprofile-sample
+    patches:
+      - op: replace
+        path: /spec/containers/0/command
+        value: ["perl", "-Mbignum=bpi", "-wle", "print bpi(100)"]
+  jobProfile:
+    ref: jobprofile-sample
+    patches:
+      - op: replace
+        path: /jobParams/backoffLimit
+        value: 5

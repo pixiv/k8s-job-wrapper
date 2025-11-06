@@ -6,4 +6,21 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: cronjob-sample
 spec:
-  # TODO(user): Add fields here
+  cronJobProfile:
+    ref: cronjobprofile-sample
+    patches:
+      - op: add
+        path: /spec/schedule
+        schedule: "35 0 * * *"
+  podProfile:
+    ref: podprofile-sample
+    patches:
+      - op: replace
+        path: /spec/containers/0/command
+        value: ["perl", "-Mbignum=bpi", "-wle", "print bpi(10)"]
+  jobProfile:
+    ref: jobprofile-sample
+    patches:
+      - op: replace
+        path: /jobParams/backoffLimit
+        value: 5
