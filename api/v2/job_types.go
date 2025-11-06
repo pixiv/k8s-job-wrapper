@@ -17,6 +17,7 @@ limitations under the License.
 package v2
 
 import (
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -27,12 +28,70 @@ import (
 type JobSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	// The following markers will use OpenAPI v3 schema to validate the value
-	// More info: https://book.kubebuilder.io/reference/markers/crd-validation.html
 
-	// foo is an example field of Job. Edit job_types.go to remove/update
+	// +required
+	PodProfile PodProfileRef `json:"podProfile"`
+	// +required
+	JobProfile JobProfileRef `json:"jobProfile"`
+
+	// JobsHistoryLimit is the number of jobs to retain.
+	// Value must be non-negative integer.
+	// Default is 3.
+	// +kubebuilder:default:value=3
 	// +optional
-	Foo *string `json:"foo,omitempty"`
+	JobsHistoryLimit *int `json:"jobsHistoryLimit,omitempty"`
+}
+
+type PodProfileRef struct {
+	// Name of [PodProfile] that this refers to.
+	// +required
+	Ref string `json:"ref"`
+	// Patches to be applied to `template` of [PodProfile].
+	// +listType=atomic
+	// +optional
+	Patches []JobPatch `json:"patches,omitempty"`
+}
+
+type JobProfileRef struct {
+	// Name of [JobProfile] that this refers to.
+	// +required
+	Ref string `json:"ref"`
+	// Patches to be applied to `template` of [JobProfile].
+	// +listType=atomic
+	// +optional
+	Patches []JobPatch `json:"patches,omitempty"`
+}
+
+/*
+JobPatch defines the [patch] to be applied to template of PodProfile.
+For examples, rename container:
+<pre><code>op: replace
+path: /spec/containers/0/name
+value: simple
+</code></pre>
+
+Replace command:
+<pre><code>op: replace
+path: /spec/containers/0/command
+value: ["perl", "-Mbignum=bpi", "-wle", "print bpi(100)"]
+</code></pre>
+
+[patch]: https://datatracker.ietf.org/doc/html/rfc6902
+*/
+type JobPatch struct {
+	// Operation to perform.
+	// +required
+	Operation string `json:"op"`
+	// JSON-pointer that references a location within the template where the operation is performed.
+	// The root of path will be `jobs.v1.batch.spec.template`.
+	// +required
+	Path string `json:"path"`
+	// Any yaml object.
+	// +kubebuilder:pruning:PreserveUnknownFields
+	// +optional
+	Value apiextensionsv1.JSON `json:"value,omitempty"`
+	// +optional
+	From string `json:"from,omitempty"`
 }
 
 // JobStatus defines the observed state of Job.
