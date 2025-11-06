@@ -6,4 +6,5 @@ resources:
 - v1_cronjobprofile.yaml
 - v2_jobprofile.yaml
 - v2_cronjob.yaml
+- v2_job.yaml
 # +kubebuilder:scaffold:manifestskustomizesamples
