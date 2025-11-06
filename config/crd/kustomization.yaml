@@ -5,6 +5,7 @@ resources:
 - bases/pixiv.net_podprofiles.yaml
 - bases/pixiv.net_jobs.yaml
 - bases/pixiv.net_cronjobs.yaml
+- bases/pixiv.net_cronjobprofiles.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patches:
