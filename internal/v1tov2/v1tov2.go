@@ -13,6 +13,8 @@ func V1tov2(before runtime.Object) (new []runtime.Object, err error) {
 	switch obj := before.(type) {
 	case *pixivnetv1.CronJob:
 		new, err = CronJobV1tov2(obj)
+	case *pixivnetv1.Job:
+		new, err = JobV1tov2(obj)
 	}
 	return
 }
@@ -89,6 +91,63 @@ func CronJobV1tov2(before *pixivnetv1.CronJob) (new []runtime.Object, err error)
 						PodReplacementPolicy:    copied.Spec.Profile.Params.PodReplacementPolicy,
 						ManagedBy:               copied.Spec.Profile.Params.ManagedBy,
 					},
+				},
+			},
+		},
+	}
+	return
+}
+
+func JobV1tov2(before *pixivnetv1.Job) (new []runtime.Object, err error) {
+	copied := before.DeepCopy()
+	newPodPatches := make([]pixivnetv2.JobPatch, len(copied.Spec.Profile.Patches))
+	for i, patch := range copied.Spec.Profile.Patches {
+		newPatch, err := JobPatchV1toV2(&patch)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert JobPatch: %w", err)
+		}
+		newPodPatches[i] = *newPatch
+	}
+
+	new = []runtime.Object{
+		&pixivnetv2.Job{
+			ObjectMeta: *copied.ObjectMeta.DeepCopy(),
+			Spec: pixivnetv2.JobSpec{
+				PodProfile: pixivnetv2.PodProfileRef{
+					Ref:     copied.Spec.Profile.PodProfileRef,
+					Patches: newPodPatches,
+				},
+				JobProfile: pixivnetv2.JobProfileRef{
+					Ref:     copied.Name,
+					Patches: []pixivnetv2.JobPatch{},
+				},
+			},
+		},
+		&pixivnetv2.JobProfile{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      copied.GetName(),
+				Namespace: copied.GetNamespace(),
+			},
+			Spec: pixivnetv2.JobProfileSpec{
+				Template: pixivnetv2.JobTemplateSpec{
+					JobParams: pixivnetv2.JobParams{
+						Parallelism:             copied.Spec.Profile.Params.Parallelism,
+						Completions:             copied.Spec.Profile.Params.Completions,
+						ActiveDeadlineSeconds:   copied.Spec.Profile.Params.ActiveDeadlineSeconds,
+						PodFailurePolicy:        copied.Spec.Profile.Params.PodFailurePolicy,
+						SuccessPolicy:           copied.Spec.Profile.Params.SuccessPolicy,
+						BackoffLimit:            copied.Spec.Profile.Params.BackoffLimit,
+						BackoffLimitPerIndex:    copied.Spec.Profile.Params.BackoffLimitPerIndex,
+						MaxFailedIndexes:        copied.Spec.Profile.Params.MaxFailedIndexes,
+						Selector:                copied.Spec.Profile.Params.Selector,
+						ManualSelector:          copied.Spec.Profile.Params.ManualSelector,
+						TTLSecondsAfterFinished: copied.Spec.Profile.Params.TTLSecondsAfterFinished,
+						CompletionMode:          copied.Spec.Profile.Params.CompletionMode,
+						Suspend:                 copied.Spec.Profile.Params.Suspend,
+						PodReplacementPolicy:    copied.Spec.Profile.Params.PodReplacementPolicy,
+						ManagedBy:               copied.Spec.Profile.Params.ManagedBy,
+					},
+					JobsHistoryLimit: copied.Spec.JobsHistoryLimit,
 				},
 			},
 		},
