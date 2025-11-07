@@ -147,16 +147,50 @@ func TestV1ToV2_CronJob(t *testing.T) {
 	}
 	suites := []struct {
 		Name   string
-		Before runtime.Object
+		Before *pixivnetv1.CronJob
 		After  []runtime.Object
 	}{
 		{"Complex", complexBefore, complexAfter},
 	}
 	for _, suit := range suites {
 		t.Run(suit.Name, func(t *testing.T) {
-			actual, err := V1tov2(suit.Before)
+			actual, err := CronJobV1tov2(suit.Before)
 			if err != nil {
 				t.Errorf("failed to convert CronJob: %v", err)
+			}
+			assert.Equal(t, suit.After, actual)
+
+			actual, err = V1tov2(suit.Before)
+			if err != nil {
+				t.Errorf("failed to convert CronJob with V1tov2: %v", err)
+			}
+			assert.Equal(t, suit.After, actual)
+		})
+	}
+}
+
+func TestV1ToV2_JobPatch(t *testing.T) {
+	suites := []struct {
+		Name   string
+		Before *pixivnetv1.JobPatch
+		After  *pixivnetv2.JobPatch
+	}{
+		{
+			"Complex Add",
+			&pixivnetv1.JobPatch{Operation: "add", Path: "/hoge", Value: apiextensionsv1.JSON{Raw: []byte("{\"fuga\":\"foo\"}")}, From: "yeah"},
+			&pixivnetv2.JobPatch{Operation: "add", Path: "/hoge", Value: apiextensionsv1.JSON{Raw: []byte("{\"fuga\":\"foo\"}")}, From: "yeah"},
+		},
+		{
+			"Complex Replace",
+			&pixivnetv1.JobPatch{Operation: "replace", Path: "/hogehoge", Value: apiextensionsv1.JSON{Raw: []byte("{\"fuga\":\"foooo\"}")}},
+			&pixivnetv2.JobPatch{Operation: "replace", Path: "/hogehoge", Value: apiextensionsv1.JSON{Raw: []byte("{\"fuga\":\"foooo\"}")}},
+		},
+	}
+	for _, suit := range suites {
+		t.Run(suit.Name, func(t *testing.T) {
+			actual, err := JobPatchV1toV2(suit.Before)
+			if err != nil {
+				t.Errorf("failed to convert JobPatch: %v", err)
 			}
 			assert.Equal(t, suit.After, actual)
 		})
