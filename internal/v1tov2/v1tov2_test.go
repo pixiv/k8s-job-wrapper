@@ -113,7 +113,7 @@ func complexJobV1(mutator ...func(*pixivnetv1.Job)) *pixivnetv1.Job {
 	return j
 }
 
-func TestV1ToV2_CronJob(t *testing.T) {
+func TestToV2_CronJob(t *testing.T) {
 	complexBefore := complexCronJobV1()
 	complexAfter := []runtime.Object{
 		&pixivnetv2.CronJob{
@@ -199,13 +199,13 @@ func TestV1ToV2_CronJob(t *testing.T) {
 	}
 	for _, suit := range suites {
 		t.Run(suit.Name, func(t *testing.T) {
-			actual, err := CronJobV1tov2(suit.Before)
+			actual, err := CronJobToV2(suit.Before)
 			if err != nil {
 				t.Errorf("failed to convert CronJob: %v", err)
 			}
 			assert.Equal(t, suit.After, actual)
 
-			actual, err = V1tov2(suit.Before)
+			actual, err = ToV2(suit.Before)
 			if err != nil {
 				t.Errorf("failed to convert CronJob with V1tov2: %v", err)
 			}
@@ -214,7 +214,7 @@ func TestV1ToV2_CronJob(t *testing.T) {
 	}
 }
 
-func TestV1ToV2_Job(t *testing.T) {
+func TestToV2_Job(t *testing.T) {
 	complexBefore := complexJobV1()
 	complexAfter := []runtime.Object{
 		&pixivnetv2.Job{
@@ -278,13 +278,13 @@ func TestV1ToV2_Job(t *testing.T) {
 	}
 	for _, suit := range suites {
 		t.Run(suit.Name, func(t *testing.T) {
-			actual, err := JobV1tov2(suit.Before)
+			actual, err := JobToV2(suit.Before)
 			if err != nil {
 				t.Errorf("failed to convert Job: %v", err)
 			}
 			assert.Equal(t, suit.After, actual)
 
-			actual, err = V1tov2(suit.Before)
+			actual, err = ToV2(suit.Before)
 			if err != nil {
 				t.Errorf("failed to convert Job with V1tov2: %v", err)
 			}
@@ -293,7 +293,7 @@ func TestV1ToV2_Job(t *testing.T) {
 	}
 }
 
-func TestV1ToV2_JobPatch(t *testing.T) {
+func TestToV2_JobPatch(t *testing.T) {
 	suites := []struct {
 		Name   string
 		Before *pixivnetv1.JobPatch
@@ -312,7 +312,7 @@ func TestV1ToV2_JobPatch(t *testing.T) {
 	}
 	for _, suit := range suites {
 		t.Run(suit.Name, func(t *testing.T) {
-			actual, err := JobPatchV1toV2(suit.Before)
+			actual, err := JobPatchToV2(suit.Before)
 			if err != nil {
 				t.Errorf("failed to convert JobPatch: %v", err)
 			}

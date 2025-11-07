@@ -9,21 +9,21 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func V1tov2(before runtime.Object) (new []runtime.Object, err error) {
+func ToV2(before runtime.Object) (new []runtime.Object, err error) {
 	switch obj := before.(type) {
 	case *pixivnetv1.CronJob:
-		new, err = CronJobV1tov2(obj)
+		new, err = CronJobToV2(obj)
 	case *pixivnetv1.Job:
-		new, err = JobV1tov2(obj)
+		new, err = JobToV2(obj)
 	}
 	return
 }
 
-func CronJobV1tov2(before *pixivnetv1.CronJob) (new []runtime.Object, err error) {
+func CronJobToV2(before *pixivnetv1.CronJob) (new []runtime.Object, err error) {
 	copied := before.DeepCopy()
 	newPodPatches := make([]pixivnetv2.JobPatch, len(copied.Spec.Profile.Patches))
 	for i, patch := range copied.Spec.Profile.Patches {
-		newPatch, err := JobPatchV1toV2(&patch)
+		newPatch, err := JobPatchToV2(&patch)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert JobPatch: %w", err)
 		}
@@ -98,11 +98,11 @@ func CronJobV1tov2(before *pixivnetv1.CronJob) (new []runtime.Object, err error)
 	return
 }
 
-func JobV1tov2(before *pixivnetv1.Job) (new []runtime.Object, err error) {
+func JobToV2(before *pixivnetv1.Job) (new []runtime.Object, err error) {
 	copied := before.DeepCopy()
 	newPodPatches := make([]pixivnetv2.JobPatch, len(copied.Spec.Profile.Patches))
 	for i, patch := range copied.Spec.Profile.Patches {
-		newPatch, err := JobPatchV1toV2(&patch)
+		newPatch, err := JobPatchToV2(&patch)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert JobPatch: %w", err)
 		}
@@ -155,7 +155,7 @@ func JobV1tov2(before *pixivnetv1.Job) (new []runtime.Object, err error) {
 	return
 }
 
-func JobPatchV1toV2(before *pixivnetv1.JobPatch) (new *pixivnetv2.JobPatch, err error) {
+func JobPatchToV2(before *pixivnetv1.JobPatch) (new *pixivnetv2.JobPatch, err error) {
 	copied := before.DeepCopy()
 	new = &pixivnetv2.JobPatch{
 		Operation: copied.Operation,
