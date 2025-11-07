@@ -31,11 +31,11 @@ type JobProfileSpec struct {
 
 	// Template describes the jobs that will be created.
 	// +required
-	Template JobTemplate `json:"template"`
+	Template JobTemplateSpec `json:"template"`
 }
 
 // JobProfileTemplate defines the jobs that will be created.
-type JobTemplate struct {
+type JobTemplateSpec struct {
 	// Standard object's metadata.
 	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
 	// +optional
