@@ -37,7 +37,7 @@ type CronJobSpec struct {
 }
 
 type CronJobProfileRef struct {
-	// Name of [PodProfile] that this refers to.
+	// Name of [CronJobProfile] that this refers to.
 	// +required
 	Ref string `json:"ref"`
 	// Patches to be applied to `template` of [PodProfile].

@@ -44,6 +44,13 @@ type JobTemplateSpec struct {
 	// `jobs.v1.batch.spec` configuration options.
 	// +optional
 	JobParams JobParams `json:"jobParams"`
+
+	// JobsHistoryLimit is the number of jobs to retain.
+	// Value must be non-negative integer.
+	// Default is 3.
+	// +kubebuilder:default:value=3
+	// +optional
+	JobsHistoryLimit *int `json:"jobsHistoryLimit,omitempty"`
 }
 
 // `jobs.v1.batch.spec` without template, ttlSecondsAfterFinished.

@@ -16,5 +16,5 @@ spec:
     ref: jobprofile-sample
     patches:
       - op: replace
-        path: /jobParams/backoffLimit
+        path: /spec/backoffLimit
         value: 5

@@ -33,13 +33,6 @@ type JobSpec struct {
 	PodProfile PodProfileRef `json:"podProfile"`
 	// +required
 	JobProfile JobProfileRef `json:"jobProfile"`
-
-	// JobsHistoryLimit is the number of jobs to retain.
-	// Value must be non-negative integer.
-	// Default is 3.
-	// +kubebuilder:default:value=3
-	// +optional
-	JobsHistoryLimit *int `json:"jobsHistoryLimit,omitempty"`
 }
 
 type PodProfileRef struct {
