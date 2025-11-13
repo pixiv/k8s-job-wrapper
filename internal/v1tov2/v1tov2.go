@@ -9,14 +9,15 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func ToV2(before runtime.Object) (new []runtime.Object, err error) {
+func ToV2(before runtime.Object) ([]runtime.Object, error) {
 	switch obj := before.(type) {
 	case *pixivnetv1.CronJob:
-		new, err = CronJobToV2(obj)
+		return CronJobToV2(obj)
 	case *pixivnetv1.Job:
-		new, err = JobToV2(obj)
+		return JobToV2(obj)
+	default:
+		return []runtime.Object{before}, nil
 	}
-	return
 }
 
 func CronJobToV2(before *pixivnetv1.CronJob) (new []runtime.Object, err error) {
