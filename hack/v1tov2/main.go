@@ -3,34 +3,38 @@ package main
 import (
 	"bufio"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
-	"log/slog"
 	"os"
 
-	wrapperv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
-	wrapperv2 "github.com/pixiv/k8s-job-wrapper/api/v2"
+	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
+	pixivnetv2 "github.com/pixiv/k8s-job-wrapper/api/v2"
+	"github.com/pixiv/k8s-job-wrapper/internal/v1tov2"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	kyaml "k8s.io/apimachinery/pkg/util/yaml"
+	"sigs.k8s.io/yaml"
 )
 
 func main() {
-	filePaths := os.Args[1:]
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, nil))
+	flag.Parse()
+	filePaths := flag.Args()
 
 	s := runtime.NewScheme()
-	if err := wrapperv1.AddToScheme(s); err != nil {
+	if err := pixivnetv1.AddToScheme(s); err != nil {
 		panic(fmt.Errorf("failed to add schema k8s-job-wrapper v1: %w", err))
 	}
-	if err := wrapperv2.AddToScheme(s); err != nil {
+	if err := pixivnetv2.AddToScheme(s); err != nil {
 		panic(fmt.Errorf("failed to add schema k8s-job-wrapper v1: %w", err))
 	}
 	decoder := serializer.NewCodecFactory(s).UniversalDeserializer()
+	new := make([]map[string]interface{}, 0)
+
 	for _, path := range filePaths {
 		file, err := os.Open(path)
 		if err != nil {
-			logger.Error(fmt.Sprintf("failed to read file: %v", err))
+			panic(fmt.Errorf("failed to read file: %w", err))
 		}
 		yamlreader := kyaml.NewYAMLReader(bufio.NewReader(file))
 		for {
@@ -38,11 +42,37 @@ func main() {
 			if errors.Is(err, io.EOF) {
 				break
 			}
-			raw, _, err := decoder.Decode(b, nil, nil)
+			before, _, err := decoder.Decode(b, nil, nil)
 			if err != nil {
-				logger.Warn(fmt.Sprintf("failed to decode: %v", err))
+				panic(fmt.Errorf("failed to decode: %w", err))
 			}
-			_ = raw
+			newObj, err := v1tov2.ToV2(before)
+			if err != nil {
+				panic(fmt.Errorf("failed to change pixiv.net/v1 to v2: %w", err))
+			}
+
+			for _, obj := range newObj {
+				unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
+				if err != nil {
+					panic(fmt.Errorf("failed to convert object to unstructured: %w", err))
+				}
+				delete(unstructured, "status")
+				if metadata, ok := unstructured["metadata"].(map[string]interface{}); ok {
+					delete(metadata, "creationTimestamp")
+				}
+				new = append(new, unstructured)
+			}
+		}
+	}
+
+	for i, obj := range new {
+		b, err := yaml.Marshal(obj)
+		if err != nil {
+			panic(fmt.Errorf("failed to marshal object to yaml: %w", err))
+		}
+		fmt.Print(string(b))
+		if i != len(new)-1 {
+			fmt.Println("---")
 		}
 	}
 }

@@ -117,6 +117,10 @@ func TestToV2_CronJob(t *testing.T) {
 	complexBefore := complexCronJobV1()
 	complexAfter := []runtime.Object{
 		&pixivnetv2.CronJob{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "pixiv.net/v2",
+				Kind:       "CronJob",
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "sample-cronjob",
 				Namespace: "sample",
@@ -140,6 +144,10 @@ func TestToV2_CronJob(t *testing.T) {
 			},
 		},
 		&pixivnetv1.CronJobProfile{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "pixiv.net/v1",
+				Kind:       "CronJobProfile",
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "sample-cronjob",
 				Namespace: "sample",
@@ -159,6 +167,10 @@ func TestToV2_CronJob(t *testing.T) {
 			},
 		},
 		&pixivnetv2.JobProfile{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "pixiv.net/v2",
+				Kind:       "JobProfile",
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "sample-cronjob",
 				Namespace: "sample",
@@ -218,6 +230,10 @@ func TestToV2_Job(t *testing.T) {
 	complexBefore := complexJobV1()
 	complexAfter := []runtime.Object{
 		&pixivnetv2.Job{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "pixiv.net/v2",
+				Kind:       "Job",
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "sample-job",
 				Namespace: "sample",
@@ -237,6 +253,10 @@ func TestToV2_Job(t *testing.T) {
 			},
 		},
 		&pixivnetv2.JobProfile{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "pixiv.net/v2",
+				Kind:       "JobProfile",
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "sample-job",
 				Namespace: "sample",

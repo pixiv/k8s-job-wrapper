@@ -33,6 +33,10 @@ func CronJobToV2(before *pixivnetv1.CronJob) (new []runtime.Object, err error) {
 
 	new = []runtime.Object{
 		&pixivnetv2.CronJob{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: pixivnetv2.GroupVersion.String(),
+				Kind:       "CronJob",
+			},
 			ObjectMeta: *copied.ObjectMeta.DeepCopy(),
 			Spec: pixivnetv2.CronJobSpec{
 				CronJobProfile: pixivnetv2.CronJobProfileRef{
@@ -50,6 +54,10 @@ func CronJobToV2(before *pixivnetv1.CronJob) (new []runtime.Object, err error) {
 			},
 		},
 		&pixivnetv1.CronJobProfile{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: pixivnetv1.GroupVersion.String(),
+				Kind:       "CronJobProfile",
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      copied.GetName(),
 				Namespace: copied.GetNamespace(),
@@ -69,6 +77,10 @@ func CronJobToV2(before *pixivnetv1.CronJob) (new []runtime.Object, err error) {
 			},
 		},
 		&pixivnetv2.JobProfile{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: pixivnetv2.GroupVersion.String(),
+				Kind:       "JobProfile",
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      copied.GetName(),
 				Namespace: copied.GetNamespace(),
@@ -112,6 +124,10 @@ func JobToV2(before *pixivnetv1.Job) (new []runtime.Object, err error) {
 
 	new = []runtime.Object{
 		&pixivnetv2.Job{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: pixivnetv2.GroupVersion.String(),
+				Kind:       "Job",
+			},
 			ObjectMeta: *copied.ObjectMeta.DeepCopy(),
 			Spec: pixivnetv2.JobSpec{
 				PodProfile: pixivnetv2.PodProfileRef{
@@ -125,6 +141,10 @@ func JobToV2(before *pixivnetv1.Job) (new []runtime.Object, err error) {
 			},
 		},
 		&pixivnetv2.JobProfile{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: pixivnetv2.GroupVersion.String(),
+				Kind:       "JobProfile",
+			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      copied.GetName(),
 				Namespace: copied.GetNamespace(),
