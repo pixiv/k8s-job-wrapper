@@ -1,3 +1,17 @@
+// Copyright 2[0-9]{3} pixiv Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package v1tov2
 
 import (
@@ -108,7 +122,7 @@ func CronJobToV2(before *pixivnetv1.CronJob) (new []runtime.Object, err error) {
 			},
 		},
 	}
-	return
+	return new, err
 }
 
 func JobToV2(before *pixivnetv1.Job) (new []runtime.Object, err error) {
@@ -173,7 +187,7 @@ func JobToV2(before *pixivnetv1.Job) (new []runtime.Object, err error) {
 			},
 		},
 	}
-	return
+	return new, err
 }
 
 func JobPatchToV2(before *pixivnetv1.JobPatch) (new *pixivnetv2.JobPatch, err error) {
