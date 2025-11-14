@@ -4,6 +4,9 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/name: k8s-job-wrapper
+  annotations:
+    v1tov2.pixiv.net/kind: Job
+    v1tov2.pixiv.net/name: job-sample
   name: job-sample
 spec:
   jobProfile:
@@ -23,6 +26,9 @@ apiVersion: pixiv.net/v2
 kind: JobProfile
 metadata:
   name: job-sample
+  annotations:
+    v1tov2.pixiv.net/kind: Job
+    v1tov2.pixiv.net/name: job-sample
 spec:
   template:
     jobParams:
@@ -34,6 +40,9 @@ metadata:
   labels:
     app.kubernetes.io/name: k8s-job-wrapper
     app.kubernetes.io/managed-by: kustomize
+  annotations:
+    v1tov2.pixiv.net/kind: CronJob
+    v1tov2.pixiv.net/name: job-sample
   name: cronjob-sample
 spec:
   cronJobProfile:
@@ -55,6 +64,9 @@ apiVersion: pixiv.net/v1
 kind: CronJobProfile
 metadata:
   name: cronjob-sample
+  annotations:
+    v1tov2.pixiv.net/kind: CronJob
+    v1tov2.pixiv.net/name: job-sample
 spec:
   template:
     cronJobParams:
@@ -64,6 +76,9 @@ apiVersion: pixiv.net/v2
 kind: JobProfile
 metadata:
   name: cronjob-sample
+  annotations:
+    v1tov2.pixiv.net/kind: CronJob
+    v1tov2.pixiv.net/name: job-sample
 spec:
   template:
     jobParams:

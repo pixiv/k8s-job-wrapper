@@ -31,6 +31,10 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+const (
+	annotationPrefix = "v1tov2.pixiv.net/"
+)
+
 func main() {
 	flag.Parse()
 	filePaths := flag.Args()
@@ -60,7 +64,7 @@ func main() {
 			if err != nil {
 				panic(fmt.Errorf("failed to decode: %w", err))
 			}
-			newObj, err := v1tov2.ToV2(before)
+			newObj, changed, err := v1tov2.ToV2(before)
 			if err != nil {
 				panic(fmt.Errorf("failed to change pixiv.net/v1 to v2: %w", err))
 			}
@@ -73,6 +77,14 @@ func main() {
 				delete(unstructured, "status")
 				if metadata, ok := unstructured["metadata"].(map[string]interface{}); ok {
 					delete(metadata, "creationTimestamp")
+					if changed {
+						if metadata["annotations"] == nil {
+							metadata["annotations"] = make(map[string]string)
+						}
+						annotations := metadata["annotations"].(map[string]string)
+						annotations[annotationPrefix+"kind"] = before.GetObjectKind().GroupVersionKind().Kind
+						annotations[annotationPrefix+"name"] = metadata["name"].(string) // the name of the 'before' resource is same as 'after' resource
+					}
 				}
 				new = append(new, unstructured)
 			}

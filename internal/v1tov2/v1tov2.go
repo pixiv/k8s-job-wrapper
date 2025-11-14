@@ -23,24 +23,22 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-const beforeAnnotationName = "pixiv.net/v1tov2-before"
-
-func ToV2(before runtime.Object) ([]runtime.Object, error) {
+func ToV2(before runtime.Object) ([]runtime.Object, bool, error) {
 	switch obj := before.(type) {
 	case *pixivnetv1.CronJob:
 		c, cp, jp, err := CronJobToV2(obj)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
-		return []runtime.Object{c, cp, jp}, nil
+		return []runtime.Object{c, cp, jp}, true, nil
 	case *pixivnetv1.Job:
 		j, jp, err := JobToV2(obj)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
-		return []runtime.Object{j, jp}, nil
+		return []runtime.Object{j, jp}, true, nil
 	default:
-		return []runtime.Object{before}, nil
+		return []runtime.Object{before}, false, nil
 	}
 }
 
@@ -133,14 +131,6 @@ func CronJobToV2(before *pixivnetv1.CronJob) (*pixivnetv2.CronJob, *pixivnetv1.C
 		},
 	}
 
-	beforeResource := fmt.Sprintf("%s/namespaces/%s/cronjobs/%s", before.APIVersion, before.GetNamespace(), before.GetName())
-	if newCronJob.Annotations == nil {
-		newCronJob.Annotations = make(map[string]string)
-	}
-	newCronJob.ObjectMeta.Annotations[beforeAnnotationName] = beforeResource
-	newCronJobProfile.Annotations[beforeAnnotationName] = beforeResource
-	newJobProfile.Annotations[beforeAnnotationName] = beforeResource
-
 	return newCronJob, newCronJobProfile, newJobProfile, nil
 }
 
@@ -205,14 +195,6 @@ func JobToV2(before *pixivnetv1.Job) (*pixivnetv2.Job, *pixivnetv2.JobProfile, e
 			},
 		},
 	}
-
-	if newJob.Annotations == nil {
-		newJob.Annotations = make(map[string]string)
-	}
-	beforeResource := fmt.Sprintf("%s/namespaces/%s/jobs/%s", before.APIVersion, before.GetNamespace(), before.GetName())
-	newJob.ObjectMeta.Annotations[beforeAnnotationName] = beforeResource
-	newJobProfile.Annotations[beforeAnnotationName] = beforeResource
-	newJobProfile.Annotations[beforeAnnotationName] = beforeResource
 
 	return newJob, newJobProfile, nil
 }

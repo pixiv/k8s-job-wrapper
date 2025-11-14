@@ -138,9 +138,6 @@ func TestToV2_CronJob(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "sample-cronjob",
 				Namespace: "sample",
-				Annotations: map[string]string{
-					"pixiv.net/v1tov2-before": "pixiv.net/v1/namespaces/sample/cronjobs/sample-cronjob",
-				},
 			},
 			Spec: pixivnetv2.CronJobSpec{
 				CronJobProfile: pixivnetv2.CronJobProfileRef{
@@ -168,9 +165,6 @@ func TestToV2_CronJob(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "sample-cronjob",
 				Namespace: "sample",
-				Annotations: map[string]string{
-					"pixiv.net/v1tov2-before": "pixiv.net/v1/namespaces/sample/cronjobs/sample-cronjob",
-				},
 			},
 			Spec: pixivnetv1.CronJobProfileSpec{
 				Template: pixivnetv1.CronJobTemplateSpec{
@@ -194,9 +188,6 @@ func TestToV2_CronJob(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "sample-cronjob",
 				Namespace: "sample",
-				Annotations: map[string]string{
-					"pixiv.net/v1tov2-before": "pixiv.net/v1/namespaces/sample/cronjobs/sample-cronjob",
-				},
 			},
 			Spec: pixivnetv2.JobProfileSpec{
 				Template: pixivnetv2.JobTemplateSpec{
@@ -234,11 +225,12 @@ func TestToV2_CronJob(t *testing.T) {
 	}
 	for _, suit := range suites {
 		t.Run(suit.Name, func(t *testing.T) {
-			actual, err := ToV2(suit.Before)
+			actual, changed, err := ToV2(suit.Before)
 			if err != nil {
 				t.Errorf("failed to convert CronJob with V1tov2: %v", err)
 			}
 			assert.Equal(t, suit.After, actual)
+			assert.Equal(t, true, changed)
 		})
 	}
 }
@@ -254,9 +246,6 @@ func TestToV2_Job(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "sample-job",
 				Namespace: "sample",
-				Annotations: map[string]string{
-					"pixiv.net/v1tov2-before": "pixiv.net/v1/namespaces/sample/jobs/sample-job",
-				},
 			},
 			Spec: pixivnetv2.JobSpec{
 				PodProfile: pixivnetv2.PodProfileRef{
@@ -280,9 +269,6 @@ func TestToV2_Job(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "sample-job",
 				Namespace: "sample",
-				Annotations: map[string]string{
-					"pixiv.net/v1tov2-before": "pixiv.net/v1/namespaces/sample/jobs/sample-job",
-				},
 			},
 			Spec: pixivnetv2.JobProfileSpec{
 				Template: pixivnetv2.JobTemplateSpec{
@@ -321,11 +307,12 @@ func TestToV2_Job(t *testing.T) {
 	}
 	for _, suit := range suites {
 		t.Run(suit.Name, func(t *testing.T) {
-			actual, err := ToV2(suit.Before)
+			actual, changed, err := ToV2(suit.Before)
 			if err != nil {
 				t.Errorf("failed to convert Job with V1tov2: %v", err)
 			}
 			assert.Equal(t, suit.After, actual)
+			assert.Equal(t, true, changed)
 		})
 	}
 }
