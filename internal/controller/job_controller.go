@@ -71,7 +71,7 @@ type JobReconciler struct {
 func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
-	job, err := r.getJob(ctx, req)
+	job, err := r.getJobV1(ctx, req)
 	if apierrors.IsNotFound(err) {
 		return r.onDeleted(ctx, req)
 	}
@@ -488,7 +488,7 @@ func (r *JobReconciler) listBatchJobsOrderByCreationTimestampDesc(ctx context.Co
 	return items, nil
 }
 
-func (r *JobReconciler) getJob(ctx context.Context, req ctrl.Request) (*pixivnetv1.Job, error) {
+func (r *JobReconciler) getJobV1(ctx context.Context, req ctrl.Request) (*pixivnetv1.Job, error) {
 	var job pixivnetv1.Job
 	if err := r.Get(ctx, client.ObjectKey{
 		Namespace: req.Namespace,
