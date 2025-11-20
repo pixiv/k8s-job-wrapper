@@ -28,6 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	kyaml "k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/yaml"
 )
 
@@ -36,6 +37,15 @@ const (
 )
 
 func main() {
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), `v1tov2 is a tool for converting pixiv.net/v1 resources to pixiv.net/v2 resources.
+		
+Usage:
+
+	v1tov2 <filename> [another filenames...]
+
+`)
+	}
 	flag.Parse()
 	filePaths := flag.Args()
 
@@ -47,13 +57,14 @@ func main() {
 		panic(fmt.Errorf("failed to add schema k8s-job-wrapper v1: %w", err))
 	}
 	decoder := serializer.NewCodecFactory(s).UniversalDeserializer()
-	new := make([]map[string]interface{}, 0)
+	newObjs := make([]map[string]any, 0)
 
 	for _, path := range filePaths {
 		file, err := os.Open(path)
 		if err != nil {
-			panic(fmt.Errorf("failed to read file: %w", err))
+			klog.Fatalf("failed to open file: %v\n", err)
 		}
+		defer file.Close()
 		yamlreader := kyaml.NewYAMLReader(bufio.NewReader(file))
 		for {
 			b, err := yamlreader.Read()
@@ -62,17 +73,17 @@ func main() {
 			}
 			before, _, err := decoder.Decode(b, nil, nil)
 			if err != nil {
-				panic(fmt.Errorf("failed to decode: %w", err))
+				klog.Fatalf("failed to decode manifest: %v\n", err)
 			}
 			newObj, changed, err := v1tov2.ToV2(before)
 			if err != nil {
-				panic(fmt.Errorf("failed to change pixiv.net/v1 to v2: %w", err))
+				klog.Fatalf("failed to change pixiv.net/v1 to v2: %v\n", err)
 			}
 
 			for _, obj := range newObj {
 				unstructured, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
 				if err != nil {
-					panic(fmt.Errorf("failed to convert object to unstructured: %w", err))
+					klog.Fatalf("failed to convert object to unstructured: %v", err)
 				}
 				delete(unstructured, "status")
 				if metadata, ok := unstructured["metadata"].(map[string]interface{}); ok {
@@ -86,18 +97,18 @@ func main() {
 						annotations[annotationPrefix+"name"] = metadata["name"].(string) // the name of the 'before' resource is same as 'after' resource
 					}
 				}
-				new = append(new, unstructured)
+				newObjs = append(newObjs, unstructured)
 			}
 		}
 	}
 
-	for i, obj := range new {
+	for i, obj := range newObjs {
 		b, err := yaml.Marshal(obj)
 		if err != nil {
-			panic(fmt.Errorf("failed to marshal object to yaml: %w", err))
+			klog.Fatalf("failed to marshal object to yaml: %v\n", err)
 		}
 		fmt.Print(string(b))
-		if i != len(new)-1 {
+		if i != len(newObjs)-1 {
 			fmt.Println("---")
 		}
 	}
