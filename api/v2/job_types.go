@@ -115,6 +115,8 @@ const (
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:storageversion
+// +versionName=v2
 // +kubebuilder:printcolumn:name="PodProfile",type="string",JSONPath=".spec.podProfile.ref"
 // +kubebuilder:printcolumn:name="JobProfile",type="string",JSONPath=".spec.jobProfile.ref"
 // +kubebuilder:printcolumn:name="Available",type="string",JSONPath=".status.conditions[?(@.type==\"Available\")].status"

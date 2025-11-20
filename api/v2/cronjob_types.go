@@ -68,6 +68,8 @@ const (
 )
 
 // +kubebuilder:object:root=true
+// +kubebuilder:storageversion
+// +versionName=v2
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="PodProfile",type="string",JSONPath=".spec.podProfile.ref"
 // +kubebuilder:printcolumn:name="JobProfile",type="string",JSONPath=".spec.jobProfile.ref"

@@ -11,7 +11,7 @@ spec:
     patches:
       - op: add
         path: /spec/schedule
-        schedule: "35 0 * * *"
+        value: "35 0 * * *"
   podProfile:
     ref: podprofile-sample
     patches:

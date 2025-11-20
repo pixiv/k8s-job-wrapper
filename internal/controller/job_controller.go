@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"slices"
 	"time"
 
@@ -71,10 +72,11 @@ type JobReconciler struct {
 func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
-	job, err := r.getJobV1(ctx, req)
+	job, err := r.getJob(ctx, req)
 	if apierrors.IsNotFound(err) {
 		return r.onDeleted(ctx, req)
 	}
+	fmt.Println(job.APIVersion)
 	if err != nil {
 		logger.Error(err, "unable to get Job")
 		return ctrl.Result{}, err
@@ -488,12 +490,18 @@ func (r *JobReconciler) listBatchJobsOrderByCreationTimestampDesc(ctx context.Co
 	return items, nil
 }
 
-func (r *JobReconciler) getJobV1(ctx context.Context, req ctrl.Request) (*pixivnetv1.Job, error) {
+func (r *JobReconciler) getJob(ctx context.Context, req ctrl.Request) (*pixivnetv1.Job, error) {
 	var job pixivnetv1.Job
 	if err := r.Get(ctx, client.ObjectKey{
 		Namespace: req.Namespace,
 		Name:      req.Name,
-	}, &job); err != nil {
+	}, &job, &client.GetOptions{
+		Raw: &metav1.GetOptions{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "pixiv.net/v1",
+			},
+		},
+	}); err != nil {
 		return nil, err
 	}
 	return &job, nil

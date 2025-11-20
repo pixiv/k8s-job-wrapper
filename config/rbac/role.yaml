@@ -27,7 +27,9 @@ rules:
 - apiGroups:
   - pixiv.net
   resources:
+  - cronjobprofiles
   - cronjobs
+  - jobprofiles
   - jobs
   - podprofiles
   verbs:
@@ -41,7 +43,9 @@ rules:
 - apiGroups:
   - pixiv.net
   resources:
+  - cronjobprofiles/finalizers
   - cronjobs/finalizers
+  - jobprofiles/finalizers
   - jobs/finalizers
   - podprofiles/finalizers
   verbs:
@@ -49,7 +53,9 @@ rules:
 - apiGroups:
   - pixiv.net
   resources:
+  - cronjobprofiles/status
   - cronjobs/status
+  - jobprofiles/status
   - jobs/status
   - podprofiles/status
   verbs:
