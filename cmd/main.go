@@ -42,6 +42,7 @@ import (
 	"github.com/pixiv/k8s-job-wrapper/internal/controller"
 	"github.com/pixiv/k8s-job-wrapper/internal/kubectl"
 	"github.com/pixiv/k8s-job-wrapper/internal/kustomize"
+	webhookv1 "github.com/pixiv/k8s-job-wrapper/internal/webhook/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -248,6 +249,13 @@ func main() {
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "JobProfile")
 		os.Exit(1)
+	}
+	// nolint:goconst
+	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+		if err := webhookv1.SetupJobWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Job")
+			os.Exit(1)
+		}
 	}
 	// +kubebuilder:scaffold:builder
 

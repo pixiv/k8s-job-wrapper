@@ -26,6 +26,11 @@ resources:
   kind: Job
   path: github.com/pixiv/k8s-job-wrapper/api/v1
   version: v1
+  webhooks:
+    conversion: true
+    spoke:
+    - v2
+    webhookVersion: v1
 - api:
     crdVersion: v1
     namespaced: true
