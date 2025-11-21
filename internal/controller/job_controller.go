@@ -20,11 +20,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"slices"
 	"time"
 
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
+	pixivnetv2 "github.com/pixiv/k8s-job-wrapper/api/v2"
 	"github.com/pixiv/k8s-job-wrapper/internal/construct"
 	"github.com/pixiv/k8s-job-wrapper/internal/kustomize"
 	"github.com/pixiv/k8s-job-wrapper/internal/util"
@@ -76,7 +76,6 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	if apierrors.IsNotFound(err) {
 		return r.onDeleted(ctx, req)
 	}
-	fmt.Println(job.APIVersion)
 	if err != nil {
 		logger.Error(err, "unable to get Job")
 		return ctrl.Result{}, err
@@ -87,7 +86,7 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, nil
 	}
 
-	logger = logger.WithValues("podProfile", job.Spec.Profile.PodProfileRef)
+	logger = logger.WithValues("podProfile", job.Spec.PodProfile.Ref, "jobProfile", job.Spec.JobProfile.Ref)
 
 	var (
 		updateStatus = func() error {
@@ -126,7 +125,7 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		Reason: "OK",
 	})
 
-	podProfile, err := r.getPodProfile(ctx, job.Namespace, job.Spec.Profile.PodProfileRef)
+	podProfile, err := r.getPodProfile(ctx, job.Namespace, job.Spec.PodProfile.Ref)
 	if err != nil {
 		logger.Error(err, "unable to get PodProfile")
 		setFailedConditions("PodProfile not found")
@@ -134,7 +133,15 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 
-	nextJob, err := r.constructBatchJob(ctx, job, podProfile)
+	jobProfile, err := r.getJobProfile(ctx, job.Namespace, job.Spec.JobProfile.Ref)
+	if err != nil {
+		logger.Error(err, "unable to get JobProfile")
+		setFailedConditions("JobProfile not found")
+		_ = updateStatus()
+		return ctrl.Result{}, err
+	}
+
+	nextJob, err := r.constructBatchJob(ctx, job, podProfile, jobProfile)
 	if err != nil {
 		logger.Error(err, "unable to construct job")
 		setFailedConditions("Failed to construct batch Job manifest")
@@ -147,8 +154,10 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		logger.Error(err, "unable to delete expired jobs")
 	}
 
-	if err := r.deleteOldBatchJobs(ctx, job); err != nil {
-		logger.Error(err, "unable to delete old jobs")
+	if *&jobProfile.Spec.Template.JobsHistoryLimit != nil {
+		if err := r.deleteOldBatchJobs(ctx, job, *jobProfile.Spec.Template.JobsHistoryLimit); err != nil {
+			logger.Error(err, "unable to delete old jobs")
+		}
 	}
 
 	existJobs, err := r.listBatchJobsOrderByCreationTimestampDesc(ctx, job)
@@ -191,7 +200,7 @@ func (r *JobReconciler) onDeleted(ctx context.Context, req ctrl.Request) (ctrl.R
 	return ctrl.Result{}, nil
 }
 
-func (r *JobReconciler) createBatchJob(ctx context.Context, job *pixivnetv1.Job, nextJob *batchv1.Job) error {
+func (r *JobReconciler) createBatchJob(ctx context.Context, job *pixivnetv2.Job, nextJob *batchv1.Job) error {
 	logger := log.FromContext(ctx).WithValues("batchJob", nextJob.Name)
 
 	err := r.Create(ctx, nextJob)
@@ -222,7 +231,7 @@ func (r *JobReconciler) createBatchJob(ctx context.Context, job *pixivnetv1.Job,
 }
 
 // Prune old batch jobs that exceed the history limit.
-func (r *JobReconciler) deleteOldBatchJobs(ctx context.Context, job *pixivnetv1.Job) error {
+func (r *JobReconciler) deleteOldBatchJobs(ctx context.Context, job *pixivnetv2.Job, jobsHistoryLimit int) error {
 	history, err := r.listBatchJobsOrderByCreationTimestampDesc(ctx, job)
 	if err != nil {
 		return err
@@ -240,7 +249,7 @@ func (r *JobReconciler) deleteOldBatchJobs(ctx context.Context, job *pixivnetv1.
 			continue
 		}
 		// Otherwise, skip it if it falls within the history limit.
-		if kept < *job.Spec.JobsHistoryLimit {
+		if kept < jobsHistoryLimit {
 			kept++
 			continue
 		}
@@ -262,7 +271,7 @@ func (r *JobReconciler) deleteOldBatchJobs(ctx context.Context, job *pixivnetv1.
 
 // Delete batch Jobs where TTLSecondsAfterFinished has passed since their completion time.
 // If there are any batch Jobs with a TTL set that have not yet expired, schedule a future [JobReconciler.Reconcile].
-func (r *JobReconciler) processBatchJobsTTL(ctx context.Context, now time.Time, job *pixivnetv1.Job) (ctrl.Result, error) {
+func (r *JobReconciler) processBatchJobsTTL(ctx context.Context, now time.Time, job *pixivnetv2.Job) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
 	var defaultResult ctrl.Result
@@ -451,14 +460,14 @@ func (*JobReconciler) getBatchJobSpecHash(job *batchv1.Job) string {
 }
 
 // A label used to retrieve a list of the generated batch Jobs.
-func (*JobReconciler) batchJobLabels(job *pixivnetv1.Job) map[string]string {
+func (*JobReconciler) batchJobLabels(job *pixivnetv2.Job) map[string]string {
 	return construct.BatchJobLabelsForList(job)
 }
 
 // Create a batchJob object.
-func (r *JobReconciler) constructBatchJob(ctx context.Context, job *pixivnetv1.Job, podProfile *pixivnetv1.PodProfile) (*batchv1.Job, error) {
-	logger := log.FromContext(ctx).WithValues("podProfile", podProfile.Name)
-	nextJob, err := construct.BatchJob(ctx, job, podProfile, r.Patcher, r.Scheme)
+func (r *JobReconciler) constructBatchJob(ctx context.Context, job *pixivnetv2.Job, podProfile *pixivnetv1.PodProfile, jobProfile *pixivnetv2.JobProfile) (*batchv1.Job, error) {
+	logger := log.FromContext(ctx).WithValues("podProfile", podProfile.Name, "jobProfile", jobProfile.Name)
+	nextJob, err := construct.BatchJob(ctx, job, podProfile, jobProfile, r.Patcher, r.Scheme)
 	if err != nil {
 		logger.Error(err, "failed to construct batch job manifest")
 		return nil, err
@@ -467,7 +476,7 @@ func (r *JobReconciler) constructBatchJob(ctx context.Context, job *pixivnetv1.J
 	return nextJob, nil
 }
 
-func (r *JobReconciler) listBatchJobsOrderByCreationTimestampDesc(ctx context.Context, job *pixivnetv1.Job) ([]batchv1.Job, error) {
+func (r *JobReconciler) listBatchJobsOrderByCreationTimestampDesc(ctx context.Context, job *pixivnetv2.Job) ([]batchv1.Job, error) {
 	var batchJobs batchv1.JobList
 	if err := r.List(ctx, &batchJobs, &client.ListOptions{
 		Namespace:     job.Namespace,
@@ -490,18 +499,12 @@ func (r *JobReconciler) listBatchJobsOrderByCreationTimestampDesc(ctx context.Co
 	return items, nil
 }
 
-func (r *JobReconciler) getJob(ctx context.Context, req ctrl.Request) (*pixivnetv1.Job, error) {
-	var job pixivnetv1.Job
+func (r *JobReconciler) getJob(ctx context.Context, req ctrl.Request) (*pixivnetv2.Job, error) {
+	var job pixivnetv2.Job
 	if err := r.Get(ctx, client.ObjectKey{
 		Namespace: req.Namespace,
 		Name:      req.Name,
-	}, &job, &client.GetOptions{
-		Raw: &metav1.GetOptions{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: "pixiv.net/v1",
-			},
-		},
-	}); err != nil {
+	}, &job); err != nil {
 		return nil, err
 	}
 	return &job, nil
@@ -512,6 +515,17 @@ func (r *JobReconciler) getPodProfile(ctx context.Context, namespace, podProfile
 	if err := r.Get(ctx, client.ObjectKey{
 		Namespace: namespace,
 		Name:      podProfileRef,
+	}, &profile); err != nil {
+		return nil, err
+	}
+	return &profile, nil
+}
+
+func (r *JobReconciler) getJobProfile(ctx context.Context, namespace, jobProfileRef string) (*pixivnetv2.JobProfile, error) {
+	var profile pixivnetv2.JobProfile
+	if err := r.Get(ctx, client.ObjectKey{
+		Namespace: namespace,
+		Name:      jobProfileRef,
 	}, &profile); err != nil {
 		return nil, err
 	}

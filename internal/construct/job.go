@@ -22,6 +22,7 @@ import (
 	"strconv"
 
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
+	pixivnetv2 "github.com/pixiv/k8s-job-wrapper/api/v2"
 	"github.com/pixiv/k8s-job-wrapper/internal/kustomize"
 	"github.com/pixiv/k8s-job-wrapper/internal/util"
 	batchv1 "k8s.io/api/batch/v1"
@@ -61,7 +62,7 @@ func BatchJobTTLSecondsAfterFinishedFromAnnotations(batchJob *batchv1.Job) (int3
 }
 
 // A label used to retrieve a list of the generated batch Jobs.
-func BatchJobLabelsForList(job *pixivnetv1.Job) map[string]string {
+func BatchJobLabelsForList(job *pixivnetv2.Job) map[string]string {
 	return map[string]string{
 		BatchJobLabelCreatedBy: BatchJobLabelCreatedByValue,
 		BatchJobLabelName:      job.Name,
@@ -70,8 +71,8 @@ func BatchJobLabelsForList(job *pixivnetv1.Job) map[string]string {
 
 // Create `jobs.v1.batch`.
 // Also add the metadata specific to resources generated from a [pixivnetv1.CronJob].
-func BatchJob(ctx context.Context, job *pixivnetv1.Job, podProfile *pixivnetv1.PodProfile, patcher kustomize.Patcher, scheme *runtime.Scheme) (*batchv1.Job, error) {
-	nextJobSpec, err := BatchJobSpec(ctx, &job.Spec.Profile, podProfile, patcher)
+func BatchJob(ctx context.Context, job *pixivnetv2.Job, podProfile *pixivnetv1.PodProfile, jobProfile *pixivnetv2.JobProfile, patcher kustomize.Patcher, scheme *runtime.Scheme) (*batchv1.Job, error) {
+	nextJobSpec, err := BatchJobSpec(ctx, &job.Spec, podProfile, jobProfile, patcher)
 	if err != nil {
 		return nil, err
 	}
@@ -93,22 +94,23 @@ func BatchJob(ctx context.Context, job *pixivnetv1.Job, podProfile *pixivnetv1.P
 	}
 	batchJob.Annotations = map[string]string{}
 	batchJob.Labels = map[string]string{}
+	// TODO: Apply additional labels and annotations
 	// Apply additional labels and annotations first.
 	// This is to avoid overwriting essential metadata required by the controller.
-	for k, v := range job.Spec.Profile.Metadata.Annotations {
-		batchJob.Annotations[k] = v
-	}
-	for k, v := range job.Spec.Profile.Metadata.Labels {
-		batchJob.Labels[k] = v
-	}
+	// for k, v := range job.Spec.Profile.Metadata.Annotations {
+	// 	batchJob.Annotations[k] = v
+	// }
+	// for k, v := range job.Spec.Profile.Metadata.Labels {
+	// 	batchJob.Labels[k] = v
+	// }
 	// Save TTL to the annotation.
-	if x := job.Spec.Profile.Params.TTLSecondsAfterFinished; x != nil {
+	if x := jobProfile.Spec.Template.JobParams.TTLSecondsAfterFinished; x != nil {
 		batchJob.Annotations[BatchJobAnnotationTTLSecondsAfterFinished] = fmt.Sprintf("%d", *x)
 	}
 	for k, v := range BatchJobLabelsForList(job) {
 		batchJob.Labels[k] = v
 	}
-	// Create the name of the job from the hash of spec.template.
+	// Create the name of the job from the hash of spec.
 	podTemplateHash := controller.ComputeHash(&batchJob.Spec.Template, job.Status.CollisionCount)
 	batchJob.Labels["pod-template-hash"] = podTemplateHash
 	batchJob.Name = job.Name + "-" + podTemplateHash
@@ -119,7 +121,7 @@ func BatchJob(ctx context.Context, job *pixivnetv1.Job, podProfile *pixivnetv1.P
 }
 
 // Create `jobs.v1.batch.spec`.
-func BatchJobSpec(ctx context.Context, jobProfileSpec *pixivnetv1.JobProfileSpec, podProfile *pixivnetv1.PodProfile, patcher kustomize.Patcher) (*batchv1.JobSpec, error) {
+func BatchJobSpec(ctx context.Context, jobSpec *pixivnetv2.JobSpec, podProfile *pixivnetv1.PodProfile, jobProfile *pixivnetv2.JobProfile, patcher kustomize.Patcher) (*batchv1.JobSpec, error) {
 	var batchJob batchv1.Job
 
 	//
@@ -138,7 +140,7 @@ func BatchJobSpec(ctx context.Context, jobProfileSpec *pixivnetv1.JobProfileSpec
 	//
 	var (
 		spec   = &batchJob.Spec
-		params = jobProfileSpec.Params
+		params = jobProfile.Spec.Template.JobParams
 	)
 	spec.Parallelism = params.Parallelism
 	spec.Completions = params.Completions
@@ -158,23 +160,37 @@ func BatchJobSpec(ctx context.Context, jobProfileSpec *pixivnetv1.JobProfileSpec
 	spec.ManagedBy = params.ManagedBy
 	spec.Template = podProfile.Spec.Template // Set the podprofile directly as the target for patching.
 
-	if len(jobProfileSpec.Patches) == 0 { // If no patch is provided, no action is necessary.
-		return &batchJob.Spec, nil
+	if len(jobSpec.PodProfile.Patches) > 0 {
+		podPatches := jobSpec.DeepCopy().PodProfile.Patches
+		for i := range podPatches {
+			// The user writes the patch assuming the root path is podprofile.spec.template,
+			// which is equivalent to batch/v1.job.spec.template.
+			// We rewrite the path to adjust for this and make it work as expected.
+			podPatches[i].Path = "/spec/template" + podPatches[i].Path
+		}
+		spec, err := applyPatches(ctx, &batchJob, podPatches, patcher)
+		if err != nil {
+			return nil, fmt.Errorf("failed to apply podPatches: %w", err)
+		}
+		batchJob.Spec = *spec
+	}
+	if len(jobSpec.JobProfile.Patches) > 0 {
+		jobPatches := jobSpec.DeepCopy().JobProfile.Patches
+		spec, err := applyPatches(ctx, &batchJob, jobPatches, patcher)
+		if err != nil {
+			return nil, fmt.Errorf("failed to apply jobPatches: %w", err)
+		}
+		batchJob.Spec = *spec
 	}
 
-	//
-	// Apply the patch to batch Job.
-	//
-	jobYaml, err := yaml.Marshal(batchJob)
+	return &batchJob.Spec, nil
+}
+
+// Apply the patch to batch Job.
+func applyPatches(ctx context.Context, src *batchv1.Job, patches []pixivnetv2.JobPatch, patcher kustomize.Patcher) (*batchv1.JobSpec, error) {
+	jobYaml, err := yaml.Marshal(src)
 	if err != nil {
 		return nil, fmt.Errorf("%w: failed to marshal batch job seed", err)
-	}
-	patches := jobProfileSpec.DeepCopy().Patches
-	for i := range patches {
-		// The user writes the patch assuming the root path is podprofile.spec.template,
-		// which is equivalent to batch/v1.job.spec.template.
-		// We rewrite the path to adjust for this and make it work as expected.
-		patches[i].Path = "/spec/template" + patches[i].Path
 	}
 
 	patchesYaml, err := yaml.Marshal(patches)
@@ -187,7 +203,7 @@ func BatchJobSpec(ctx context.Context, jobProfileSpec *pixivnetv1.JobProfileSpec
 		Group:    batchJobGroup,
 		Version:  batchJobVersion,
 		Kind:     batchJobKind,
-		Name:     batchJob.Name,
+		Name:     src.Name,
 		Resource: string(jobYaml),
 		Patches:  string(patchesYaml),
 	})
@@ -199,6 +215,5 @@ func BatchJobSpec(ctx context.Context, jobProfileSpec *pixivnetv1.JobProfileSpec
 	if err := yaml.Unmarshal([]byte(patched.Manifest), &patchedJob); err != nil {
 		return nil, fmt.Errorf("%w: failed to unmarshal pacthed job", err)
 	}
-
 	return &patchedJob.Spec, nil
 }
