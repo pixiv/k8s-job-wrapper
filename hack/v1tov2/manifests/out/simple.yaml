@@ -1,0 +1,105 @@
+apiVersion: pixiv.net/v2
+kind: Job
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: k8s-job-wrapper
+  annotations:
+    v1tov2.pixiv.net/kind: Job
+    v1tov2.pixiv.net/name: job-sample
+  name: job-sample
+spec:
+  jobProfile:
+    ref: job-sample
+  podProfile:
+    ref: podprofile-sample
+    patches:
+    - op: replace
+      path: /spec/containers/0/command
+      value:
+      - "perl"
+      - "-Mbignum=bpi"
+      - "-wle"
+      - "print bpi(100)"
+---
+apiVersion: pixiv.net/v2
+kind: JobProfile
+metadata:
+  name: job-sample
+  annotations:
+    v1tov2.pixiv.net/kind: Job
+    v1tov2.pixiv.net/name: job-sample
+spec:
+  template:
+    jobParams:
+      activeDeadlineSeconds: 120
+---
+apiVersion: pixiv.net/v2
+kind: CronJob
+metadata:
+  labels:
+    app.kubernetes.io/name: k8s-job-wrapper
+    app.kubernetes.io/managed-by: kustomize
+  annotations:
+    v1tov2.pixiv.net/kind: CronJob
+    v1tov2.pixiv.net/name: job-sample
+  name: cronjob-sample
+spec:
+  cronJobProfile:
+    ref: cronjob-sample
+  jobProfile:
+    ref: cronjob-sample
+  podProfile:
+    ref: podprofile-sample
+    patches:
+    - op: replace
+      path: /spec/containers/0/command
+      value:
+      - "perl"
+      - "-Mbignum=bpi"
+      - "-wle"
+      - "print bpi(10)"
+---
+apiVersion: pixiv.net/v1
+kind: CronJobProfile
+metadata:
+  name: cronjob-sample
+  annotations:
+    v1tov2.pixiv.net/kind: CronJob
+    v1tov2.pixiv.net/name: job-sample
+spec:
+  template:
+    cronJobParams:
+      schedule: "* * * * *"
+---
+apiVersion: pixiv.net/v2
+kind: JobProfile
+metadata:
+  name: cronjob-sample
+  annotations:
+    v1tov2.pixiv.net/kind: CronJob
+    v1tov2.pixiv.net/name: job-sample
+spec:
+  template:
+    jobParams:
+      activeDeadlineSeconds: 120
+---
+apiVersion: pixiv.net/v1
+kind: PodProfile
+metadata:
+  labels:
+    app.kubernetes.io/name: k8s-job-wrapper
+    app.kubernetes.io/managed-by: kustomize
+  name: podprofile-sample
+spec:
+  template:
+    spec:
+      containers:
+      - command:
+        - "perl"
+        - "-Mbignum=bpi"
+        - "-wle"
+        - "print bpi(500)"
+        image: perl:5.34.0
+        name: pi
+      restartPolicy: Never

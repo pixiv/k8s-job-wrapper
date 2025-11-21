@@ -4,57 +4,20 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.17.2
-  name: cronjobs.pixiv.net
+  name: jobprofiles.pixiv.net
 spec:
   group: pixiv.net
   names:
-    kind: CronJob
-    listKind: CronJobList
-    plural: cronjobs
-    singular: cronjob
+    kind: JobProfile
+    listKind: JobProfileList
+    plural: jobprofiles
+    singular: jobprofile
   scope: Namespaced
   versions:
-  - additionalPrinterColumns:
-    - jsonPath: .spec.schedule
-      name: Schedule
-      type: string
-    - jsonPath: .spec.timeZone
-      name: Timezone
-      type: string
-    - jsonPath: .spec.suspend
-      name: Suspend
-      type: boolean
-    - jsonPath: .spec.jobProfile.podProfileRef
-      name: Profile
-      type: string
-    - jsonPath: .status.conditions[?(@.type=="Available")].status
-      name: Available
-      type: string
-    - jsonPath: .status.conditions[?(@.type=="Available")].reason
-      name: Reason
-      type: string
-    - jsonPath: .status.conditions[?(@.type=="Available")].message
-      name: Message
-      type: string
-    name: v1
+  - name: v2
     schema:
       openAPIV3Schema:
-        description: |-
-          CronJob represents a template of `cronjobs.v1.batch`.
-
-          CronJob generates `cronjobs.v1.batch.spec` from `spec.jobProfile`,
-          and then combines it with `spec.schedule`, `spec.timeZone`, ... to produce `cronjobs.v1.batch`.
-
-          The generated `cronjobs.v1.batch` will always have the following labels applied:
-
-            - `app.kubernetes.io/created-by=pixiv-job-controller`
-            - `cronjobs.pixiv.net/name=$NAME_OF_CRONJOB`
-
-          Where `$NAME_OF_CRONJOB` is the `metadata.name`.
-
-          The generated `cronjobs.v1.batch` will have the suffix `-pxvcjob` appended to its name.
-          The maximum length of `metadata.name` of `cronjobs.v1.batch` is 52 characters.
-          Therefore, the maximum length of `metadata.name` of [CronJob] is 44 characters.
+        description: JobProfile is the Schema for the jobprofiles API
         properties:
           apiVersion:
             description: |-
@@ -74,55 +37,11 @@ spec:
           metadata:
             type: object
           spec:
-            description: CronJobSpec defines the desired state of CronJob.
+            description: spec defines the desired state of JobProfile
             properties:
-              concurrencyPolicy:
-                default: Allow
-                description: |-
-                  Specifies how to treat concurrent executions of a Job.
-                  Valid values are:
-
-                  - "Allow" (default): allows CronJobs to run concurrently;
-                  - "Forbid": forbids concurrent runs, skipping next run if previous run hasn't finished yet;
-                  - "Replace": cancels currently running job and replaces it with a new one
-                type: string
-              cronJobMetadata:
-                description: Additional `cronjobs.v1.batch.metadata`.
+              template:
+                description: Template describes the jobs that will be created.
                 properties:
-                  annotations:
-                    additionalProperties:
-                      type: string
-                    description: Additional annotations for generated `cronjobs.v1.batch`.
-                    type: object
-                  labels:
-                    additionalProperties:
-                      type: string
-                    description: Additional labels for generated `cronjobs.v1.batch`.
-                    type: object
-                type: object
-              failedJobsHistoryLimit:
-                default: 1
-                description: |-
-                  The number of failed finished jobs to retain.
-                  This is a pointer to distinguish between explicit zero and not specified.
-                format: int32
-                type: integer
-              jobProfile:
-                properties:
-                  jobMetadata:
-                    description: Additional `jobs.v1.batch.metadata`.
-                    properties:
-                      annotations:
-                        additionalProperties:
-                          type: string
-                        description: Additional annotations for generated `jobs.v1.batch`.
-                        type: object
-                      labels:
-                        additionalProperties:
-                          type: string
-                        description: Additional labels for generated `jobs.v1.batch`.
-                        type: object
-                    type: object
                   jobParams:
                     description: '`jobs.v1.batch.spec` configuration options.'
                     properties:
@@ -505,440 +424,28 @@ spec:
                         format: int32
                         type: integer
                     type: object
-                  patches:
-                    description: Patches to be applied to `template` of [PodProfile].
-                    items:
-                      description: |-
-                        JobPatch defines the [patch] to be applied to template of PodProfile.
-                        For examples, rename container:
-                        <pre><code>op: replace
-                        path: /spec/containers/0/name
-                        value: simple
-                        </code></pre>
-
-                        Replace command:
-                        <pre><code>op: replace
-                        path: /spec/containers/0/command
-                        value: ["perl", "-Mbignum=bpi", "-wle", "print bpi(100)"]
-                        </code></pre>
-
-                        [patch]: https://datatracker.ietf.org/doc/html/rfc6902
-                      properties:
-                        from:
-                          type: string
-                        op:
-                          description: Operation to perform.
-                          type: string
-                        path:
-                          description: |-
-                            JSON-pointer that references a location within the template where the operation is performed.
-                            The root of path will be `jobs.v1.batch.spec.template`.
-                          type: string
-                        value:
-                          description: Any yaml object.
-                          x-kubernetes-preserve-unknown-fields: true
-                      required:
-                      - op
-                      - path
-                      type: object
-                    type: array
-                    x-kubernetes-list-type: atomic
-                  podProfileRef:
-                    description: Name of [PodProfile] that this refers to.
-                    type: string
-                required:
-                - podProfileRef
-                type: object
-              schedule:
-                description: The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.
-                type: string
-              startingDeadlineSeconds:
-                description: |-
-                  Optional deadline in seconds for starting the job if it misses scheduled
-                  time for any reason.  Missed jobs executions will be counted as failed ones.
-                format: int64
-                type: integer
-              successfulJobsHistoryLimit:
-                default: 3
-                description: |-
-                  The number of successful finished jobs to retain.
-                  This is a pointer to distinguish between explicit zero and not specified.
-                format: int32
-                type: integer
-              suspend:
-                default: false
-                description: |-
-                  This flag tells the controller to suspend subsequent executions, it does
-                  not apply to already started executions. Defaults to false.
-                type: boolean
-              timeZone:
-                description: |-
-                  The time zone name for the given schedule, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
-                  If not specified, this will default to the time zone of the kube-controller-manager process.
-                  The set of valid time zone names and the time zone offset is loaded from the system-wide time zone
-                  database by the API server during CronJob validation and the controller manager during execution.
-                  If no system-wide time zone database can be found a bundled version of the database is used instead.
-                  If the time zone name becomes invalid during the lifetime of a CronJob or due to a change in host
-                  configuration, the controller will stop creating new new Jobs and will create a system event with the
-                  reason UnknownTimeZone.
-                  More information can be found in https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones
-                type: string
-            required:
-            - jobProfile
-            - schedule
-            type: object
-          status:
-            description: CronJobStatus defines the observed state of CronJob.
-            properties:
-              collisionCount:
-                description: |-
-                  Count of hash collisions for the Job. The Job controller uses this
-                  field as a collision avoidance mechanism when it needs to create the name for the
-                  newest `jobs.v1.batch`.
-                format: int32
-                type: integer
-              conditions:
-                description: Conditions represent the latest available observations
-                  of an object's state.
-                items:
-                  description: Condition contains details for one aspect of the current
-                    state of this API Resource.
-                  properties:
-                    lastTransitionTime:
-                      description: |-
-                        lastTransitionTime is the last time the condition transitioned from one status to another.
-                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
-                      format: date-time
-                      type: string
-                    message:
-                      description: |-
-                        message is a human readable message indicating details about the transition.
-                        This may be an empty string.
-                      maxLength: 32768
-                      type: string
-                    observedGeneration:
-                      description: |-
-                        observedGeneration represents the .metadata.generation that the condition was set based upon.
-                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-                        with respect to the current state of the instance.
-                      format: int64
-                      minimum: 0
-                      type: integer
-                    reason:
-                      description: |-
-                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
-                        Producers of specific condition types may define expected values and meanings for this field,
-                        and whether the values are considered a guaranteed API.
-                        The value should be a CamelCase string.
-                        This field may not be empty.
-                      maxLength: 1024
-                      minLength: 1
-                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
-                      type: string
-                    status:
-                      description: status of the condition, one of True, False, Unknown.
-                      enum:
-                      - "True"
-                      - "False"
-                      - Unknown
-                      type: string
-                    type:
-                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
-                      maxLength: 316
-                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
-                      type: string
-                  required:
-                  - lastTransitionTime
-                  - message
-                  - reason
-                  - status
-                  - type
-                  type: object
-                type: array
-                x-kubernetes-list-map-keys:
-                - type
-                x-kubernetes-list-type: map
-            type: object
-        type: object
-        x-kubernetes-validations:
-        - message: must be no more than 44 characters
-          rule: self.metadata.name.size() <= 44
-    served: true
-    storage: false
-    subresources:
-      status: {}
-  - additionalPrinterColumns:
-    - jsonPath: .spec.podProfile.ref
-      name: PodProfile
-      type: string
-    - jsonPath: .spec.jobProfile.ref
-      name: JobProfile
-      type: string
-    - jsonPath: .spec.cronJobProfile.ref
-      name: CronJobProfile
-      type: string
-    - jsonPath: .status.conditions[?(@.type=="Available")].status
-      name: Available
-      type: string
-    - jsonPath: .status.conditions[?(@.type=="Available")].reason
-      name: Reason
-      type: string
-    - jsonPath: .status.conditions[?(@.type=="Available")].message
-      name: Message
-      type: string
-    name: v2
-    schema:
-      openAPIV3Schema:
-        description: |-
-          CronJob represents a template of `cronjobs.v1.batch`.
-
-          CronJob generates `cronjobs.v1.batch.spec` from the profiles specified in `spec.jobProfile`, `spec.podProfile`, `spec.cronJobProfile`.
-
-          The generated `cronjobs.v1.batch` will always have the following labels applied:
-
-            - `app.kubernetes.io/created-by=pixiv-job-controller`
-            - `cronjobs.pixiv.net/name=$NAME_OF_CRONJOB`
-
-          Where `$NAME_OF_CRONJOB` is the `metadata.name`.
-
-          The generated `cronjobs.v1.batch` will have the suffix `-pxvcjob` appended to its name.
-          The maximum length of `metadata.name` of `cronjobs.v1.batch` is 52 characters.
-          Therefore, the maximum length of `metadata.name` of [CronJob] is 44 characters.
-        properties:
-          apiVersion:
-            description: |-
-              APIVersion defines the versioned schema of this representation of an object.
-              Servers should convert recognized schemas to the latest internal value, and
-              may reject unrecognized values.
-              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
-            type: string
-          kind:
-            description: |-
-              Kind is a string value representing the REST resource this object represents.
-              Servers may infer this from the endpoint the client submits requests to.
-              Cannot be updated.
-              In CamelCase.
-              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
-            type: string
-          metadata:
-            type: object
-          spec:
-            description: CronJobSpec defines the desired state of CronJob
-            properties:
-              cronJobProfile:
-                properties:
-                  patches:
-                    description: Patches to be applied to `template` of [PodProfile].
-                    items:
-                      description: |-
-                        JobPatch defines the [patch] to be applied to template of PodProfile.
-                        For examples, rename container:
-                        <pre><code>op: replace
-                        path: /spec/containers/0/name
-                        value: simple
-                        </code></pre>
-
-                        Replace command:
-                        <pre><code>op: replace
-                        path: /spec/containers/0/command
-                        value: ["perl", "-Mbignum=bpi", "-wle", "print bpi(100)"]
-                        </code></pre>
-
-                        [patch]: https://datatracker.ietf.org/doc/html/rfc6902
-                      properties:
-                        from:
-                          type: string
-                        op:
-                          description: Operation to perform.
-                          type: string
-                        path:
-                          description: |-
-                            JSON-pointer that references a location within the template where the operation is performed.
-                            The root of path will be `jobs.v1.batch.spec.template`.
-                          type: string
-                        value:
-                          description: Any yaml object.
-                          x-kubernetes-preserve-unknown-fields: true
-                      required:
-                      - op
-                      - path
-                      type: object
-                    type: array
-                    x-kubernetes-list-type: atomic
-                  ref:
-                    description: Name of [CronJobProfile] that this refers to.
-                    type: string
-                required:
-                - ref
-                type: object
-              jobProfile:
-                properties:
-                  patches:
-                    description: Patches to be applied to `template` of [JobProfile].
-                    items:
-                      description: |-
-                        JobPatch defines the [patch] to be applied to template of PodProfile.
-                        For examples, rename container:
-                        <pre><code>op: replace
-                        path: /spec/containers/0/name
-                        value: simple
-                        </code></pre>
-
-                        Replace command:
-                        <pre><code>op: replace
-                        path: /spec/containers/0/command
-                        value: ["perl", "-Mbignum=bpi", "-wle", "print bpi(100)"]
-                        </code></pre>
-
-                        [patch]: https://datatracker.ietf.org/doc/html/rfc6902
-                      properties:
-                        from:
-                          type: string
-                        op:
-                          description: Operation to perform.
-                          type: string
-                        path:
-                          description: |-
-                            JSON-pointer that references a location within the template where the operation is performed.
-                            The root of path will be `jobs.v1.batch.spec.template`.
-                          type: string
-                        value:
-                          description: Any yaml object.
-                          x-kubernetes-preserve-unknown-fields: true
-                      required:
-                      - op
-                      - path
-                      type: object
-                    type: array
-                    x-kubernetes-list-type: atomic
-                  ref:
-                    description: Name of [JobProfile] that this refers to.
-                    type: string
-                required:
-                - ref
-                type: object
-              podProfile:
-                properties:
-                  patches:
-                    description: Patches to be applied to `template` of [PodProfile].
-                    items:
-                      description: |-
-                        JobPatch defines the [patch] to be applied to template of PodProfile.
-                        For examples, rename container:
-                        <pre><code>op: replace
-                        path: /spec/containers/0/name
-                        value: simple
-                        </code></pre>
-
-                        Replace command:
-                        <pre><code>op: replace
-                        path: /spec/containers/0/command
-                        value: ["perl", "-Mbignum=bpi", "-wle", "print bpi(100)"]
-                        </code></pre>
-
-                        [patch]: https://datatracker.ietf.org/doc/html/rfc6902
-                      properties:
-                        from:
-                          type: string
-                        op:
-                          description: Operation to perform.
-                          type: string
-                        path:
-                          description: |-
-                            JSON-pointer that references a location within the template where the operation is performed.
-                            The root of path will be `jobs.v1.batch.spec.template`.
-                          type: string
-                        value:
-                          description: Any yaml object.
-                          x-kubernetes-preserve-unknown-fields: true
-                      required:
-                      - op
-                      - path
-                      type: object
-                    type: array
-                    x-kubernetes-list-type: atomic
-                  ref:
-                    description: Name of [PodProfile] that this refers to.
-                    type: string
-                required:
-                - ref
+                  jobsHistoryLimit:
+                    default: 3
+                    description: |-
+                      JobsHistoryLimit is the number of jobs to retain.
+                      Value must be non-negative integer.
+                      Default is 3.
+                    type: integer
+                  metadata:
+                    description: |-
+                      Standard object's metadata.
+                      More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+                    type: object
                 type: object
             required:
-            - cronJobProfile
-            - jobProfile
-            - podProfile
+            - template
             type: object
           status:
-            description: CronJobStatus defines the observed state of CronJob.
-            properties:
-              conditions:
-                description: Conditions represent the latest available observations
-                  of an object's state.
-                items:
-                  description: Condition contains details for one aspect of the current
-                    state of this API Resource.
-                  properties:
-                    lastTransitionTime:
-                      description: |-
-                        lastTransitionTime is the last time the condition transitioned from one status to another.
-                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
-                      format: date-time
-                      type: string
-                    message:
-                      description: |-
-                        message is a human readable message indicating details about the transition.
-                        This may be an empty string.
-                      maxLength: 32768
-                      type: string
-                    observedGeneration:
-                      description: |-
-                        observedGeneration represents the .metadata.generation that the condition was set based upon.
-                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-                        with respect to the current state of the instance.
-                      format: int64
-                      minimum: 0
-                      type: integer
-                    reason:
-                      description: |-
-                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
-                        Producers of specific condition types may define expected values and meanings for this field,
-                        and whether the values are considered a guaranteed API.
-                        The value should be a CamelCase string.
-                        This field may not be empty.
-                      maxLength: 1024
-                      minLength: 1
-                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
-                      type: string
-                    status:
-                      description: status of the condition, one of True, False, Unknown.
-                      enum:
-                      - "True"
-                      - "False"
-                      - Unknown
-                      type: string
-                    type:
-                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
-                      maxLength: 316
-                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
-                      type: string
-                  required:
-                  - lastTransitionTime
-                  - message
-                  - reason
-                  - status
-                  - type
-                  type: object
-                type: array
-                x-kubernetes-list-map-keys:
-                - type
-                x-kubernetes-list-type: map
+            description: status defines the observed state of JobProfile
             type: object
         required:
         - spec
         type: object
-        x-kubernetes-validations:
-        - message: must be no more than 44 characters
-          rule: self.metadata.name.size() <= 44
     served: true
     storage: true
     subresources:

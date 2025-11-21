@@ -1,0 +1,20 @@
+apiVersion: pixiv.net/v2
+kind: Job
+metadata:
+  labels:
+    app.kubernetes.io/name: k8s-job-wrapper
+    app.kubernetes.io/managed-by: kustomize
+  name: job-sample
+spec:
+  podProfile:
+    ref: podprofile-sample
+    patches:
+      - op: replace
+        path: /spec/containers/0/command
+        value: ["perl", "-Mbignum=bpi", "-wle", "print bpi(100)"]
+  jobProfile:
+    ref: jobprofile-sample
+    patches:
+      - op: replace
+        path: /spec/backoffLimit
+        value: 5

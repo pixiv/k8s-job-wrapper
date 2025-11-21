@@ -38,9 +38,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
+	pixivnetv2 "github.com/pixiv/k8s-job-wrapper/api/v2"
 	"github.com/pixiv/k8s-job-wrapper/internal/controller"
 	"github.com/pixiv/k8s-job-wrapper/internal/kubectl"
 	"github.com/pixiv/k8s-job-wrapper/internal/kustomize"
+	webhookv1 "github.com/pixiv/k8s-job-wrapper/internal/webhook/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -54,6 +56,7 @@ func init() {
 
 	utilruntime.Must(pixivnetv1.AddToScheme(scheme))
 	utilruntime.Must(pixivnetv1.AddToScheme(scheme))
+	utilruntime.Must(pixivnetv2.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -232,6 +235,27 @@ func main() {
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "CronJob")
 		os.Exit(1)
+	}
+	if err := (&controller.CronJobProfileReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "CronJobProfile")
+		os.Exit(1)
+	}
+	if err := (&controller.JobProfileReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "JobProfile")
+		os.Exit(1)
+	}
+	// nolint:goconst
+	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+		if err := webhookv1.SetupJobWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Job")
+			os.Exit(1)
+		}
 	}
 	// +kubebuilder:scaffold:builder
 

@@ -1,0 +1,12 @@
+apiVersion: pixiv.net/v2
+kind: JobProfile
+metadata:
+  labels:
+    app.kubernetes.io/name: k8s-job-wrapper
+    app.kubernetes.io/managed-by: kustomize
+  name: jobprofile-sample
+spec:
+  template:
+    jobParams:
+      activeDeadlineSeconds: 120
+      backoffLimit: 4

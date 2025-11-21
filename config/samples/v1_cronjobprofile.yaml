@@ -1,0 +1,16 @@
+apiVersion: pixiv.net/v1
+kind: CronJobProfile
+metadata:
+  labels:
+    app.kubernetes.io/name: k8s-job-wrapper
+    app.kubernetes.io/managed-by: kustomize
+  name: cronjobprofile-sample
+spec:
+  template:
+    cronJobParams: # cronjob.specのjobTemplateを書ける
+      suspend: false
+      timeZone: "Asia/Tokyo"
+      failedJobsHistoryLimit: 10
+      successfulJobsHistoryLimit: 10
+      concurrencyPolicy: Forbid
+      startingDeadlineSeconds: 30
