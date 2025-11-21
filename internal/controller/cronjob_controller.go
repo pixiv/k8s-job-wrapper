@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
+	pixivnetv2 "github.com/pixiv/k8s-job-wrapper/api/v2"
 	"github.com/pixiv/k8s-job-wrapper/internal/construct"
 	"github.com/pixiv/k8s-job-wrapper/internal/kustomize"
 	"github.com/pixiv/k8s-job-wrapper/internal/util"
@@ -79,7 +80,7 @@ func (r *CronJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, nil
 	}
 
-	logger = logger.WithValues("podProfile", cronJob.Spec.Profile.PodProfileRef)
+	logger = logger.WithValues("podProfile", cronJob.Spec.PodProfile.Ref)
 
 	var (
 		updateStatus = func() error {
@@ -118,15 +119,29 @@ func (r *CronJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		Reason: "OK",
 	})
 
-	podProfile, err := r.getPodProfile(ctx, cronJob.Namespace, cronJob.Spec.Profile.PodProfileRef)
+	podProfile, err := r.getPodProfile(ctx, cronJob.Namespace, cronJob.Spec.PodProfile.Ref)
 	if err != nil {
 		logger.Error(err, "unable to get PodProfile")
 		setFailedConditions("PodProfile not found")
 		_ = updateStatus()
 		return ctrl.Result{}, err
 	}
+	jobProfile, err := r.getJobProfile(ctx, cronJob.Namespace, cronJob.Spec.JobProfile.Ref)
+	if err != nil {
+		logger.Error(err, "unable to get JobProfile")
+		setFailedConditions("JobProfile not found")
+		_ = updateStatus()
+		return ctrl.Result{}, err
+	}
+	cronJobProfile, err := r.getCronJobProfile(ctx, cronJob.Namespace, cronJob.Spec.CronJobProfile.Ref)
+	if err != nil {
+		logger.Error(err, "unable to get CronJobProfile")
+		setFailedConditions("CronJobProfile not found")
+		_ = updateStatus()
+		return ctrl.Result{}, err
+	}
 
-	batchCronJob, err := r.constructBatchCronJob(ctx, cronJob, podProfile)
+	batchCronJob, err := r.constructBatchCronJob(ctx, cronJob, podProfile, jobProfile, cronJobProfile)
 	if err != nil {
 		logger.Error(err, "unable to construct cronjob")
 		setFailedConditions("Failed to construct batch CronJob manifest")
@@ -149,7 +164,7 @@ const (
 	cronJobFieldManager = "pixiv-job-controller"
 )
 
-func (r *CronJobReconciler) applyBatchCronJob(ctx context.Context, cronJob *pixivnetv1.CronJob, batchCronJob *batchv1.CronJob) error {
+func (r *CronJobReconciler) applyBatchCronJob(ctx context.Context, cronJob *pixivnetv2.CronJob, batchCronJob *batchv1.CronJob) error {
 	logger := log.FromContext(ctx).WithValues("batchCronJob", batchCronJob.Name)
 
 	existingCronJob, err := r.getBatchCronJob(ctx, cronJob)
@@ -199,11 +214,11 @@ func (r *CronJobReconciler) applyBatchCronJob(ctx context.Context, cronJob *pixi
 	return nil
 }
 
-func (r *CronJobReconciler) constructBatchCronJob(ctx context.Context, cronJob *pixivnetv1.CronJob, podProfile *pixivnetv1.PodProfile) (*batchv1.CronJob, error) {
-	return construct.BatchCronJob(ctx, cronJob, podProfile, r.Patcher, r.Scheme)
+func (r *CronJobReconciler) constructBatchCronJob(ctx context.Context, cronJob *pixivnetv2.CronJob, podProfile *pixivnetv1.PodProfile, jobProfile *pixivnetv2.JobProfile, cronJobProfile *pixivnetv1.CronJobProfile) (*batchv1.CronJob, error) {
+	return construct.BatchCronJob(ctx, cronJob, podProfile, jobProfile, cronJobProfile, r.Patcher, r.Scheme)
 }
 
-func (r *CronJobReconciler) getBatchCronJob(ctx context.Context, cronJob *pixivnetv1.CronJob) (*batchv1.CronJob, error) {
+func (r *CronJobReconciler) getBatchCronJob(ctx context.Context, cronJob *pixivnetv2.CronJob) (*batchv1.CronJob, error) {
 	var batchCronJob batchv1.CronJob
 	if err := r.Get(ctx, client.ObjectKey{
 		Namespace: cronJob.Namespace,
@@ -214,8 +229,8 @@ func (r *CronJobReconciler) getBatchCronJob(ctx context.Context, cronJob *pixivn
 	return &batchCronJob, nil
 }
 
-func (r *CronJobReconciler) getCronJob(ctx context.Context, req ctrl.Request) (*pixivnetv1.CronJob, error) {
-	var cronJob pixivnetv1.CronJob
+func (r *CronJobReconciler) getCronJob(ctx context.Context, req ctrl.Request) (*pixivnetv2.CronJob, error) {
+	var cronJob pixivnetv2.CronJob
 	if err := r.Get(ctx, client.ObjectKey{
 		Namespace: req.Namespace,
 		Name:      req.Name,
@@ -230,6 +245,28 @@ func (r *CronJobReconciler) getPodProfile(ctx context.Context, namespace, podPro
 	if err := r.Get(ctx, client.ObjectKey{
 		Namespace: namespace,
 		Name:      podProfileRef,
+	}, &profile); err != nil {
+		return nil, err
+	}
+	return &profile, nil
+}
+
+func (r *CronJobReconciler) getJobProfile(ctx context.Context, namespace, jobProfileRef string) (*pixivnetv2.JobProfile, error) {
+	var profile pixivnetv2.JobProfile
+	if err := r.Get(ctx, client.ObjectKey{
+		Namespace: namespace,
+		Name:      jobProfileRef,
+	}, &profile); err != nil {
+		return nil, err
+	}
+	return &profile, nil
+}
+
+func (r *CronJobReconciler) getCronJobProfile(ctx context.Context, namespace, cronJobProfileRef string) (*pixivnetv1.CronJobProfile, error) {
+	var profile pixivnetv1.CronJobProfile
+	if err := r.Get(ctx, client.ObjectKey{
+		Namespace: namespace,
+		Name:      cronJobProfileRef,
 	}, &profile); err != nil {
 		return nil, err
 	}
