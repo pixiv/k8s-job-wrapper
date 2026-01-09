@@ -1,6 +1,6 @@
 module github.com/pixiv/k8s-job-wrapper/hack/tools
 
-go 1.25.0
+go 1.25.5
 
 tool (
 	github.com/elastic/crd-ref-docs
