@@ -46,7 +46,7 @@ func newPodProfile(resourceName string) *pixivnetv1.PodProfile {
 			Namespace: testNamespace,
 		},
 		Spec: pixivnetv1.PodProfileSpec{
-			Template: corev1.PodTemplateSpec{
+			Template: pixivnetv1.PodProfileTemplate{
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{

@@ -509,6 +509,33 @@ var _ = Describe("Manager", Ordered, func() {
 			}
 			return names[0], true
 		}
+		// Get a list of Pod names spwned from a batch Job.
+		listBatchJobPods := func(batchJobName string) ([]string, error) {
+			output, err := utils.Run(
+				utils.KubectlCmd(
+					"-n", namespace, "get", "pod",
+					"-o", "jsonpath={.items[*].metadata.name}",
+					"-l", "job-name="+batchJobName,
+				),
+			)
+			if err != nil {
+				return nil, err
+			}
+			return strings.Split(output, " "), nil
+		}
+		// Verify that the batch Job created only one Pod.
+		// If so, return the name the Pod.
+		ensureOnlyOneBatchJobManagedPodCreated := func(batchJobName string) (string, bool) {
+			By(fmt.Sprintf("making ensure the batch Job %s created only one Pod", batchJobName))
+			names, err := listBatchJobPods(batchJobName)
+			if !Expect(err).To(Succeed()) {
+				return "", false
+			}
+			if !Expect(names).Should(HaveLen(1)) {
+				return "", false
+			}
+			return names[0], true
+		}
 
 		It("should reconcile resources successfully", func() {
 			type testCase struct {
@@ -516,6 +543,48 @@ var _ = Describe("Manager", Ordered, func() {
 				additionalAssertion func(*testCase) // additional assertion; does nothing if nil.
 			}
 			testCases := []testCase{
+				{
+					manifest: "pod-metadata",
+					additionalAssertion: func(tc *testCase) {
+						name, ok := ensureOnlyOneBatchJobCreated("job-" + tc.manifest)
+						if !ok {
+							return
+						}
+						output, err := utils.Run(utils.KubectlCmd("-n", namespace,
+							"get", "job", name, "-o", "jsonpath={.spec.template.spec.containers[0].command}",
+						))
+						if !Expect(err).To(Succeed()) {
+							return
+						}
+						Expect(output).To(Equal(`["perl","-Mbignum=bpi","-wle","print bpi(100)"]`))
+
+						pod, ok := ensureOnlyOneBatchJobManagedPodCreated(name)
+						if !ok {
+							return
+						}
+						for _, check := range []struct {
+							path string
+							want string
+						}{
+							{
+								path: `{.metadata.labels.app}`,
+								want: "pod-metadata",
+							},
+							{
+								path: `{.metadata.annotations.desc}`,
+								want: "add pod-metadata",
+							},
+						} {
+							output, err := utils.Run(utils.KubectlCmd("-n", namespace,
+								"get", "pod", pod, "-o", "jsonpath="+check.path,
+							))
+							if !Expect(err).To(Succeed()) {
+								return
+							}
+							Expect(output).To(Equal(check.want))
+						}
+					},
+				},
 				{
 					manifest: "sample",
 					additionalAssertion: func(tc *testCase) {

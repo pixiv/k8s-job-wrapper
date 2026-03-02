@@ -156,7 +156,10 @@ func BatchJobSpec(ctx context.Context, jobProfileSpec *pixivnetv1.JobProfileSpec
 	spec.Suspend = params.Suspend
 	spec.PodReplacementPolicy = params.PodReplacementPolicy
 	spec.ManagedBy = params.ManagedBy
-	spec.Template = podProfile.Spec.Template // Set the podprofile directly as the target for patching.
+	// Set the podprofile directly as the target for patching.
+	spec.Template.Labels = podProfile.Spec.Template.Labels
+	spec.Template.Annotations = podProfile.Spec.Template.Annotations
+	spec.Template.Spec = podProfile.Spec.Template.Spec
 
 	if len(jobProfileSpec.Patches) == 0 { // If no patch is provided, no action is necessary.
 		return &batchJob.Spec, nil

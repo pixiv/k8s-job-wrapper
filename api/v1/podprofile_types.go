@@ -31,7 +31,25 @@ type PodProfileSpec struct {
 
 	// Template describes the pods that will be created.
 	// +required
-	Template corev1.PodTemplateSpec `json:"template"`
+	Template PodProfileTemplate `json:"template"`
+}
+
+type PodProfileTemplate struct {
+	// +optional
+	PodProfileTemplateMetadata `json:"metadata,omitempty"`
+	// Specification of the desired behavior of the pod.
+	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
+	// +optional
+	Spec corev1.PodSpec `json:"spec,omitempty"`
+}
+
+type PodProfileTemplateMetadata struct {
+	// Additional labels for generated pod.
+	// +optional
+	Labels map[string]string `json:"labels,omitempty"`
+	// Additional annotations for generated pod.
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // PodProfileStatus defines the observed state of PodProfile.

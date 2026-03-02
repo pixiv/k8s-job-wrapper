@@ -1,0 +1,14 @@
+apiVersion: pixiv.net/v1
+kind: Job
+metadata:
+  labels:
+    app.kubernetes.io/name: k8s-job-wrapper
+    app.kubernetes.io/managed-by: kustomize
+  name: job-pod-metadata
+spec:
+  profile:
+    podProfileRef: podprofile-pod-metadata
+    patches:
+      - op: replace
+        path: /spec/containers/0/name
+        value: pod-metadata
