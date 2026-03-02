@@ -271,7 +271,7 @@ require (
 	mvdan.cc/unparam v0.0.0-20251027182757-5beb8c8f8f15 // indirect
 	sigs.k8s.io/controller-tools v0.20.0 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
-	sigs.k8s.io/kube-api-linter v0.0.0-20250805175926-bdb40c631b35 // indirect
+	sigs.k8s.io/kube-api-linter v0.0.0-20260206102632-39e3d06a2850 // indirect
 	sigs.k8s.io/kubebuilder/v4 v4.10.1 // indirect
 	sigs.k8s.io/kustomize/api v0.21.0 // indirect
 	sigs.k8s.io/kustomize/cmd/config v0.21.0 // indirect

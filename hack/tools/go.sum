@@ -837,8 +837,8 @@ sigs.k8s.io/controller-tools v0.20.0 h1:VWZF71pwSQ2lZZCt7hFGJsOfDc5dVG28/IysjjMW
 sigs.k8s.io/controller-tools v0.20.0/go.mod h1:b4qPmjGU3iZwqn34alUU5tILhNa9+VXK+J3QV0fT/uU=
 sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 h1:IpInykpT6ceI+QxKBbEflcR5EXP7sU1kvOlxwZh5txg=
 sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730/go.mod h1:mdzfpAEoE6DHQEN0uh9ZbOCuHbLK5wOm7dK4ctXE9Tg=
-sigs.k8s.io/kube-api-linter v0.0.0-20250805175926-bdb40c631b35 h1:VhJmOvQogT9LoZSnC36d6K/V2k5Hh6kVcAOiN8THObI=
-sigs.k8s.io/kube-api-linter v0.0.0-20250805175926-bdb40c631b35/go.mod h1:Jxl3NU9lRf9WJ8dgwgF4U6tLF229jR/KEvtxSwRAKnE=
+sigs.k8s.io/kube-api-linter v0.0.0-20260206102632-39e3d06a2850 h1:SdyNO1yIff2xcQ6aishcTRbaAuIDWzo7IvSgvY9L0W0=
+sigs.k8s.io/kube-api-linter v0.0.0-20260206102632-39e3d06a2850/go.mod h1:5mP60UakkCye+eOcZ5p98VnV2O49qreW1gq9TdsUf7Q=
 sigs.k8s.io/kubebuilder/v4 v4.10.1 h1:xMZeDFqM2ckzGiwi7pQqozpLhpSiIpJi/8ECxyDv6vc=
 sigs.k8s.io/kubebuilder/v4 v4.10.1/go.mod h1:DbHi0eqFk32LMRnxFFcg28SO8lGy9vMbBRCK4yhMt5c=
 sigs.k8s.io/kustomize/api v0.21.0 h1:I7nry5p8iDJbuRdYS7ez8MUvw7XVNPcIP5GkzzuXIIQ=
