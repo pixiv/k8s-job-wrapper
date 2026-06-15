@@ -4,8 +4,14 @@
 # Install CRDs and deploy controller into the kind cluster.
 #
 
+readonly d="$(cd "$(dirname "$0")" || exit 1 ; pwd)"
+
 log() {
     echo >&2 "$(basename "$0"): $*"
+}
+
+kind() {
+  "${d}/tools.sh" kind "$@"
 }
 
 readonly kind_image_name="$1"

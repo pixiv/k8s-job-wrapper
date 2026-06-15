@@ -30,7 +30,6 @@ helm show values oci://ghcr.io/pixiv/k8s-job-wrapper/charts/k8s-job-wrapper
 ### Prerequisites
 
 - [direnv](https://github.com/direnv/direnv)
-- [kind](https://github.com/kubernetes-sigs/kind)
 - go version v1.25.0+
 - docker version 28.3.2+
 

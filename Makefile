@@ -89,8 +89,8 @@ ifeq ($(CI),true)
 	}
 else
 	@echo "To avoid errors caused by pre-existing resources in the kind cluster before make test-e2e, we will recreate the cluster."
-	kind delete cluster || true
-	kind create cluster --image $(KIND_NODE_IMAGE)
+	$(KIND) delete cluster || true
+	$(KIND) create cluster --image $(KIND_NODE_IMAGE)
 endif
 	go test ./test/e2e/ -v -ginkgo.v
 
@@ -176,3 +176,4 @@ KUSTOMIZE ?= $(TOOLS) kustomize
 CONTROLLER_GEN ?= $(TOOLS) controller-gen
 ENVTEST ?= $(TOOLS) setup-envtest
 GOLANGCI_LINT = $(TOOLS) golangci-lint
+KIND := $(TOOLS) kind

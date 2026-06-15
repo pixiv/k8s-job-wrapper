@@ -64,7 +64,7 @@ setup_go() {
 }
 
 if [[ ! -x "$binary" ]] ; then
-  log "Install ${bin} ..."
+  log "Install ${binary} ..."
   case "$name" in
     "kubectl") setup "$KUBECTL_VERSION" ;;
     "setup-envtest") setup_go ;;
@@ -76,6 +76,7 @@ if [[ ! -x "$binary" ]] ; then
     "helm") setup "$HELM_VERSION" ;;
     "pandoc") setup "$PANDOC_VERSION" ;;
     "kubebuilder") setup_go "$KUBEBUILDER_VERSION" ;;
+    "kind") setup "$KIND_VERSION" ;;
     *)
       log "Unknown tool!: ${name}"
       exit 1

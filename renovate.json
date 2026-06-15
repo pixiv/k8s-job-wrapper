@@ -159,6 +159,14 @@
       "matchStrings":["KUBEBUILDER_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "kubernetes-sigs/kubebuilder"
+    },
+    {
+      "description": "Manage kind version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["KIND_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "kubernetes-sigs/kind"
     }
   ]
 }
