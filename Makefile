@@ -45,7 +45,7 @@ help: ## Display this help.
 
 .PHONY: clean
 clean: ## Clean dev tools and artifacts
-	find bin -type f -maxdepth 1 -delete
+	$(HACK)/tools.sh clean
 	rm -rf dist
 
 .PHONY: manifests
@@ -95,20 +95,16 @@ endif
 	go test ./test/e2e/ -v -ginkgo.v
 
 .PHONY: lint
-lint: lint-plugins lint-licenses fmt vet ## Run golangci-lint linter
+lint: lint-licenses fmt vet ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run
 
 .PHONY: lint-fix
-lint-fix: lint-plugins fmt vet ## Run golangci-lint linter and perform fixes
+lint-fix: fmt vet ## Run golangci-lint linter and perform fixes
 	$(GOLANGCI_LINT) run --fix
 
 .PHONY: lint-config
-lint-config: lint-plugins ## Verify golangci-lint linter configuration
+lint-config: ## Verify golangci-lint linter configuration
 	$(GOLANGCI_LINT) config verify
-
-.PHONY: lint-plugins
-lint-plugins:
-	$(HACK)/setup-golangci-lint.sh
 
 .PHONY: lint-licenses
 lint-licenses:
