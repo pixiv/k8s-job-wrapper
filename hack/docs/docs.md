@@ -613,7 +613,7 @@ _Appears in:_
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `template` _[PodTemplateSpec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podtemplatespec-v1-core)_ | Template describes the pods that will be created. |  |  |
+| `template` _[PodProfileTemplate](#podprofiletemplate)_ | Template describes the pods that will be created. |  |  |
 
 
 #### PodProfileStatus
@@ -627,6 +627,40 @@ PodProfileStatus defines the observed state of PodProfile.
 _Appears in:_
 - [PodProfile](#podprofile)
 
+
+
+#### PodProfileTemplate
+
+
+
+
+
+
+
+_Appears in:_
+- [PodProfileSpec](#podprofilespec)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `metadata` _[PodProfileTemplateMetadata](#podprofiletemplatemetadata)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
+| `spec` _[PodSpec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podspec-v1-core)_ | Specification of the desired behavior of the pod.<br />More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status |  |  |
+
+
+#### PodProfileTemplateMetadata
+
+
+
+
+
+
+
+_Appears in:_
+- [PodProfileTemplate](#podprofiletemplate)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `labels` _object (keys:string, values:string)_ | Additional labels for generated pod. |  |  |
+| `annotations` _object (keys:string, values:string)_ | Additional annotations for generated pod. |  |  |
 
 
 <script>

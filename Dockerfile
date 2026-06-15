@@ -8,7 +8,7 @@ ARG TARGETARCH
 WORKDIR /workspace
 # Download kubectl
 RUN --mount=type=bind,source=hack,target=. \
-    ./setup-kubectl.sh $KUBECTL_VERSION /usr/local/bin/kubectl
+    ./setup.sh kubectl /usr/local/bin/kubectl $KUBECTL_VERSION
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN --mount=type=cache,target=/go/pkg/mod,id=gomodcache \
