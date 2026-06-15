@@ -64,7 +64,7 @@ setup_go() {
 }
 
 if [[ ! -x "$binary" ]] ; then
-  log "Install ${bin} ..."
+  log "Install ${binary} ..."
   case "$name" in
     "kubectl") setup "$KUBECTL_VERSION" ;;
     "setup-envtest") setup_go ;;
