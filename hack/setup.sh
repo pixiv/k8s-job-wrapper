@@ -87,6 +87,9 @@ case "$name" in
   "kubectl")
     download_and_install "https://dl.k8s.io/release/${version}/bin/$(get_osname)/$(get_arch)/kubectl"
     ;;
+  "kind")
+    download_and_install "https://kind.sigs.k8s.io/dl/${version}/kind-$(get_osname)-$(get_arch)"
+    ;;
   "helm") install_helm ;;
   "pandoc") install_pandoc ;;
   *)
