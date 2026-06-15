@@ -14,9 +14,7 @@ runs:
         check-latest: true
         cache-dependency-path: |
           go.sum
-          hack/tools/go.sum
     - name: Download go modules
       shell: bash
       run: |
         go mod download
-        go -C hack/tools mod download
