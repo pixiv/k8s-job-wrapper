@@ -8,6 +8,7 @@ on:
 
 jobs:
   test:
+    name: E2E
     permissions:
       contents: read
     runs-on: ubuntu-latest
