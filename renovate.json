@@ -139,8 +139,8 @@
     {
       "description": "Manage golangci-lint version",
       "customType": "regex",
-      "fileMatch": ["^.github/.env$"],
-      "matchStrings":["GOLANGCI_LINT_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "fileMatch": ["^.github/.env$", "^.custom-gcl.yml$"],
+      "matchStrings":["GOLANGCI_LINT_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)", "version: (?<currentValue>\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "golangci/golangci-lint"
     },
