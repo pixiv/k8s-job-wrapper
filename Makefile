@@ -179,6 +179,17 @@ delete-controller:
 deploy-local: ## Install CRDs and deploy controller into the kind cluster.
 	$(HACK)/deploy-local.sh $(KIND_NODE_IMAGE) $(IMG)
 
+##@ Releases
+
+.PHONY: release
+release: ## Release images, manifest and chart.
+	DEV=false $(MAKE) release-internal
+
+.PHONY: release-internal
+release-internal:
+	git tag "v$(VERSION)"
+	git push origin "v$(VERSION)"
+
 ##@ Dependencies
 
 ## Tool Binaries
