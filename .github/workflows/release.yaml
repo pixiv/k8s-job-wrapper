@@ -12,7 +12,7 @@ concurrency:
 jobs:
   init:
     name: Init release
-    outpus:
+    outputs:
       prerelease: ${{ steps.check.outputs.prerelease }}
       version: ${{ steps.version.outputs.version }}
     permissions:
