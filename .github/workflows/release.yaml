@@ -10,15 +10,51 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  init:
+    name: Init release
+    outpus:
+      prerelease: ${{ steps.check.outputs.prerelease }}
+      version: ${{ steps.version.outputs.version }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: "false"
+      - name: Setup common
+        uses: ./.github/actions/common
+      - name: Set version
+        id: version
+        run: |
+          echo "version=$(./hack/version.sh)" >> $GITHUB_OUTPUT
+      - name: Check prerelease
+        id: check
+        run: |
+          if echo "$GITHUB_REF_NAME" | grep -q -E '^v[0-9]+\.[0-9]+\.[0-9]+$' ; then
+            echo "latest=true" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "latest=false" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          fi
+
   publish:
     name: Build container image and publish on push tag
+    needs:
+      - init
     permissions:
       packages: write # for ghcr
       contents: read
-    runs-on: ubuntu-latest
+      id-token: write # needed for signing the images with GitHub OIDC Token
     timeout-minutes: 20
-    outputs:
-      prerelease: ${{ steps.check.outputs.prerelease }}
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -33,38 +69,54 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup buildx
         uses: ./.github/actions/setup-buildx
-      - name: Check prerelease
-        id: check
-        run: |
-          if echo "$GITHUB_REF_NAME" | grep -q -E '^v[0-9]+\.[0-9]+\.[0-9]+$' ; then
-            echo "latest=true" >> "$GITHUB_OUTPUT"
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "latest=false" >> "$GITHUB_OUTPUT"
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-          fi
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
-        with:
-          images: ghcr.io/pixiv/k8s-job-wrapper
-          flavor: |
-            latest=false
-            prefix=
-            suffix=
-          tags: |
-            type=schedule,pattern=nightly,enable=true,priority=1000
-            type=ref,event=branch,enable=true,priority=600
-            type=ref,event=tag,enable=true,priority=600
-            type=ref,event=pr,prefix=pr-,enable=true,priority=600
-            type=raw,value=latest,enable=${{ steps.check.outputs.latest }}
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
       - name: Build and push
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        uses: ./.github/actions/build-and-push
         with:
-          context: .
-          push: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/' )}}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          version: ${{ needs.init.outputs.version }}
+          arch: ${{ matrix.arch }}
+
+  merge-images:
+    needs:
+      - init
+      - publish
+    permissions:
+      contents: read
+      packages: write # for ghcr
+      id-token: write # needed for signing the images with GitHub OIDC Token
+    timeout-minutes: 30
+    name: Merge images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Setup common
+        uses: ./.github/actions/common
+      - name: Login to ghcr
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup buildx
+        uses: ./.github/actions/setup-buildx
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: Create manifest
+        env:
+          tag: "v${{ needs.init.outputs.version }}"
+        run: |
+          image_name="${{ env.IMAGE_REGISTRY }}"
+          image="${image_name}:${tag}"
+          docker buildx imagetools create -t "$image" "${image}-arm64" "${image}-amd64"
+          get_digest() {
+            docker buildx imagetools inspect "$image" --format='{{json .Manifest.Digest}}' | tr -d '"'
+          }
+          digest="$(get_digest)"
+          cosign sign --yes "${image_name}@${digest}"
 
   generate:
     name: Generate chart package
@@ -73,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs:
-      - publish
+      - merge-images
     outputs:
       chart-package-file: ${{ steps.generate-chart.outputs.chart-package-file }}
     steps:
@@ -85,7 +137,7 @@ jobs:
       - name: Setup go
         uses: ./.github/actions/setup-go
         with:
-          version: '${{ env.GO_VERSION }}'
+          cache: false
       - name: Setup chart meta for release
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
@@ -122,7 +174,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs:
-      - publish
+      - init
+      - merge-images
       - generate
     if: ${{ startsWith(github.ref, 'refs/tags/') }}
     steps:
@@ -134,7 +187,7 @@ jobs:
       - name: Setup go
         uses: ./.github/actions/setup-go
         with:
-          version: '${{ env.GO_VERSION }}'
+          cache: false
       - name: Download chart package
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
@@ -173,7 +226,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           CHART_PACKAGE_FILE: ${{ needs.generate.outputs.chart-package-file }}
-          PRERELEASE: ${{ needs.publish.outputs.prerelease }}
+          PRERELEASE: ${{ needs.init.outputs.prerelease }}
 
   pages:
     name: Deploy CRD document
@@ -197,7 +250,7 @@ jobs:
       - name: Setup go
         uses: ./.github/actions/setup-go
         with:
-          version: '${{ env.GO_VERSION }}'
+          cache: false
       - name: Generate CRD document
         id: generate-docs
         run: |
