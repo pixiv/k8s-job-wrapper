@@ -23,7 +23,5 @@ jobs:
         uses: ./.github/actions/common
       - name: Setup go
         uses: ./.github/actions/setup-go
-        with:
-          version: '${{ env.GO_VERSION }}'
       - name: Lint
         run: make lint
