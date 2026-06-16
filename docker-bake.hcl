@@ -16,7 +16,7 @@ variable "KUBECTL_VERSION" {
 
 function "gentags" {
   params = []
-  result = ["${IMAGE_NAME}:${IMAGE_TAG}"]
+  result = ["${IMAGE_REGISTRY}:${IMAGE_TAG}"]
 }
 
 group "default" {

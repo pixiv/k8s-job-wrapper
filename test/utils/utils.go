@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2" //nolint:revive,staticcheck
@@ -37,7 +38,8 @@ const (
 )
 
 func KubectlCmd(arg ...string) *exec.Cmd {
-	return exec.Command(os.Getenv("KUBECTL"), arg...)
+	dir, _ := GetProjectDir()
+	return exec.Command(filepath.Join(dir, "hack", "kubectl"), arg...)
 }
 
 func warnError(err error) {
@@ -169,14 +171,9 @@ func IsCertManagerCRDsInstalled() bool {
 	return false
 }
 
-// LoadImageToKindClusterWithName loads a local docker image to the kind cluster
-func LoadImageToKindClusterWithName(name string) error {
-	cluster := "kind"
-	if v, ok := os.LookupEnv("KIND_CLUSTER"); ok {
-		cluster = v
-	}
-	kindOptions := []string{"load", "docker-image", name, "--name", cluster}
-	cmd := exec.Command("kind", kindOptions...)
+// LoadImageToKindCluster loads a local docker image to the kind cluster
+func LoadImageToKindCluster() error {
+	cmd := exec.Command("make", "load-image")
 	_, err := Run(cmd)
 	return err
 }

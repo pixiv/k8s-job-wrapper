@@ -1,7 +1,16 @@
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+# Determine app version.
+ifeq (true,$(DEV))
+VERSION := 0.0.0
+else
+VERSION := $(shell ./hack/version.sh)
+endif
+
 # Image URL to use all building/pushing image targets
-IMG = $(CONTROLLER_IMAGE_NAME):$(CONTROLLER_IMAGE_TAG)
+IMAGE_NAME := $(IMAGE_REGISTRY)
+IMAGE_TAG := v$(VERSION)
+IMG := $(IMAGE_NAME):$(IMAGE_TAG)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -94,6 +103,10 @@ else
 endif
 	go test ./test/e2e/ -v -ginkgo.v
 
+.PHONY: load-image
+load-image: ## Load the controller image into kind cluster
+	kind load docker-image $(IMG)
+
 .PHONY: lint
 lint: lint-licenses fmt vet ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run
@@ -125,11 +138,11 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	$(HACK)/build-image.sh
+	IMAGE_TAG=$(IMAGE_TAG) $(HACK)/build-image.sh
 
 .PHONY: chart-local
 chart-local: ## Build helm chart for development
-	$(HACK)/chart/make.sh 0.0.0 $(CONTROLLER_IMAGE_NAME) $(CONTROLLER_IMAGE_TAG) $(CHART_PACKAGE_DIR)
+	$(HACK)/chart/make.sh 0.0.0 $(IMAGE_NAME) $(IMAGE_TAG) $(CHART_PACKAGE_DIR)
 
 ##@ Deployment
 
@@ -147,7 +160,7 @@ uninstall: manifests ## Uninstall CRDs from the K8s cluster specified in ~/.kube
 
 .PHONY: deploy
 deploy: manifests delete-controller ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	($(KUBECTL) apply -k config/default) || ($(KUBECTL) replace -k config/default --force)
 
 .PHONY: undeploy
@@ -164,7 +177,7 @@ delete-controller:
 
 .PHONY: deploy-local
 deploy-local: ## Install CRDs and deploy controller into the kind cluster.
-	$(HACK)/deploy-local.sh $(KIND_NODE_IMAGE) ${IMG}
+	$(HACK)/deploy-local.sh $(KIND_NODE_IMAGE) $(IMG)
 
 ##@ Dependencies
 
