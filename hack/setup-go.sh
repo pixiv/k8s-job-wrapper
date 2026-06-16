@@ -59,12 +59,12 @@ install_kustomize() {
 
 install_golangci_lint() {
   install "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@${version}"
-  # log "Building custom golangci-lint with plugins..."
-  # if ! "${destd}/${name}" custom --destination "$destd" --name golangci-lint-custom ; then
-  #   rm -f "${destd}/golangci-lint"
-  #   return 1
-  # fi
-  # mv -f "${destd}/golangci-lint-custom" "${destd}/${name}"
+  log "Building custom golangci-lint with plugins..."
+  if ! "${destd}/${name}" custom --destination "$destd" --name golangci-lint-custom ; then
+    rm -f "${destd}/golangci-lint"
+    return 1
+  fi
+  mv -f "${destd}/golangci-lint-custom" "${destd}/${name}"
 }
 
 install_go_licenses() {
