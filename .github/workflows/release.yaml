@@ -6,7 +6,9 @@ on:
       - 'main'
     tags:
       - 'v*'
-
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   publish:
     name: Build container image and publish on push tag

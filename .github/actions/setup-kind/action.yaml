@@ -11,4 +11,6 @@ runs:
     # so use kind binary directly
     - name: Create kind cluster
       shell: bash
-      run: ./hack/tools.sh kind create cluster --image '${{ inputs.node_image }}'
+      run: ./hack/tools.sh kind create cluster --image "$NODE_IMAGE"
+      env:
+        NODE_IMAGE: ${{ inputs.node_image }}
