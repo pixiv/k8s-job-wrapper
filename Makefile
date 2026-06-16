@@ -125,7 +125,7 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build -t ${IMG} --build-arg GO_VERSION=$(GO_VERSION) --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) .
+	$(HACK)/build-image.sh
 
 .PHONY: chart-local
 chart-local: ## Build helm chart for development

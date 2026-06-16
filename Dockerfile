@@ -1,5 +1,7 @@
-ARG GO_VERSION=1.25
+# syntax=docker/dockerfile:1
+# check=error=true
 # Build the manager binary
+ARG GO_VERSION=1.25
 FROM golang:$GO_VERSION AS builder
 ARG KUBECTL_VERSION=v1.32.8
 ARG TARGETOS
