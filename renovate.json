@@ -145,6 +145,14 @@
       "depNameTemplate": "golangci/golangci-lint"
     },
     {
+      "description": "Manage golangci-lint plugin logtools version",
+      "customType": "regex",
+      "fileMatch": ["^.custom-gcl.yml$"],
+      "matchStrings": ["import: \"sigs.k8s.io/logtools/logcheck/gclplugin\"\\s+version: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "kubernetes-sigs/logtools"
+    },
+    {
       "description": "Manage go-licenses version",
       "customType": "regex",
       "fileMatch": ["^.github/.env$"],
