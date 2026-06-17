@@ -161,7 +161,7 @@ jobs:
         with:
           chart: '${{ steps.generate-chart.outputs.chart-package-path }}'
           node-image: '${{ env.KIND_NODE_IMAGE }}'
-          build-images: false
+          build-image: false
       - name: Upload chart package
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:

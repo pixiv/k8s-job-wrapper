@@ -5,7 +5,7 @@ inputs:
     required: true
   node-image:
     required: true
-  build-images:
+  build-image:
     default: 'true'
   docker-cache-dir:
     required: false
@@ -25,17 +25,17 @@ runs:
       if: ${{ inputs.docker-cache-dir != '' }}
     - name: Setup buildx
       uses: ./.github/actions/setup-buildx
-      if: ${{ inputs.build-images == 'true' }}
+      if: ${{ inputs.build-image == 'true' }}
     - name: Build images
       shell: bash
       run: make docker-build
       env:
         DOCKER_CACHE_READONLY: "true"
-      if: ${{ inputs.build-images == 'true' }}
+      if: ${{ inputs.build-image == 'true' }}
     - name: Load images
       shell: bash
       run: make load-image
-      if: ${{ inputs.build-images == 'true' }}
+      if: ${{ inputs.build-image == 'true' }}
     - name: Test chart
       shell: bash
       run: ./hack/tools.sh helm install -n k8s-job-wrapper-system --create-namespace k8s-job-wrapper $chart --wait --timeout=5m
