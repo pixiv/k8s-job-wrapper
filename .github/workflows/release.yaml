@@ -140,27 +140,29 @@ jobs:
         with:
           cache: false
       - name: Setup chart meta for release
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
           # remove 'v' for chart version
           echo "RELEASE_CHART_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
           echo "RELEASE_IMAGE_NAME=$IMAGE_REGISTRY" >> "$GITHUB_ENV"
           echo "RELEASE_IMAGE_TAG=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
-      - name: Setup chart meta for testing
-        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        run: |
-          echo "RELEASE_CHART_VERSION=0.0.0" >> "$GITHUB_ENV"
-          echo "RELEASE_IMAGE_NAME=$IMAGE_REGISTRY" >> "$GITHUB_ENV"
-          echo "RELEASE_IMAGE_TAG=v0.0.0" >> "$GITHUB_ENV"
       - name: Generate chart
         id: generate-chart
         run: |
           ./hack/chart/make.sh "$RELEASE_CHART_VERSION" "$RELEASE_IMAGE_NAME" "$RELEASE_IMAGE_TAG" "$CHART_PACKAGE_DIR"
+          if ! git diff --exit-code ; then
+            echo "Aborting the release because a diff was detected in the chart."
+            exit 1
+          fi
           name="k8s-job-wrapper-${RELEASE_CHART_VERSION}.tgz"
           echo "chart-package-file=${name}" >> "$GITHUB_OUTPUT"
           echo "chart-package-path=${CHART_PACKAGE_DIR}/${name}" >> "$GITHUB_OUTPUT"
+      - name: Test chart
+        uses: ./.github/actions/test-chart
+        with:
+          chart: '${{ steps.generate-chart.outputs.chart-package-path }}'
+          node-image: '${{ env.KIND_NODE_IMAGE }}'
+          build-images: false
       - name: Upload chart package
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: chart-package
@@ -182,30 +184,14 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          persist-credentials: "true"
+          persist-credentials: "false"
+          fetch-depth: 0
       - name: Setup common
         uses: ./.github/actions/common
-      - name: Setup go
-        uses: ./.github/actions/setup-go
-        with:
-          cache: false
       - name: Download chart package
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: chart-package
-      - name: Setup kind
-        uses: ./.github/actions/setup-kind
-        with:
-          node-image: '${{ env.KIND_NODE_IMAGE }}'
-      - name: Install chart for testing
-        env:
-          CHART_PACKAGE_FILE: ${{ needs.generate.outputs.chart-package-file }}
-        run: |
-          ./hack/tools.sh helm install test "$CHART_PACKAGE_FILE"
-      - name: Check status
-        run: ./hack/tools.sh helm status test
-      - name: Fetch history
-        run: git fetch --prune --unshallow
       - name: Login to ghcr
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
