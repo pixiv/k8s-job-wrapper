@@ -72,6 +72,13 @@ Edit following files:
 
 ### Release
 
+``` shell
+vim VERSION # Update to the release version.
+git add VERSION
+git commit -m "Version ${RELEASE_VERSION}" # e.g. Version 0.0.5-alpha.2
+make release
+```
+
 When you create and push a new tag, the following actions will be executed:
 
 - Build and push the controller image to ghcr.

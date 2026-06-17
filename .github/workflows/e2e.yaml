@@ -21,10 +21,15 @@ jobs:
           persist-credentials: "false"
       - name: Setup common
         uses: ./.github/actions/common
+      - name: Cache docker local
+        id: cache-docker-local
+        uses: ./.github/actions/cache-docker-local
+        with:
+          path: ${{ env.DOCKER_CACHE_DIR }}
+      - name: Setup buildx
+        uses: ./.github/actions/setup-buildx
       - name: Setup go
         uses: ./.github/actions/setup-go
-        with:
-          version: '${{ env.GO_VERSION }}'
       - name: Setup kind
         uses: ./.github/actions/setup-kind
         with:
