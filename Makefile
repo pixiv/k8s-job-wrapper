@@ -140,8 +140,16 @@ run: manifests generate fmt vet ## Run a controller from your host.
 docker-build: ## Build docker image with the manager.
 	IMAGE_TAG=$(IMAGE_TAG) $(HACK)/build-image.sh
 
+.PHONY: chart-local
+chart-local: ## Build helm chart for devlopment.
+	DEV=true $(MAKE) chart-internal
+
 .PHONY: chart
-chart: ## Build helm chart.
+chart: ## Build helm chart for release.
+	DEV=false $(MAKE) chart-internal
+
+.PHONY: chart
+chart-internal: ## Build helm chart.
 	$(HACK)/chart/make.sh $(VERSION) $(IMAGE_NAME) $(IMAGE_TAG) $(CHART_PACKAGE_DIR)
 
 ##@ Deployment
