@@ -32,6 +32,10 @@ runs:
       env:
         DOCKER_CACHE_READONLY: "true"
       if: ${{ inputs.build-images == 'true' }}
+    - name: Load images
+      shell: bash
+      run: make load-image
+      if: ${{ inputs.build-images == 'true' }}
     - name: Test chart
       shell: bash
       run: ./hack/tools.sh helm install -n k8s-job-wrapper-system --create-namespace k8s-job-wrapper $chart --wait --timeout=5m
