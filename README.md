@@ -72,21 +72,33 @@ Edit following files:
 
 ### Release
 
+Prepare the release.
+
 ``` shell
+git switch -c version-${RELEASE_VERSION} # e.g. version-0.0.5-alpha.2
 vim VERSION # Update to the release version.
-git add VERSION
+make chart docs
+git add VERSION charts docs
 git commit -m "Version ${RELEASE_VERSION}" # e.g. Version 0.0.5-alpha.2
+git push origin version-${RELEASE_VERSION}
+```
+
+Create a PR, ensure that the CI passes, and then merge it. Then
+
+``` shell
+git switch main
+git pull
 make release
 ```
 
-When you create and push a new tag, the following actions will be executed:
+Confirm that CI on the main branch is green before `make releae`.
+
+When `make release`, the following actions will be executed:
 
 - Build and push the controller image to ghcr.
 - Generate and push the Helm chart to ghcr.
 - Create a release.
 - Deploy the documentation for CRD to GitHub Pages.
-
-Confirm that CI on the main branch is green before creating a tag.
 
 ## License
 
