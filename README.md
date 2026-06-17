@@ -59,7 +59,7 @@ To generate the documentation, run `make docs`.
 #### Helm chart
 
 See the [chart](./hack/chart) for Helm chart for the CRD.
-To create the Helm chart for your local development environment, run `make chart-local`.
+To create the Helm chart for your local development environment, run `make chart`.
 
 #### How to upgrade Go
 
