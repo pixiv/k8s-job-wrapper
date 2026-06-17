@@ -86,6 +86,8 @@ jobs:
       id-token: write # needed for signing the images with GitHub OIDC Token
     timeout-minutes: 30
     name: Merge images
+    outputs:
+      tag: ${{ steps.create-manifest.outputs.tag }}
     runs-on: ubuntu-latest
     steps:
       - name: Clone the code
@@ -105,9 +107,11 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
       - name: Create manifest
+        id: create-manifest
         env:
           tag: "v${{ needs.init.outputs.version }}"
         run: |
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
           image_name="${{ env.IMAGE_REGISTRY }}"
           image="${image_name}:${tag}"
           docker buildx imagetools create -t "$image" "${image}-arm64" "${image}-amd64"
@@ -124,6 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs:
+      - init
       - merge-images
     outputs:
       chart-package-file: ${{ steps.generate-chart.outputs.chart-package-file }}
@@ -137,21 +142,18 @@ jobs:
         uses: ./.github/actions/setup-go
         with:
           cache: false
-      - name: Setup chart meta for release
-        run: |
-          # remove 'v' for chart version
-          echo "RELEASE_CHART_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
-          echo "RELEASE_IMAGE_NAME=$IMAGE_REGISTRY" >> "$GITHUB_ENV"
-          echo "RELEASE_IMAGE_TAG=$GITHUB_REF_NAME" >> "$GITHUB_ENV"
       - name: Generate chart
         id: generate-chart
+        env:
+          CHART_VERSION: ${{ needs.init.outputs.version }}
+          IMAGE_TAG: ${{ needs.merge-images.outputs.tag }}
         run: |
-          ./hack/chart/make.sh "$RELEASE_CHART_VERSION" "$RELEASE_IMAGE_NAME" "$RELEASE_IMAGE_TAG" "$CHART_PACKAGE_DIR"
+          ./hack/chart/make.sh "$CHART_VERSION" "$IMAGE_REGISTRY" "$IMAGE_TAG" "$CHART_PACKAGE_DIR"
           if ! git diff --exit-code ; then
             echo "Aborting the release because a diff was detected in the chart."
             exit 1
           fi
-          name="k8s-job-wrapper-${RELEASE_CHART_VERSION}.tgz"
+          name="k8s-job-wrapper-${CHART_VERSION}.tgz"
           echo "chart-package-file=${name}" >> "$GITHUB_OUTPUT"
           echo "chart-package-path=${CHART_PACKAGE_DIR}/${name}" >> "$GITHUB_OUTPUT"
       - name: Test chart
