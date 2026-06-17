@@ -18,7 +18,6 @@ package controller
 
 import (
 	"fmt"
-	"os"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -33,6 +32,7 @@ import (
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
 	"github.com/pixiv/k8s-job-wrapper/internal/kubectl"
 	"github.com/pixiv/k8s-job-wrapper/internal/kustomize"
+	"github.com/pixiv/k8s-job-wrapper/test/utils"
 )
 
 var _ = Describe("CronJob Controller", func() {
@@ -41,7 +41,7 @@ var _ = Describe("CronJob Controller", func() {
 			controllerReconciler := &CronJobReconciler{
 				Client:  k8sClient,
 				Scheme:  k8sClient.Scheme(),
-				Patcher: kustomize.NewPatchRunner(kubectl.NewCommand(os.Getenv("KUBECTL"))),
+				Patcher: kustomize.NewPatchRunner(kubectl.NewCommand(utils.Kubectl())),
 			}
 			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
 				NamespacedName: newKey(resourceName),
