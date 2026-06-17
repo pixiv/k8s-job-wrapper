@@ -37,9 +37,13 @@ const (
 	certmanagerURLTmpl = "https://github.com/cert-manager/cert-manager/releases/download/%s/cert-manager.yaml"
 )
 
-func KubectlCmd(arg ...string) *exec.Cmd {
+func Kubectl() string {
 	dir, _ := GetProjectDir()
-	return exec.Command(filepath.Join(dir, "hack", "kubectl"), arg...)
+	return filepath.Join(dir, "hack", "kubectl")
+}
+
+func KubectlCmd(arg ...string) *exec.Cmd {
+	return exec.Command(Kubectl(), arg...)
 }
 
 func warnError(err error) {
@@ -194,12 +198,11 @@ func GetNonEmptyLines(output string) []string {
 
 // GetProjectDir will return the directory where the project is
 func GetProjectDir() (string, error) {
-	wd, err := os.Getwd()
+	out, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
 	if err != nil {
-		return wd, err
+		return "", err
 	}
-	wd = strings.ReplaceAll(wd, "/test/e2e", "")
-	return wd, nil
+	return strings.TrimSpace(string(out)), nil
 }
 
 // UncommentCode searches for target in the file and remove the comment prefix

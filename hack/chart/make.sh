@@ -10,7 +10,7 @@ set -o pipefail
 readonly d="$(cd "$(dirname "$0")" || exit ; pwd)"
 readonly topd="${d}/../.."
 cd "$topd" || exit 1
-readonly chartd="${topd}/dist/chart"
+readonly chartd="${topd}/charts/k8s-job-wrapper"
 readonly tools="${topd}/hack/tools.sh"
 readonly chartyaml="${d}/Chart.yaml.tmpl"
 
@@ -27,9 +27,11 @@ helm() {
 }
 
 generate_chart() {
-    rm -rf "$chartd"
+    rm -rf "$chartd" "${topd}/dist/chart"
+    mkdir -p "$(dirname "$chartd")"
     # https://book.kubebuilder.io/plugins/available/helm-v1-alpha
     kubebuilder edit --plugins=helm.kubebuilder.io/v1-alpha
+    cp -r "${topd}/dist/chart" "$chartd"
 }
 
 _sed() {

@@ -1,0 +1,11 @@
+apiVersion: v2
+name: k8s-job-wrapper
+description: A Helm chart to distribute the project k8s-job-wrapper
+type: application
+version: 0.0.5-alpha.3
+keywords:
+  - job
+  - cronjob
+home: https://github.com/pixiv/k8s-job-wrapper
+sources:
+  - https://github.com/pixiv/k8s-job-wrapper

@@ -1,4 +1,4 @@
-name: E2E Test
+name: Test chart
 permissions: {}
 on:
   pull_request:
@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   test:
-    name: E2E
+    name: Test chart
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -21,20 +21,9 @@ jobs:
           persist-credentials: "false"
       - name: Setup common
         uses: ./.github/actions/common
-      - name: Cache docker local
-        id: cache-docker-local
-        uses: ./.github/actions/cache-docker-local
+      - name: Test chart
+        uses: ./.github/actions/test-chart
         with:
-          path: ${{ env.DOCKER_CACHE_DIR }}
-      - name: Setup buildx
-        uses: ./.github/actions/setup-buildx
-      - name: Setup go
-        uses: ./.github/actions/setup-go
-      - name: Setup kind
-        uses: ./.github/actions/setup-kind
-        with:
+          chart: ./charts/k8s-job-wrapper
           node-image: '${{ env.KIND_NODE_IMAGE }}'
-      - name: Build
-        run: make docker-build
-      - name: E2E test
-        run: make test-e2e
+          docker-cache-dir: '${{ env.DOCKER_CACHE_DIR }}'
