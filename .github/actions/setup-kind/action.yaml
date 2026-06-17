@@ -1,7 +1,7 @@
 name: Kind Setup
 description: Create kind cluster
 inputs:
-  node_image:
+  node-image:
     description: "The Docker image for the cluster nodes"
     required: true
 runs:
@@ -13,4 +13,4 @@ runs:
       shell: bash
       run: ./hack/tools.sh kind create cluster --image "$NODE_IMAGE"
       env:
-        NODE_IMAGE: ${{ inputs.node_image }}
+        NODE_IMAGE: ${{ inputs.node-image }}

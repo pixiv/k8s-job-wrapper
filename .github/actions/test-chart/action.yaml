@@ -15,7 +15,7 @@ runs:
     - name: Setup kind
       uses: ./.github/actions/setup-kind
       with:
-        node_image: '${{ inputs.node-image }}'
+        node-image: '${{ inputs.node-image }}'
     - name: Cache docker local
       id: cache-docker-local
       uses: ./.github/actions/cache-docker-local

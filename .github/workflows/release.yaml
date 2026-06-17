@@ -196,7 +196,7 @@ jobs:
       - name: Setup kind
         uses: ./.github/actions/setup-kind
         with:
-          node_image: '${{ env.KIND_NODE_IMAGE }}'
+          node-image: '${{ env.KIND_NODE_IMAGE }}'
       - name: Install chart for testing
         env:
           CHART_PACKAGE_FILE: ${{ needs.generate.outputs.chart-package-file }}

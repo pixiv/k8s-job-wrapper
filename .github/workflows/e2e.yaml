@@ -33,7 +33,7 @@ jobs:
       - name: Setup kind
         uses: ./.github/actions/setup-kind
         with:
-          node_image: '${{ env.KIND_NODE_IMAGE }}'
+          node-image: '${{ env.KIND_NODE_IMAGE }}'
       - name: Build
         run: make docker-build
       - name: E2E test
