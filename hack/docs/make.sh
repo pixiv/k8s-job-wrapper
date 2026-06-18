@@ -70,29 +70,6 @@ EOS
     tail -n +2 "$__out_md"
 }
 
-# Convert markdown into html.
-# $1: k8s-job-wrapper-version
-# $2: html title
-generate_html() {
-    local -r __version="$1"
-    local -r __title="$2"
-    local -r __url="https://github.com/pixiv/k8s-job-wrapper/blob/v${__version}/hack/docs/docs.md"
-    cat <<EOS
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <meta http-equiv="refresh" content="0; url=${__url}">
-  <title>${__title}</title>
-</head>
-<body>
-  <p>This content has moved to <a href="${__url}">${__url}</a>.</p>
-</body>
-</html>
-EOS
-}
-
 set -e
 set -o pipefail
 

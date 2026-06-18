@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Generate CRD documents.
+# Generate CRD pages.
 #
 
 set -e
@@ -20,9 +20,9 @@ if [[ -z "$dest" ]] ; then
     exit 1
 fi
 
-k8s_version() {
-    go -C "$topd" list -m -f "{{ .Version }}" k8s.io/api | awk -F'[v.]' '{printf "1.%d", $3}'
+k8s_job_wrapper_version() {
+    "${d}/version.sh"
 }
 
 mkdir -p "$dest"
-"${d}/docs/make.sh" "$dest" "$(k8s_version)"
+"${d}/docs/pages.sh" "$dest" "$(k8s_job_wrapper_version)"

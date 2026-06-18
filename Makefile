@@ -65,6 +65,10 @@ manifests: ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefin
 docs: ## Generate CRD documents.
 	$(HACK)/make-docs.sh $(CRD_DOCS_DIR)
 
+.PHONY: pages
+pages: ## Generate CRD pages.
+	$(HACK)/make-pages.sh $(CRD_DOCS_DIR)
+
 .PHONY: generate
 generate: ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
