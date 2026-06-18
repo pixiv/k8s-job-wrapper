@@ -85,8 +85,8 @@ if [[ "$name" = "setup-envtest" ]] ; then
 fi
 
 if [[ -z "$version" ]] ; then
-    log "No version!"
-    exit 1
+  log "No version!"
+  exit 1
 fi
 
 case "$name" in
