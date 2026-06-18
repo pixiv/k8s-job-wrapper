@@ -45,7 +45,6 @@
       "addLabels": ["docker"],
       "matchDatasources": ["docker"],
       "matchDepNames": [
-        "*",
         "!golang"
       ]
     },
@@ -55,7 +54,6 @@
       "addLabels": ["go"],
       "matchDatasources": ["go"],
       "matchDepNames": [
-        "*",
         "!go"
       ]
     },
