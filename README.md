@@ -72,26 +72,16 @@ Edit following files:
 
 ### Release
 
-Prepare the release.
-
-``` shell
-git switch -c version-${RELEASE_VERSION} # e.g. version-0.0.5-alpha.2
-vim VERSION # Update to the release version.
-make chart docs
-git add VERSION charts docs
-git commit -m "Version ${RELEASE_VERSION}" # e.g. Version 0.0.5-alpha.2
-git push origin version-${RELEASE_VERSION}
-```
-
-Create a PR, ensure that the CI passes, and then merge it. Then
+1. Run [Create Update Version PR](https://github.com/pixiv/k8s-job-wrapper/actions/workflows/update-version.yml)
+2. Confirm the PR and merge it
+3. Confirm that CI on the main branch is green
+4. Create a PR, ensure that the CI passes, and then merge it. Then
 
 ``` shell
 git switch main
 git pull
 make release
 ```
-
-Confirm that CI on the main branch is green before `make releae`.
 
 When `make release`, the following actions will be executed:
 
