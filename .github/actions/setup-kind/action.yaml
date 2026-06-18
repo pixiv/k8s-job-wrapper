@@ -1,7 +1,7 @@
 name: Kind Setup
 description: Create kind cluster
 inputs:
-  node_image:
+  node-image:
     description: "The Docker image for the cluster nodes"
     required: true
 runs:
@@ -9,13 +9,8 @@ runs:
   steps:
     # helm/kind-action failed to load local container image for unknown reason
     # so use kind binary directly
-    - name: Install kind
-      shell: bash
-      run: |
-        curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
-        chmod +x ./kind
-        sudo mv ./kind /usr/local/bin/kind
-        kind version
     - name: Create kind cluster
       shell: bash
-      run: kind create cluster --image '${{ inputs.node_image }}'
+      run: ./hack/tools.sh kind create cluster --image "$NODE_IMAGE"
+      env:
+        NODE_IMAGE: ${{ inputs.node-image }}

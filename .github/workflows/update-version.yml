@@ -1,0 +1,80 @@
+name: Create Update Version PR
+
+permissions: {}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'semver to release'
+        required: true
+        type: string
+
+jobs:
+  create-pr:
+    name: Create PR
+    timeout-minutes: 10
+    permissions:
+      contents: write # create branch
+      pull-requests: write # create PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+      - name: Setup common
+        uses: ./.github/actions/common
+      - name: Validate inputs
+        env:
+          VERSION: ${{ inputs.version }}
+        run: ./hack/validate-version.sh "$VERSION"
+      - name: Setup go
+        uses: ./.github/actions/setup-go
+        with:
+          cache: false
+      - name: Update VERSION file
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          echo "$VERSION" > VERSION
+      - name: Update charts
+        run: make chart docs
+      - name: Create branch
+        id: create-branch
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          # https://github.com/orgs/community/discussions/26560
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          short_sha="$(git rev-parse --short HEAD)"
+          sha="$(git rev-parse HEAD)"
+          branch="update-version/${VERSION}-${short_sha}"
+          message="Update version to ${VERSION}"
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+          echo "message=${message}" >> "$GITHUB_OUTPUT"
+          git switch -c "$branch"
+          git add VERSION charts hack/docs
+          git commit -m "$message"
+          git push origin "$branch"
+      - name: Create PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: ${{ steps.create-branch.outputs.message }}
+          BRANCH: ${{ steps.create-branch.outputs.branch }}
+          SHA: ${{ steps.create-branch.outputs.sha }}
+        run: |
+          # https://docs.github.com/en/actions/reference/workflows-and-actions/variables
+          workflow_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          commit_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/${SHA}"
+          body="Created by ${workflow_url} from ${commit_url}"
+          gh pr create \
+            --title "$TITLE" \
+            --head "$BRANCH" \
+            --base main \
+            --assignee "$GITHUB_ACTOR" \
+            --body "$body"
