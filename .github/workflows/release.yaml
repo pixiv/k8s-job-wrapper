@@ -208,14 +208,16 @@ jobs:
           if [ "$PRERELEASE" = "true" ] ; then
             extra_args="${extra_args} --prerelease"
           fi
-          gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes $extra_args "$CHART_PACKAGE_FILE"
+          gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes $extra_args "$CHART_PACKAGE_FILE" "$TRANSFORMER"
         env:
           GH_TOKEN: ${{ github.token }}
           CHART_PACKAGE_FILE: ${{ needs.generate.outputs.chart-package-file }}
+          TRANSFORMER: hack/docs/kustomize/transform.yaml
           PRERELEASE: ${{ needs.init.outputs.prerelease }}
 
   pages:
     name: Deploy CRD document
+    if: ${{ needs.init.outputs.prerelease != 'true' }}
     permissions:
       pages: write
       id-token: write # to verify deployment
@@ -223,6 +225,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs:
+      - init
       - release
     environment:
       name: github-pages
