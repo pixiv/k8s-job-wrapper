@@ -233,14 +233,10 @@ jobs:
           persist-credentials: "false"
       - name: Setup common
         uses: ./.github/actions/common
-      - name: Setup go
-        uses: ./.github/actions/setup-go
-        with:
-          cache: false
       - name: Generate CRD document
         id: generate-docs
         run: |
-          ./hack/make-docs.sh "$CRD_DOCS_DIR"
+          make pages
           echo "docs-package-path=${CRD_DOCS_DIR}" >> "$GITHUB_OUTPUT"
       - name: Upload CRD document
         id: upload

@@ -10,19 +10,15 @@ log() {
 # Needed to link to the standard resource documentation for a specific Kubernetes version.
 # $1: kubernetes version
 generate_config() {
-  local -r version="$1"
+  local -r __version="$1"
   cat <<EOS
 render:
-  kubernetesVersion: ${version}
+  kubernetesVersion: ${__version}
 EOS
 }
 
 docs() {
   "$tools" crd-ref-docs "$@"
-}
-
-pandoc() {
-  "$tools" pandoc "$@"
 }
 
 generate_examples() {
@@ -74,80 +70,23 @@ EOS
   tail -n +2 "$__out_md"
 }
 
-copy_assets() {
-  local -r __dest="$1"
-  cp -r "${d}/kustomize" "$__dest"
-}
-
-# Generate css file.
-# $1: URL of the external css file
-# $2: local css file
-generate_css() {
-  local -r __url="$1"
-  local -r __file="$2"
-  curl -o- -s -L "$__url"
-  cat "$__file"
-}
-
-# Convert markdown into html.
-# $1: markdown file
-# $2: css file
-# $3: html title
-generate_html() {
-  local -r __out_md="$1"
-  local -r __css="$2"
-  local -r __title="$3"
-  pandoc \
-    "${__out_md}" \
-    --standalone \
-    --embed-resources \
-    --toc \
-    --toc-depth=4 \
-    --css "${__css}" \
-    --metadata title="${__title}"
-}
-
-generate_script() {
-  local -r __js="$1"
-  echo "<script>"
-  cat "${__js}"
-  echo "</script>"
-}
 
 set -e
 set -o pipefail
 
-readonly dest="$1"
-readonly k8s_version="$2"
-if [[ -z "$dest" ]] ; then
-  log "dest (\$1) is required!"
-  exit 1
-fi
+readonly k8s_version="$1"
 if [[ -z "$k8s_version" ]] ; then
-  log "k8s_version (\$2) is required!"
-  exit 1
+    log "k8s_version (\$1) is required!"
+    exit 1
 fi
 
-readonly title="CRD of pixiv.net"
 readonly source_path="${d}/../../api/v1"
-# base css
-readonly css_url="http://thomasf.github.io/solarized-css/solarized-light.min.css"
-# addtional css
-readonly css_file="${d}/docs.css"
-# additional js
-readonly js_file="${d}/docs.js"
-
 
 readonly config="$(mktemp)"
 generate_config "${k8s_version}" > "$config"
-readonly css="$(mktemp)"
-generate_css "${css_url}" "${css_file}" > "${css}"
 
 docs --version
 readonly tmp_out_md="$(mktemp)"
 generate_docs "${config}" "${source_path}" "${tmp_out_md}"
 readonly out_md="${d}/docs.md"
 insert_summary_and_examples "${tmp_out_md}" > "${out_md}"
-generate_script "${js_file}" >> "${out_md}"
-copy_assets "$dest"
-generate_html "${out_md}" "${css}" "${title}" > "${dest}/index.html"

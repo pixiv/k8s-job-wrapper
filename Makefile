@@ -63,7 +63,11 @@ manifests: ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefin
 
 .PHONY: docs
 docs: ## Generate CRD documents.
-	$(HACK)/make-docs.sh $(CRD_DOCS_DIR)
+	$(HACK)/make-docs.sh
+
+.PHONY: pages
+pages: ## Generate CRD pages.
+	$(HACK)/make-pages.sh $(CRD_DOCS_DIR)
 
 .PHONY: generate
 generate: ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.

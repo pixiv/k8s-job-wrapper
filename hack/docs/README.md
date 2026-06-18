@@ -1,17 +1,10 @@
 # docs
 
-You can generate the documentation for the CRD with the following command: `./make.sh ${DEST_DIR} ${K8S_VERSION}`
+You can generate the documentation for the CRD with the following command: `./make.sh ${K8S_VERSION}`
 
 ## How it works
 
 This process uses [crd-ref-docs](https://github.com/elastic/crd-ref-docs) to generate a [Markdown file](./docs.md) from the [CRD schema](../../api/v1).
-The Markdown is then converted to HTML using [pandoc](https://github.com/jgm/pandoc).
-
-The visual style is based on a publicly available CSS that has been [customized](./docs.css) for this project.
-
-## Viewing locally
-
-A self-contained `index.html` file will be created in the `$DEST_DIR` directory. To view the documentation, simply open this file in your web browser.
 
 ## Updating manifest examples
 
