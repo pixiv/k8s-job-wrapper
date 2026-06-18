@@ -35,9 +35,6 @@
   "major": {
     "addLabels": ["major"]
   },
-  "github-actions": {
-    "enabled": false
-  },
   "packageRules": [
     {
       "description": "Group docker dependencies",
