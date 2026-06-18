@@ -63,7 +63,7 @@ manifests: ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefin
 
 .PHONY: docs
 docs: ## Generate CRD documents.
-	$(HACK)/make-docs.sh $(CRD_DOCS_DIR)
+	$(HACK)/make-docs.sh
 
 .PHONY: pages
 pages: ## Generate CRD pages.

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#
+# Generate HTML to redirect GitHub Pages to docs.md.
+#
+
 readonly d="$(cd "$(dirname "$0")" || exit ; pwd)"
 
 log() {

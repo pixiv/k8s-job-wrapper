@@ -73,23 +73,12 @@ EOS
 set -e
 set -o pipefail
 
-readonly dest="$1"
-readonly k8s_version="$2"
-readonly version="$3"
-if [[ -z "$dest" ]] ; then
-    log "dest (\$1) is required!"
-    exit 1
-fi
+readonly k8s_version="$1"
 if [[ -z "$k8s_version" ]] ; then
-    log "k8s_version (\$2) is required!"
-    exit 1
-fi
-if [[ -z "$version" ]] ; then
-    log "version (\$3) is required!"
+    log "k8s_version (\$1) is required!"
     exit 1
 fi
 
-readonly title="CRD of pixiv.net"
 readonly source_path="${d}/../../api/v1"
 
 readonly config="$(mktemp)"
@@ -100,4 +89,3 @@ readonly tmp_out_md="$(mktemp)"
 generate_docs "${config}" "${source_path}" "${tmp_out_md}"
 readonly out_md="${d}/docs.md"
 insert_summary_and_examples "${tmp_out_md}" > "${out_md}"
-generate_html "${version}" "${title}" > "${dest}/index.html"
