@@ -216,6 +216,7 @@ jobs:
 
   pages:
     name: Deploy CRD document
+    if: ${{ needs.init.outputs.prerelease != 'true' }}
     permissions:
       pages: write
       id-token: write # to verify deployment
@@ -223,6 +224,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs:
+      - init
       - release
     environment:
       name: github-pages
