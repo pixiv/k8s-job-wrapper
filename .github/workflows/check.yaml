@@ -5,9 +5,12 @@ on:
   push:
     branches:
       - 'main'
-
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   lint:
+    name: Lint
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -20,7 +23,5 @@ jobs:
         uses: ./.github/actions/common
       - name: Setup go
         uses: ./.github/actions/setup-go
-        with:
-          version: '${{ env.GO_VERSION }}'
       - name: Lint
         run: make lint

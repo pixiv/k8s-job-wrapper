@@ -21,22 +21,15 @@ linters:
     - unconvert
     - unparam
     - unused
-    - kubeapilinter
+    - logcheck
     - goheader
   settings:
     revive:
       rules:
         - name: comment-spacings
     custom:
-      kubeapilinter:
-        path: bin/kube-api-linter.so
-        description: kube-api-linter and lints Kube like APIs based on API conventions and best practices.
-        original-url: sigs.k8s.io/kube-api-linter
-        settings:
-          linters:
-            disable:
-              - '*'
-          lintersConfig: {}
+      logcheck:
+        type: module
     goheader:
       values:
         const:
@@ -70,9 +63,6 @@ linters:
       - linters:
           - ginkgolinter
         path: test/*
-      - linters:
-          - kubeapilinter
-        path-except: api/*
     paths:
       - third_party$
       - builtin$
