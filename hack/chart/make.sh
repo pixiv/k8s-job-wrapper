@@ -7,7 +7,7 @@
 set -e
 set -o pipefail
 
-readonly d="$(cd "$(dirname "$0")" || exit ; pwd)"
+readonly d="$(cd "$(dirname "$0")" || exit 1 ; pwd)"
 readonly topd="${d}/../.."
 cd "$topd" || exit 1
 readonly chartd="${topd}/charts/k8s-job-wrapper"

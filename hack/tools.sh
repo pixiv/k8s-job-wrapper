@@ -15,8 +15,8 @@ log() {
 
 readonly name="$1"
 if [[ -z "$name" ]] ; then
-    log "$(basename "$0"): no tool name!"
-    exit 1
+  log "$(basename "$0"): no tool name!"
+  exit 1
 fi
 shift
 
