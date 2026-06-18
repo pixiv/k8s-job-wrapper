@@ -74,7 +74,6 @@ if [[ ! -x "$binary" ]] ; then
     "go-licenses") setup_go "$GO_LICENSES_VERSION" ;;
     "crd-ref-docs") setup_go "$CRD_REF_DOCS_VERSION" ;;
     "helm") setup "$HELM_VERSION" ;;
-    "pandoc") setup "$PANDOC_VERSION" ;;
     "kubebuilder") setup_go "$KUBEBUILDER_VERSION" ;;
     "kind") setup "$KIND_VERSION" ;;
     *)

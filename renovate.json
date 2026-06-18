@@ -105,14 +105,6 @@
       "depNameTemplate": "kindest/node"
     },
     {
-      "description": "Manage pandoc version",
-      "customType": "regex",
-      "fileMatch": ["^.github/.env$"],
-      "matchStrings":["PANCOD_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
-      "datasourceTemplate": "github-tags",
-      "depNameTemplate": "jgm/pandoc"
-    },
-    {
       "description": "Manage crd-ref-docs version",
       "customType": "regex",
       "fileMatch": ["^.github/.env$"],

@@ -69,20 +69,6 @@ install_helm() {
   install_binary "$(get_osname)-$(get_arch)/helm"
 }
 
-install_pandoc() {
-  if [[ "$(get_osname)" = "linux" ]] ; then
-    curl -L -s -o "${tmpd}/pandoc.tar.gz" "https://github.com/jgm/pandoc/releases/download/${version}/pandoc-${version}-linux-$(get_arch).tar.gz"
-    tar xzf pandoc.tar.gz
-    rm -f pandoc.tar.gz
-  else
-    curl -L -s -o "${tmpd}/pandoc.zip" "https://github.com/jgm/pandoc/releases/download/${version}/pandoc-${version}-$(arch)-macOS.zip"
-    unzip -q pandoc.zip
-    rm -f pandoc.zip
-  fi
-  mv pandoc* pandoc
-  install_binary "pandoc/bin/pandoc"
-}
-
 case "$name" in
   "kubectl")
     download_and_install "https://dl.k8s.io/release/${version}/bin/$(get_osname)/$(get_arch)/kubectl"
@@ -91,7 +77,6 @@ case "$name" in
     download_and_install "https://kind.sigs.k8s.io/dl/${version}/kind-$(get_osname)-$(get_arch)"
     ;;
   "helm") install_helm ;;
-  "pandoc") install_pandoc ;;
   *)
     log "unknown tool!: ${name}"
     exit 1
