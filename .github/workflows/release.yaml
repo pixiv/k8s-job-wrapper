@@ -240,7 +240,7 @@ jobs:
       - name: Generate CRD document
         id: generate-docs
         run: |
-          ./hack/make-docs.sh "$CRD_DOCS_DIR"
+          make pages
           echo "docs-package-path=${CRD_DOCS_DIR}" >> "$GITHUB_OUTPUT"
       - name: Upload CRD document
         id: upload
