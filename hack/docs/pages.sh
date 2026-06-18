@@ -10,6 +10,11 @@ log() {
   echo >&2 "$(basename "$0"): $*"
 }
 
+copy_assets() {
+  local -r __dest="$1"
+  cp -r "${d}/kustomize" "$__dest"
+}
+
 # Convert markdown into html.
 # $1: k8s-job-wrapper-version
 # $2: html title
@@ -49,3 +54,4 @@ fi
 
 readonly title="CRD of pixiv.net"
 generate_html "${version}" "${title}" > "${dest}/index.html"
+copy_assets "$dest"
