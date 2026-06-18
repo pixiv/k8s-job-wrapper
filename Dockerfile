@@ -1,5 +1,7 @@
-ARG GO_VERSION=1.25
+# syntax=docker/dockerfile:1
+# check=error=true
 # Build the manager binary
+ARG GO_VERSION=1.25
 FROM golang:$GO_VERSION AS builder
 ARG KUBECTL_VERSION=v1.32.8
 ARG TARGETOS
@@ -8,7 +10,7 @@ ARG TARGETARCH
 WORKDIR /workspace
 # Download kubectl
 RUN --mount=type=bind,source=hack,target=. \
-    ./setup-kubectl.sh $KUBECTL_VERSION /usr/local/bin/kubectl
+    ./setup.sh kubectl /usr/local/bin/kubectl $KUBECTL_VERSION
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN --mount=type=cache,target=/go/pkg/mod,id=gomodcache \

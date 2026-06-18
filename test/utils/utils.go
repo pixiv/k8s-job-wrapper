@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2" //nolint:revive,staticcheck
@@ -36,8 +37,13 @@ const (
 	certmanagerURLTmpl = "https://github.com/cert-manager/cert-manager/releases/download/%s/cert-manager.yaml"
 )
 
+func Kubectl() string {
+	dir, _ := GetProjectDir()
+	return filepath.Join(dir, "hack", "kubectl")
+}
+
 func KubectlCmd(arg ...string) *exec.Cmd {
-	return exec.Command(os.Getenv("KUBECTL"), arg...)
+	return exec.Command(Kubectl(), arg...)
 }
 
 func warnError(err error) {
@@ -169,14 +175,9 @@ func IsCertManagerCRDsInstalled() bool {
 	return false
 }
 
-// LoadImageToKindClusterWithName loads a local docker image to the kind cluster
-func LoadImageToKindClusterWithName(name string) error {
-	cluster := "kind"
-	if v, ok := os.LookupEnv("KIND_CLUSTER"); ok {
-		cluster = v
-	}
-	kindOptions := []string{"load", "docker-image", name, "--name", cluster}
-	cmd := exec.Command("kind", kindOptions...)
+// LoadImageToKindCluster loads a local docker image to the kind cluster
+func LoadImageToKindCluster() error {
+	cmd := exec.Command("make", "load-image")
 	_, err := Run(cmd)
 	return err
 }
@@ -197,12 +198,11 @@ func GetNonEmptyLines(output string) []string {
 
 // GetProjectDir will return the directory where the project is
 func GetProjectDir() (string, error) {
-	wd, err := os.Getwd()
+	out, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
 	if err != nil {
-		return wd, err
+		return "", err
 	}
-	wd = strings.ReplaceAll(wd, "/test/e2e", "")
-	return wd, nil
+	return strings.TrimSpace(string(out)), nil
 }
 
 // UncommentCode searches for target in the file and remove the comment prefix

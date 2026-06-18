@@ -5,9 +5,12 @@ on:
   push:
     branches:
       - 'main'
-
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
+    name: E2E
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -18,14 +21,19 @@ jobs:
           persist-credentials: "false"
       - name: Setup common
         uses: ./.github/actions/common
+      - name: Cache docker local
+        id: cache-docker-local
+        uses: ./.github/actions/cache-docker-local
+        with:
+          path: ${{ env.DOCKER_CACHE_DIR }}
+      - name: Setup buildx
+        uses: ./.github/actions/setup-buildx
       - name: Setup go
         uses: ./.github/actions/setup-go
-        with:
-          version: '${{ env.GO_VERSION }}'
       - name: Setup kind
         uses: ./.github/actions/setup-kind
         with:
-          node_image: '${{ env.KIND_NODE_IMAGE }}'
+          node-image: '${{ env.KIND_NODE_IMAGE }}'
       - name: Build
         run: make docker-build
       - name: E2E test
