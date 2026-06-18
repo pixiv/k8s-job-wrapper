@@ -58,7 +58,7 @@ jobs:
           echo "branch=${branch}" >> "$GITHUB_OUTPUT"
           echo "message=${message}" >> "$GITHUB_OUTPUT"
           git switch -c "$branch"
-          git add VERSION charts docs
+          git add VERSION charts hack/docs
           git commit -m "$message"
           git push origin "$branch"
       - name: Create PR
