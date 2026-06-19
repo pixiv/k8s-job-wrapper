@@ -28,4 +28,5 @@ if [[ "$TEST_CHART_SKIP_CHART_BUILD" != "true" ]]; then
   __make chart-internal
 fi
 export E2E_SKIP_BUILD="$TEST_CHART_SKIP_DOCKER_BUILD"
+export E2E_SKIP_LOAD="$TEST_CHART_SKIP_LOAD_IMAGE"
 __make test-e2e

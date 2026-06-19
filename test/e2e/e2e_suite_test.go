@@ -59,10 +59,11 @@ var _ = BeforeSuite(func() {
 	}
 	// TODO(user): If you want to change the e2e test vendor from Kind, ensure the image is
 	// built and available before running the tests. Also, remove the following block.
-	By("loading the manager(Operator) image on Kind")
-	ExpectWithOffset(1, utils.LoadImageToKindCluster()).
-		NotTo(HaveOccurred(), "Failed to load the manager(Operator) image into Kind")
-
+	if !utils.IsEnvTrue("E2E_SKIP_LOAD") {
+		By("loading the manager(Operator) image on Kind")
+		ExpectWithOffset(1, utils.LoadImageToKindCluster()).
+			NotTo(HaveOccurred(), "Failed to load the manager(Operator) image into Kind")
+	}
 	// The tests-e2e are intended to run on a temporary cluster that is created and destroyed for testing.
 	// To prevent errors when tests run in environments with CertManager already installed,
 	// we check for its presence before execution.
