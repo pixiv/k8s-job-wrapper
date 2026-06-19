@@ -73,7 +73,7 @@
                   "type": "string"
                 },
                 "tag": {
-                  "default": "v0.0.5-alpha.9",
+                  "default": "v0.0.5-alpha.11",
                   "title": "tag",
                   "type": "string"
                 }
