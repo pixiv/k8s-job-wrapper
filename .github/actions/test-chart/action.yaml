@@ -26,26 +26,9 @@ runs:
     - name: Setup buildx
       uses: ./.github/actions/setup-buildx
       if: ${{ inputs.build-image == 'true' }}
-    - name: Build images
-      shell: bash
-      run: make docker-build
-      env:
-        DOCKER_CACHE_READONLY: "true"
-      if: ${{ inputs.build-image == 'true' }}
-    - name: Load images
-      shell: bash
-      run: make load-image
-      if: ${{ inputs.build-image == 'true' }}
     - name: Test chart
       shell: bash
-      run: ./hack/tools.sh helm install -n k8s-job-wrapper-system --create-namespace k8s-job-wrapper $chart --wait --timeout=5m
+      run: make test-chart TEST_CHART="$chart"
       env:
+        TEST_CHART_SKIP_DOCKER_BUILD: ${{ inputs.build-image != 'true' }}
         chart: ${{ inputs.chart }}
-    - name: Apply samples
-      shell: bash
-      run: ./hack/tools.sh kubectl apply -k config/samples
-    - name: Wait until the Job is complete
-      shell: bash
-      run: |
-        ./hack/tools.sh kubectl wait --for=condition=Available jobs.pixiv.net job-sample --timeout=1m
-        ./hack/tools.sh kubectl wait --for=condition=Complete job -l jobs.pixiv.net/name=job-sample --timeout=2m

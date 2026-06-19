@@ -90,7 +90,17 @@ test: manifests generate ## Run tests.
 # CertManager is installed by default; skip with:
 # - CERT_MANAGER_INSTALL_SKIP=true
 .PHONY: test-e2e
-test-e2e: manifests generate ## Run the e2e tests. Expected an isolated environment using Kind.
+test-e2e: manifests generate create-cluster ## Run the e2e tests. Expected an isolated environment using Kind.
+	go test ./test/e2e/ -v -ginkgo.v
+
+TEST_CHART ?= charts/k8s-job-wrapper
+
+.PHONY: test-chart
+test-chart: manifests generate create-cluster ## Run the chart tests. Expected an isolated environment using Kind.
+	$(HACK)/test-chart.sh $(TEST_CHART)
+
+.PHONY: create-cluster
+create-cluster: ## Create Kind cluster
 	@command -v kind >/dev/null 2>&1 || { \
 		echo "Kind is not installed. Please install Kind manually."; \
 		exit 1; \
@@ -105,7 +115,6 @@ else
 	$(KIND) delete cluster || true
 	$(KIND) create cluster --image $(KIND_NODE_IMAGE)
 endif
-	go test ./test/e2e/ -v -ginkgo.v
 
 .PHONY: load-image
 load-image: ## Load the controller image into kind cluster
