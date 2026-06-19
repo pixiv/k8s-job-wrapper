@@ -188,6 +188,14 @@ deploy: manifests delete-controller ## Deploy controller to the K8s cluster spec
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUBECTL) delete -k config/default --ignore-not-found=$(ignore-not-found)
 
+.PHONY: deploy-chart
+deploy-chart: ## Deploy helm chart.
+	$(HELM) upgrade --install -n k8s-job-wrapper-system --create-namespace k8s-job-wrapper ./charts/k8s-job-wrapper --wait --timeout=5m --server-side=true
+
+.PHONY: undeploy-chart
+undeploy-chart: ## Undeploy helm chart.
+	$(HELM) uninstall -n k8s-job-wrapper-system k8s-job-wrapper
+
 .PHONY: sample
 sample: ## Deploy sample manifests
 	$(KUBECTL) apply -k config/samples
@@ -222,3 +230,4 @@ CONTROLLER_GEN ?= $(TOOLS) controller-gen
 ENVTEST ?= $(TOOLS) setup-envtest
 GOLANGCI_LINT = $(TOOLS) golangci-lint
 KIND := $(TOOLS) kind
+HELM := $(TOOLS) helm

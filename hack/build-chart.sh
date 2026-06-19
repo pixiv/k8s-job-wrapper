@@ -78,6 +78,15 @@ generate_values_schema() {
   popd > /dev/null
 }
 
+fix_serviceaccount_name() {
+  pushd "$chart" > /dev/null
+  local __tmp
+  __tmp="$(mktemp)"
+  yq '.serviceAccount.name = "k8s-job-wrapper-controller-manager"' values.yaml > "$__tmp"
+  cat "$__tmp" > values.yaml
+  popd > /dev/null
+}
+
 build_chart() {
   local -r __version="$1"
   local -r __manifest="$2"
@@ -85,6 +94,7 @@ build_chart() {
   helmify "$chart" < "$__manifest"
   generate_chart_yaml "$__version" > "$chart_yaml"
   generate_values_schema
+  fix_serviceaccount_name
   helm lint --strict "$chart"
 }
 
