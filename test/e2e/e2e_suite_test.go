@@ -18,7 +18,6 @@ package e2e
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"testing"
 
@@ -33,7 +32,7 @@ var (
 	// - CERT_MANAGER_INSTALL_SKIP=true: Skips CertManager installation during test setup.
 	// These variables are useful if CertManager is already installed, avoiding
 	// re-installation and conflicts.
-	skipCertManagerInstall = os.Getenv("CERT_MANAGER_INSTALL_SKIP") == "true"
+	skipCertManagerInstall = utils.IsEnvTrue("CERT_MANAGER_INSTALL_SKIP")
 	// isCertManagerAlreadyInstalled will be set true when CertManager CRDs be found on the cluster
 	isCertManagerAlreadyInstalled = false
 )
@@ -49,7 +48,7 @@ func TestE2E(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	if os.Getenv("E2E_SKIP_BUILD") != "true" {
+	if !utils.IsEnvTrue("E2E_SKIP_BUILD") {
 		_, _ = fmt.Fprintf(GinkgoWriter, "If you want to skip docker-build, use E2E_SKIP_BUILD=true\n")
 		By("building the manager(Operator) image")
 		cmd := exec.Command("make", "docker-build")

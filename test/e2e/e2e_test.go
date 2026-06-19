@@ -65,7 +65,7 @@ var _ = Describe("Manager", Ordered, func() {
 		_, err = utils.Run(cmd)
 		Expect(err).NotTo(HaveOccurred(), "Failed to label namespace with restricted policy")
 
-		if os.Getenv("E2E_HELM") != "true" {
+		if !utils.IsEnvTrue("E2E_HELM") {
 			By("installing CRDs")
 			cmd = exec.Command("make", "install")
 			_, err = utils.Run(cmd)
@@ -90,7 +90,7 @@ var _ = Describe("Manager", Ordered, func() {
 		cmd := utils.KubectlCmd("delete", "pod", "curl-metrics", "-n", namespace)
 		_, _ = utils.Run(cmd)
 
-		if os.Getenv("E2E_HELM") != "true" {
+		if !utils.IsEnvTrue("E2E_HELM") {
 			By("undeploying the controller-manager")
 			cmd = exec.Command("make", "undeploy")
 			_, _ = utils.Run(cmd)
