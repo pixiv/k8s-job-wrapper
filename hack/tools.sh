@@ -76,6 +76,7 @@ if [[ ! -x "$binary" ]] ; then
     "helm") setup "$HELM_VERSION" ;;
     "kubebuilder") setup_go "$KUBEBUILDER_VERSION" ;;
     "kind") setup "$KIND_VERSION" ;;
+    "helmify") setup_go "$HELMIFY_VERSION" ;;
     *)
       log "Unknown tool!: ${name}"
       exit 1

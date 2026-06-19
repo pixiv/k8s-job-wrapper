@@ -79,6 +79,14 @@ install_kubebuilder() {
   install "sigs.k8s.io/kubebuilder/v4@${version}"
 }
 
+install_helmify() {
+  if [[ -z "$version" ]] ; then
+    log "No version!: helmify"
+    return 1
+  fi
+  install "github.com/arttor/helmify/cmd/helmify@${version}"
+}
+
 if [[ "$name" = "setup-envtest" ]] ; then
   install_setup_envtest
   exit
@@ -96,6 +104,7 @@ case "$name" in
   "go-licenses") install_go_licenses ;;
   "crd-ref-docs") install_crd_ref_docs ;;
   "kubebuilder") install_kubebuilder ;;
+  "helmify") install_helmify ;;
   *)
     log "Unknown name!: ${name}"
     exit 1

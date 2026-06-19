@@ -162,6 +162,14 @@
       "matchStrings":["KIND_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "kubernetes-sigs/kind"
+    },
+    {
+      "description": "Manage helmify version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["HELMIFY_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "arttor/helmify"
     }
   ]
 }
