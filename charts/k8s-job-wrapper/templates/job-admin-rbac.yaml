@@ -1,0 +1,19 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "k8s-job-wrapper.fullname" . }}-job-admin-role
+  labels:
+  {{- include "k8s-job-wrapper.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - pixiv.net
+  resources:
+  - jobs
+  verbs:
+  - '*'
+- apiGroups:
+  - pixiv.net
+  resources:
+  - jobs/status
+  verbs:
+  - get
