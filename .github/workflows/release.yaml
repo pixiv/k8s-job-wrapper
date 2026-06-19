@@ -148,7 +148,7 @@ jobs:
           CHART_VERSION: ${{ needs.init.outputs.version }}
           IMAGE_TAG: ${{ needs.merge-images.outputs.tag }}
         run: |
-          ./hack/chart/make.sh "$CHART_VERSION" "$IMAGE_REGISTRY" "$IMAGE_TAG" "$CHART_PACKAGE_DIR"
+          ./hack/build-chart.sh "$CHART_VERSION" "${IMAGE_REGISTRY}:${IMAGE_TAG}" "$CHART_PACKAGE_DIR"
           if ! git diff --exit-code ; then
             echo "Aborting the release because a diff was detected in the chart."
             exit 1
