@@ -613,7 +613,7 @@ _Appears in:_
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `template` _[PodTemplateSpec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podtemplatespec-v1-core)_ | Template describes the pods that will be created. |  |  |
+| `template` _[PodProfileTemplate](#podprofiletemplate)_ | Template describes the pods that will be created. |  |  |
 
 
 #### PodProfileStatus
@@ -629,31 +629,37 @@ _Appears in:_
 
 
 
-<script>
-//
-// Highlights specific terms within code blocks inside "Examples".
-//
-// NOTE: This is not scoped to the "Examples" section, so it also applies to code blocks elsewhere.
-//
-document.addEventListener('DOMContentLoaded', function() {
-  const emphasizeTargets = [
-    'apiVersion: pixiv.net/v1',
-    'jobProfile',
-    'podProfileRef',
-    'patches',
-    'jobParams',
-  ];
+#### PodProfileTemplate
 
-  const codeElements = document.querySelectorAll('code');
-  codeElements.forEach(codeElement => {
-    const spanElements = codeElement.querySelectorAll('span');
-    spanElements.forEach(spanElement => {
-      const text = spanElement.textContent.trim();
-      if (emphasizeTargets.includes(text)) {
-        spanElement.style.fontWeight = 'bold';
-        spanElement.style.fontStyle = 'italic';
-      }
-    });
-  });
-});
-</script>
+
+
+
+
+
+
+_Appears in:_
+- [PodProfileSpec](#podprofilespec)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `metadata` _[PodProfileTemplateMetadata](#podprofiletemplatemetadata)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
+| `spec` _[PodSpec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#podspec-v1-core)_ | Specification of the desired behavior of the pod.<br />More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status |  |  |
+
+
+#### PodProfileTemplateMetadata
+
+
+
+
+
+
+
+_Appears in:_
+- [PodProfileTemplate](#podprofiletemplate)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `labels` _object (keys:string, values:string)_ | Additional labels for generated pod. |  |  |
+| `annotations` _object (keys:string, values:string)_ | Additional annotations for generated pod. |  |  |
+
+

@@ -25,6 +25,7 @@ import (
 
 	"github.com/pixiv/k8s-job-wrapper/internal/kubectl"
 	"github.com/pixiv/k8s-job-wrapper/internal/kustomize"
+	"github.com/pixiv/k8s-job-wrapper/test/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -137,7 +138,7 @@ func TestPatchRunner(t *testing.T) {
 	})
 	t.Run("kustomize", func(t *testing.T) {
 		got, err := kustomize.NewPatchRunner(
-			kubectl.NewCommand(os.Getenv("KUBECTL"))).Patch(context.TODO(),
+			kubectl.NewCommand(utils.Kubectl())).Patch(context.TODO(),
 			newPatchRequest(),
 		)
 		if !assert.Nil(t, err) {

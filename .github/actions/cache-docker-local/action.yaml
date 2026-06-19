@@ -1,0 +1,29 @@
+name: Cache Docker Local
+description: Save and restore docker local caches
+inputs:
+  path:
+    required: true
+  restore-only:
+    required: false
+    default: 'false'
+runs:
+  using: "composite"
+  steps:
+    - name: Cache docker local
+      id: cache-docker-local
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ runner.os }}-docker-${{ hashFiles('Dockerfile') }}
+        restore-keys: |
+          ${{ runner.os }}-docker-
+      if: ${{ inputs.restore-only != 'true' }}
+    - name: Restore docker local cache
+      id: cache-docker-local-restore
+      uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ runner.os }}-docker-${{ hashFiles('Dockerfile') }}
+        restore-keys: |
+          ${{ runner.os }}-docker-
+      if: ${{ inputs.restore-only == 'true' }}
