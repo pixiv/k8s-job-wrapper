@@ -1,25 +1,23 @@
-# Patterns to ignore when building Helm packages.
-# Operating system files
+# Patterns to ignore when building packages.
+# This supports shell glob matching, relative path matching, and
+# negation (prefixed with !). Only one pattern per line.
 .DS_Store
-
-# Version control directories
+# Common VCS dirs
 .git/
 .gitignore
 .bzr/
+.bzrignore
 .hg/
 .hgignore
 .svn/
-
-# Backup and temporary files
+# Common backup files
 *.swp
-*.tmp
 *.bak
+*.tmp
 *.orig
 *~
-
-# IDE and editor-related files
+# Various IDEs
+.project
 .idea/
+*.tmproj
 .vscode/
-
-# Helm chart artifacts
-dist/chart/*.tgz

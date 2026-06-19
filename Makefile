@@ -163,7 +163,7 @@ chart: ## Build helm chart for release.
 
 .PHONY: chart
 chart-internal: ## Build helm chart.
-	$(HACK)/chart/make.sh $(VERSION) $(IMAGE_NAME) $(IMAGE_TAG) $(CHART_PACKAGE_DIR)
+	$(HACK)/build-chart.sh $(VERSION) $(IMG) $(CHART_PACKAGE_DIR)
 
 ##@ Deployment
 

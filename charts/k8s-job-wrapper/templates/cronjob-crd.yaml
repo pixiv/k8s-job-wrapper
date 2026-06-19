@@ -1,27 +1,31 @@
-{{- if .Values.crd.enable }}
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  labels:
-    {{- include "chart.labels" . | nindent 4 }}
+  name: cronjobs.pixiv.net
   annotations:
-    {{- if .Values.crd.keep }}
-    "helm.sh/resource-policy": keep
-    {{- end }}
     controller-gen.kubebuilder.io/version: v0.20.0
-  name: jobs.pixiv.net
+  labels:
+  {{- include "k8s-job-wrapper.labels" . | nindent 4 }}
 spec:
   group: pixiv.net
   names:
-    kind: Job
-    listKind: JobList
-    plural: jobs
-    singular: job
+    kind: CronJob
+    listKind: CronJobList
+    plural: cronjobs
+    singular: cronjob
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .spec.profile.podProfileRef
+    - jsonPath: .spec.schedule
+      name: Schedule
+      type: string
+    - jsonPath: .spec.timeZone
+      name: Timezone
+      type: string
+    - jsonPath: .spec.suspend
+      name: Suspend
+      type: boolean
+    - jsonPath: .spec.jobProfile.podProfileRef
       name: Profile
       type: string
     - jsonPath: .status.conditions[?(@.type=="Available")].status
@@ -37,25 +41,21 @@ spec:
     schema:
       openAPIV3Schema:
         description: |-
-          Job represents a template of `jobs.v1.batch`.
-
-          The Job creates a `jobs.v1.batch` manifest from the [PodProfile] specified in `spec.profile.podProfileRef` and `spec.profile.jobParams`, and applies `spec.profile.patches`.
-          The generated `jobs.v1.batch` will always have the following labels:
-
+          CronJob represents a template of `cronjobs.v1.batch`.
+  
+          CronJob generates `cronjobs.v1.batch.spec` from `spec.jobProfile`,
+          and then combines it with `spec.schedule`, `spec.timeZone`, ... to produce `cronjobs.v1.batch`.
+  
+          The generated `cronjobs.v1.batch` will always have the following labels applied:
+  
             - `app.kubernetes.io/created-by=pixiv-job-controller`
-            - `jobs.pixiv.net/name=$NAME_OF_JOB`
-            - `jobs.pixiv.net/job-spec-hash=$HASH_OF_JOB_SPEC`
-
-          `$NAME_OF_JOB` is the value of `metadata.name`.
-          `$HASH_OF_JOB_SPEC` is the hash value of `jobs.v1.batch.spec`.
-
-          The Job generates a `jobs.v1.batch` in the following cases:
-
-            - When it generates the `jobs.v1.batch` for the first time.
-            - When it generates a manifest with a different spec called $HASH_OF_JOB_SPEC from the most recently generated jobs.v1.batch, and it has completed.
-
-          The name of the `jobs.v1.batch` to be generated will have an 11-character suffix appended to `metadata.name`.
-          Therefore, `metadata.name` can be a maximum of 52 characters long.
+            - `cronjobs.pixiv.net/name=$NAME_OF_CRONJOB`
+  
+          Where `$NAME_OF_CRONJOB` is the `metadata.name`.
+  
+          The generated `cronjobs.v1.batch` will have the suffix `-pxvcjob` appended to its name.
+          The maximum length of `metadata.name` of `cronjobs.v1.batch` is 52 characters.
+          Therefore, the maximum length of `metadata.name` of [CronJob] is 44 characters.
         properties:
           apiVersion:
             description: |-
@@ -75,16 +75,40 @@ spec:
           metadata:
             type: object
           spec:
-            description: JobSpec defines the desired state of Job.
+            description: CronJobSpec defines the desired state of CronJob.
             properties:
-              jobsHistoryLimit:
-                default: 3
+              concurrencyPolicy:
+                default: Allow
                 description: |-
-                  JobsHistoryLimit is the number of jobs to retain.
-                  Value must be non-negative integer.
-                  Default is 3.
+                  Specifies how to treat concurrent executions of a Job.
+                  Valid values are:
+  
+                  - "Allow" (default): allows CronJobs to run concurrently;
+                  - "Forbid": forbids concurrent runs, skipping next run if previous run hasn't finished yet;
+                  - "Replace": cancels currently running job and replaces it with a new one
+                type: string
+              cronJobMetadata:
+                description: Additional `cronjobs.v1.batch.metadata`.
+                properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Additional annotations for generated `cronjobs.v1.batch`.
+                    type: object
+                  labels:
+                    additionalProperties:
+                      type: string
+                    description: Additional labels for generated `cronjobs.v1.batch`.
+                    type: object
+                type: object
+              failedJobsHistoryLimit:
+                default: 1
+                description: |-
+                  The number of failed finished jobs to retain.
+                  This is a pointer to distinguish between explicit zero and not specified.
+                format: int32
                 type: integer
-              profile:
+              jobProfile:
                 properties:
                   jobMetadata:
                     description: Additional `jobs.v1.batch.metadata`.
@@ -136,11 +160,11 @@ spec:
                         description: |-
                           completionMode specifies how Pod completions are tracked. It can be
                           `NonIndexed` (default) or `Indexed`.
-
+  
                           `NonIndexed` means that the Job is considered complete when there have
                           been .spec.completions successfully completed Pods. Each Pod completion is
                           homologous to each other.
-
+  
                           `Indexed` means that the Pods of a
                           Job get an associated completion index from 0 to (.spec.completions - 1),
                           available in the annotation batch.kubernetes.io/job-completion-index.
@@ -151,7 +175,7 @@ spec:
                           In addition, The Pod name takes the form
                           `$(job-name)-$(index)-$(random-string)`,
                           the Pod hostname takes the form `$(job-name)-$(index)`.
-
+  
                           More completion modes can be added in the future.
                           If the Job controller observes a mode that it doesn't recognize, which
                           is possible during upgrades due to version skew, the controller
@@ -178,7 +202,7 @@ spec:
                           by RFC 1123. All characters trailing the first "/" must be valid HTTP Path
                           characters as defined by RFC 3986. The value cannot exceed 63 characters.
                           This field is immutable.
-
+  
                           This field is alpha-level. The job controller accepts setting the field
                           when the feature gate JobManagedBy is enabled (disabled by default).
                         type: string
@@ -244,7 +268,7 @@ spec:
                                   description: |-
                                     Specifies the action taken on a pod failure when the requirements are satisfied.
                                     Possible values are:
-
+  
                                     - FailJob: indicates that the pod's job is marked as Failed and all
                                       running pods are terminated.
                                     - FailIndex: indicates that the pod's index is marked as Failed and will
@@ -274,7 +298,7 @@ spec:
                                         Represents the relationship between the container exit code(s) and the
                                         specified values. Containers completed with success (exit code 0) are
                                         excluded from the requirement check. Possible values are:
-
+  
                                         - In: the requirement is satisfied if at least one container exit code
                                           (might be multiple if there are multiple containers not restricted
                                           by the 'containerName' field) is in the set of specified values.
@@ -343,7 +367,7 @@ spec:
                             when they are terminating (has a metadata.deletionTimestamp) or failed.
                           - Failed means to wait until a previously created Pod is fully terminated (has phase
                             Failed or Succeeded) before creating a replacement Pod.
-
+  
                           When using podFailurePolicy, Failed is the the only allowed value.
                           TerminatingOrFailed and Failed are allowed values when podFailurePolicy is not in use.
                           This is an beta field. To use this, enable the JobPodReplacementPolicy feature toggle.
@@ -405,7 +429,7 @@ spec:
                           only when the number of succeeded pods equals to the completions.
                           When the field is specified, it must be immutable and works only for the Indexed Jobs.
                           Once the Job meets the SuccessPolicy, the lingering pods are terminated.
-
+  
                           This field is beta-level. To use this field, you must enable the
                           `JobSuccessPolicy` feature gate (enabled by default).
                         properties:
@@ -476,7 +500,7 @@ spec:
                           guarantees (e.g. finalizers) will be honored. If this field is unset,
                           the Job won't be automatically deleted. If this field is set to zero,
                           the Job becomes eligible to be deleted immediately after it finishes.
-
+  
                           When CRD [Job] uses this, even if the TTL is expired, one [Job](https://kubernetes.io/ja/docs/concepts/workloads/controllers/job/) will remain. It will be reflected in
                           the `jobs.pixiv.net/ttl-seconds-after-finished` annotation instead of `jobs.v1.batch.spec.ttlSecondsAfterFinished`.
                         format: int32
@@ -492,13 +516,13 @@ spec:
                         path: /spec/containers/0/name
                         value: simple
                         </code></pre>
-
+  
                         Replace command:
                         <pre><code>op: replace
                         path: /spec/containers/0/command
                         value: ["perl", "-Mbignum=bpi", "-wle", "print bpi(100)"]
                         </code></pre>
-
+  
                         [patch]: https://datatracker.ietf.org/doc/html/rfc6902
                       properties:
                         from:
@@ -526,11 +550,46 @@ spec:
                 required:
                 - podProfileRef
                 type: object
+              schedule:
+                description: The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.
+                type: string
+              startingDeadlineSeconds:
+                description: |-
+                  Optional deadline in seconds for starting the job if it misses scheduled
+                  time for any reason.  Missed jobs executions will be counted as failed ones.
+                format: int64
+                type: integer
+              successfulJobsHistoryLimit:
+                default: 3
+                description: |-
+                  The number of successful finished jobs to retain.
+                  This is a pointer to distinguish between explicit zero and not specified.
+                format: int32
+                type: integer
+              suspend:
+                default: false
+                description: |-
+                  This flag tells the controller to suspend subsequent executions, it does
+                  not apply to already started executions. Defaults to false.
+                type: boolean
+              timeZone:
+                description: |-
+                  The time zone name for the given schedule, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
+                  If not specified, this will default to the time zone of the kube-controller-manager process.
+                  The set of valid time zone names and the time zone offset is loaded from the system-wide time zone
+                  database by the API server during CronJob validation and the controller manager during execution.
+                  If no system-wide time zone database can be found a bundled version of the database is used instead.
+                  If the time zone name becomes invalid during the lifetime of a CronJob or due to a change in host
+                  configuration, the controller will stop creating new new Jobs and will create a system event with the
+                  reason UnknownTimeZone.
+                  More information can be found in https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones
+                type: string
             required:
-            - profile
+            - jobProfile
+            - schedule
             type: object
           status:
-            description: JobStatus defines the observed state of Job.
+            description: CronJobStatus defines the observed state of CronJob.
             properties:
               collisionCount:
                 description: |-
@@ -603,10 +662,15 @@ spec:
             type: object
         type: object
         x-kubernetes-validations:
-        - message: must be no more than 52 characters
-          rule: self.metadata.name.size() <= 52
+        - message: must be no more than 44 characters
+          rule: self.metadata.name.size() <= 44
     served: true
     storage: true
     subresources:
       status: {}
-{{- end -}}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

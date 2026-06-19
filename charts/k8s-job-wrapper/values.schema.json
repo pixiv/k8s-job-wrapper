@@ -1,0 +1,335 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "properties": {
+    "controllerManager": {
+      "additionalProperties": false,
+      "properties": {
+        "manager": {
+          "additionalProperties": false,
+          "properties": {
+            "args": {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "required": []
+              },
+              "title": "args",
+              "type": "array"
+            },
+            "containerSecurityContext": {
+              "additionalProperties": false,
+              "properties": {
+                "allowPrivilegeEscalation": {
+                  "default": false,
+                  "title": "allowPrivilegeEscalation",
+                  "type": "boolean"
+                },
+                "capabilities": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "drop": {
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          }
+                        ],
+                        "required": []
+                      },
+                      "title": "drop",
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "drop"
+                  ],
+                  "title": "capabilities",
+                  "type": "object"
+                }
+              },
+              "required": [
+                "allowPrivilegeEscalation",
+                "capabilities"
+              ],
+              "title": "containerSecurityContext",
+              "type": "object"
+            },
+            "image": {
+              "additionalProperties": false,
+              "properties": {
+                "repository": {
+                  "default": "ghcr.io/pixiv/k8s-job-wrapper",
+                  "title": "repository",
+                  "type": "string"
+                },
+                "tag": {
+                  "default": "v0.0.5-alpha.9",
+                  "title": "tag",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "repository",
+                "tag"
+              ],
+              "title": "image",
+              "type": "object"
+            },
+            "imagePullPolicy": {
+              "default": "IfNotPresent",
+              "title": "imagePullPolicy",
+              "type": "string"
+            },
+            "resources": {
+              "additionalProperties": false,
+              "properties": {
+                "limits": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "cpu": {
+                      "default": "500m",
+                      "title": "cpu",
+                      "type": "string"
+                    },
+                    "memory": {
+                      "default": "128Mi",
+                      "title": "memory",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "cpu",
+                    "memory"
+                  ],
+                  "title": "limits",
+                  "type": "object"
+                },
+                "requests": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "cpu": {
+                      "default": "10m",
+                      "title": "cpu",
+                      "type": "string"
+                    },
+                    "memory": {
+                      "default": "64Mi",
+                      "title": "memory",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "cpu",
+                    "memory"
+                  ],
+                  "title": "requests",
+                  "type": "object"
+                }
+              },
+              "required": [
+                "limits",
+                "requests"
+              ],
+              "title": "resources",
+              "type": "object"
+            }
+          },
+          "required": [
+            "args",
+            "containerSecurityContext",
+            "image",
+            "imagePullPolicy",
+            "resources"
+          ],
+          "title": "manager",
+          "type": "object"
+        },
+        "nodeSelector": {
+          "additionalProperties": false,
+          "required": [],
+          "title": "nodeSelector",
+          "type": "object"
+        },
+        "podSecurityContext": {
+          "additionalProperties": false,
+          "properties": {
+            "runAsNonRoot": {
+              "default": true,
+              "title": "runAsNonRoot",
+              "type": "boolean"
+            },
+            "seccompProfile": {
+              "additionalProperties": false,
+              "properties": {
+                "type": {
+                  "default": "RuntimeDefault",
+                  "title": "type",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "title": "seccompProfile",
+              "type": "object"
+            }
+          },
+          "required": [
+            "runAsNonRoot",
+            "seccompProfile"
+          ],
+          "title": "podSecurityContext",
+          "type": "object"
+        },
+        "replicas": {
+          "default": 1,
+          "title": "replicas",
+          "type": "integer"
+        },
+        "tolerations": {
+          "items": {
+            "required": []
+          },
+          "title": "tolerations",
+          "type": "array"
+        },
+        "topologySpreadConstraints": {
+          "items": {
+            "required": []
+          },
+          "title": "topologySpreadConstraints",
+          "type": "array"
+        }
+      },
+      "required": [
+        "manager",
+        "nodeSelector",
+        "podSecurityContext",
+        "replicas",
+        "tolerations",
+        "topologySpreadConstraints"
+      ],
+      "title": "controllerManager",
+      "type": "object"
+    },
+    "global": {
+      "description": "Global values are values that can be accessed from any chart or subchart by exactly the same name.",
+      "required": [],
+      "title": "global",
+      "type": "object"
+    },
+    "kubernetesClusterDomain": {
+      "default": "cluster.local",
+      "title": "kubernetesClusterDomain",
+      "type": "string"
+    },
+    "metricsService": {
+      "additionalProperties": false,
+      "properties": {
+        "ports": {
+          "items": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "default": "https",
+                    "title": "name",
+                    "type": "string"
+                  },
+                  "port": {
+                    "default": 8443,
+                    "title": "port",
+                    "type": "integer"
+                  },
+                  "protocol": {
+                    "default": "TCP",
+                    "title": "protocol",
+                    "type": "string"
+                  },
+                  "targetPort": {
+                    "default": 8443,
+                    "title": "targetPort",
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "name",
+                  "port",
+                  "protocol",
+                  "targetPort"
+                ],
+                "type": "object"
+              }
+            ],
+            "required": []
+          },
+          "title": "ports",
+          "type": "array"
+        },
+        "type": {
+          "default": "ClusterIP",
+          "title": "type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ports",
+        "type"
+      ],
+      "title": "metricsService",
+      "type": "object"
+    },
+    "serviceAccount": {
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "additionalProperties": false,
+          "required": [],
+          "title": "annotations",
+          "type": "object"
+        },
+        "automount": {
+          "default": true,
+          "title": "automount",
+          "type": "boolean"
+        },
+        "create": {
+          "default": true,
+          "title": "create",
+          "type": "boolean"
+        },
+        "name": {
+          "default": "",
+          "title": "name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "annotations",
+        "automount",
+        "create",
+        "name"
+      ],
+      "title": "serviceAccount",
+      "type": "object"
+    }
+  },
+  "required": [
+    "controllerManager",
+    "kubernetesClusterDomain",
+    "metricsService",
+    "serviceAccount"
+  ],
+  "type": "object"
+}
