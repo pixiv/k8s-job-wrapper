@@ -1,0 +1,29 @@
+# https://github.com/sue445/emoy_webhook/blob/d36d71bbfa4fcb64c1674bbff436b7ace5cdd80d/.github/release.yml
+# https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes#configuring-automatically-generated-release-notes
+
+changelog:
+  categories:
+    - title: ":bomb: Breaking Changes"
+      labels:
+        - breaking change
+
+    - title: ":lock: Security Fix"
+      labels:
+        - security
+
+    - title: ":rocket: Features"
+      labels:
+        - enhancement
+
+    - title: ":bug: Bug Fixes"
+      labels:
+        - bug
+
+    - title: ":robot: Dependency updates"
+      labels:
+        - dependencies
+        - renovate
+
+    - title: ":pencil: Other Changes"
+      labels:
+        - "*"
