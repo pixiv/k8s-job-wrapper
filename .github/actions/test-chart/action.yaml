@@ -7,6 +7,8 @@ inputs:
     required: true
   build-image:
     default: 'true'
+  load-image:
+    default: 'true'
   docker-cache-dir:
     required: false
 runs:
@@ -31,4 +33,5 @@ runs:
       run: make test-chart TEST_CHART="$chart"
       env:
         TEST_CHART_SKIP_DOCKER_BUILD: ${{ inputs.build-image != 'true' }}
+        TEST_CHART_SKIP_LOAD_IMAGE: ${{ inputs.load-image != 'true' }}
         chart: ${{ inputs.chart }}
