@@ -69,6 +69,11 @@ install_helm() {
   install_binary "$(get_osname)-$(get_arch)/helm"
 }
 
+install_yq() {
+  curl -L -s -o- "https://github.com/mikefarah/yq/releases/download/${version}/yq_$(get_osname)_$(get_arch).tar.gz" | tar xz
+  install_binary "yq_$(get_osname)_$(get_arch)"
+}
+
 case "$name" in
   "kubectl")
     download_and_install "https://dl.k8s.io/release/${version}/bin/$(get_osname)/$(get_arch)/kubectl"
@@ -77,6 +82,7 @@ case "$name" in
     download_and_install "https://kind.sigs.k8s.io/dl/${version}/kind-$(get_osname)-$(get_arch)"
     ;;
   "helm") install_helm ;;
+  "yq") install_yq ;;
   *)
     log "unknown tool!: ${name}"
     exit 1

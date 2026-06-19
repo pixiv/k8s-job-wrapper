@@ -170,6 +170,14 @@
       "matchStrings":["HELMIFY_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "arttor/helmify"
+    },
+    {
+      "description": "Manage yq version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["YQ_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "mikefarah/yq"
     }
   ]
 }
