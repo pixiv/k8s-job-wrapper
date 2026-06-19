@@ -87,6 +87,10 @@ install_helmify() {
   install "github.com/arttor/helmify/cmd/helmify@${version}"
 }
 
+install_helm_schema() {
+  install "github.com/dadav/helm-schema/cmd/helm-schema@${version}"
+}
+
 if [[ "$name" = "setup-envtest" ]] ; then
   install_setup_envtest
   exit
@@ -105,6 +109,7 @@ case "$name" in
   "crd-ref-docs") install_crd_ref_docs ;;
   "kubebuilder") install_kubebuilder ;;
   "helmify") install_helmify ;;
+  "helm-schema") install_helm_schema ;;
   *)
     log "Unknown name!: ${name}"
     exit 1

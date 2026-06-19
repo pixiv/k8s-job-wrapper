@@ -178,6 +178,14 @@
       "matchStrings":["YQ_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "mikefarah/yq"
+    },
+    {
+      "description": "Manage helm-schema version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["HELM_SCHEMA_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "dadav/helm-schema"
     }
   ]
 }
