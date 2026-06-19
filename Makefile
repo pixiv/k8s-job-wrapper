@@ -93,6 +93,12 @@ test: manifests generate ## Run tests.
 test-e2e: manifests generate create-cluster ## Run the e2e tests. Expected an isolated environment using Kind.
 	go test ./test/e2e/ -v -ginkgo.v
 
+TEST_CHART ?= charts/k8s-job-wrapper
+
+.PHONY: test-chart
+test-chart: manifests generate create-cluster ## Run the chart tests. Expected an isolated environment using Kind.
+	$(HACK)/test-chart.sh $(TEST_CHART)
+
 .PHONY: create-cluster
 create-cluster: ## Create Kind cluster
 	@command -v kind >/dev/null 2>&1 || { \
