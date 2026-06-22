@@ -117,10 +117,10 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiserver v0.35.5 // indirect
-	k8s.io/cloud-provider v0.32.1 // indirect
+	k8s.io/cloud-provider v0.35.5 // indirect
 	k8s.io/component-base v0.35.5 // indirect
 	k8s.io/component-helpers v0.35.5 // indirect
-	k8s.io/controller-manager v0.32.1 // indirect
+	k8s.io/controller-manager v0.35.5 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kms v0.35.5 // indirect
 	k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912 // indirect
