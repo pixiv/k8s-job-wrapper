@@ -186,6 +186,7 @@ func (r *CronJobReconciler) applyBatchCronJob(ctx context.Context, cronJob *pixi
 	}
 
 	patchJSON, _ := json.Marshal(patch)
+	//nolint:staticcheck
 	if err := r.Patch(ctx, patch, client.Apply, &client.PatchOptions{
 		FieldManager: cronJobFieldManager,
 		Force:        ptr.To(true),
