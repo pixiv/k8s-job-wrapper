@@ -37,6 +37,25 @@
   },
   "packageRules": [
     {
+      "automerge": true,
+      "matchUpdateTypes": ["patch"]
+    },
+    {
+      "automerge": true,
+      "matchUpdateTypes": ["minor"],
+      "matchManagers": ["github-actions"]
+    },
+    {
+      "automerge": true,
+      "matchUpdateTypes": ["minor"],
+      "matchDepNames": [
+        "golangci/golangci-lint",
+        "kubernetes-sigs/logtools",
+        "kubernetes-sigs/kind",
+        "helm/helm"
+      ]
+    },
+    {
       "description": "Group docker dependencies",
       "groupName": "docker({{updateType}}): {{depName}}",
       "addLabels": ["docker"],
