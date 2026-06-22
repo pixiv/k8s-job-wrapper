@@ -119,7 +119,7 @@ require (
 	k8s.io/apiserver v0.35.5 // indirect
 	k8s.io/cloud-provider v0.32.1 // indirect
 	k8s.io/component-base v0.35.5 // indirect
-	k8s.io/component-helpers v0.32.1 // indirect
+	k8s.io/component-helpers v0.35.5 // indirect
 	k8s.io/controller-manager v0.32.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kms v0.35.5 // indirect
