@@ -3,7 +3,7 @@ kind: CustomResourceDefinition
 metadata:
   name: cronjobs.pixiv.net
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.0
+    controller-gen.kubebuilder.io/version: v0.20.1
   labels:
   {{- include "k8s-job-wrapper.labels" . | nindent 4 }}
 spec:
