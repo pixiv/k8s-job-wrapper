@@ -19,6 +19,7 @@ package construct
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
 	"github.com/pixiv/k8s-job-wrapper/internal/kustomize"
@@ -88,15 +89,9 @@ func BatchCronJob(ctx context.Context, cronJob *pixivnetv1.CronJob, podProfile *
 
 	// Apply additional labels and annotations first.
 	// This is to avoid overwriting essential metadata required by the controller.
-	for k, v := range cronJob.Spec.Profile.Metadata.Annotations {
-		batchCronJob.Annotations[k] = v
-	}
-	for k, v := range cronJob.Spec.Profile.Metadata.Labels {
-		batchCronJob.Labels[k] = v
-	}
-	for k, v := range BatchCronJobLabelsForList(cronJob) {
-		batchCronJob.Labels[k] = v
-	}
+	maps.Copy(batchCronJob.Annotations, cronJob.Spec.Profile.Metadata.Annotations)
+	maps.Copy(batchCronJob.Labels, cronJob.Spec.Profile.Metadata.Labels)
+	maps.Copy(batchCronJob.Labels, BatchCronJobLabelsForList(cronJob))
 	//
 	// Set the top-level parameters for the CronJob.
 	//

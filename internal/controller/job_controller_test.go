@@ -29,7 +29,6 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -85,7 +84,7 @@ var _ = Describe("Job Controller", Serial, func() {
 							},
 						},
 						Params: pixivnetv1.JobParams{
-							Suspend: ptr.To(true),
+							Suspend: new(true),
 						},
 					},
 				},
@@ -112,7 +111,7 @@ var _ = Describe("Job Controller", Serial, func() {
 							},
 						},
 						Params: pixivnetv1.JobParams{
-							TTLSecondsAfterFinished: ptr.To(int32(ttl)),
+							TTLSecondsAfterFinished: new(int32(ttl)),
 						},
 					},
 				},
@@ -127,7 +126,7 @@ var _ = Describe("Job Controller", Serial, func() {
 					Namespace: testNamespace,
 				},
 				Spec: pixivnetv1.JobSpec{
-					JobsHistoryLimit: ptr.To(limit),
+					JobsHistoryLimit: new(limit),
 					Profile: pixivnetv1.JobProfileSpec{
 						PodProfileRef: resourceName,
 						Patches: []pixivnetv1.JobPatch{
@@ -192,7 +191,7 @@ var _ = Describe("Job Controller", Serial, func() {
 							},
 						},
 						Params: pixivnetv1.JobParams{
-							Suspend: ptr.To(true),
+							Suspend: new(true),
 						},
 						Metadata: pixivnetv1.JobMetadata{
 							Annotations: map[string]string{
@@ -296,7 +295,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			Expect(batchJobs.Items).Should(HaveLen(1))
 
 			batchJob := batchJobs.Items[0]
-			Expect(batchJob.Spec.Suspend).Should(Equal(ptr.To(true)))
+			Expect(batchJob.Spec.Suspend).Should(Equal(new(true)))
 			Expect(batchJob.Spec.Template.Spec.RestartPolicy).Should(Equal(corev1.RestartPolicyNever))
 			Expect(batchJob.Spec.Template.Spec.Containers).Should(HaveLen(1))
 			Expect(batchJob.Spec.Template.Spec.Containers[0].Name).Should(Equal("pi"))
@@ -381,7 +380,7 @@ var _ = Describe("Job Controller", Serial, func() {
 				job := &pixivnetv1.Job{}
 				Expect(k8sClient.Get(ctx, newKey(resourceName), job)).To(Succeed())
 				job.Spec.Profile.Patches = nil
-				job.Spec.Profile.Params.TTLSecondsAfterFinished = ptr.To(int32(1))
+				job.Spec.Profile.Params.TTLSecondsAfterFinished = new(int32(1))
 				Expect(k8sClient.Update(ctx, job)).To(Succeed())
 			}
 			By("wait a second for new batch job creation time")
@@ -530,7 +529,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			now        = metav1.NewTime(time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC))
 			patchedJob = func(resourceName string) *pixivnetv1.Job {
 				x := newJob(resourceName)
-				x.Spec.Profile.Params.ActiveDeadlineSeconds = ptr.To(int64(60))
+				x.Spec.Profile.Params.ActiveDeadlineSeconds = new(int64(60))
 				return x
 			}
 			assertPatchedJob = func(x *batchv1.Job) {
@@ -595,31 +594,31 @@ var _ = Describe("Job Controller", Serial, func() {
 			{
 				title:     "batch Job is recreated because it is failed and Job is updated",
 				job:       patchedJob,
-				status:    ptr.To(newBatchJobFailedStatus(now)),
+				status:    new(newBatchJobFailedStatus(now)),
 				recreated: true,
 				assertJob: assertPatchedJob,
 			},
 			{
 				title:     "batch Job is not recreated because it is failed but no update",
-				status:    ptr.To(newBatchJobFailedStatus(now)),
+				status:    new(newBatchJobFailedStatus(now)),
 				recreated: false,
 			},
 			{
 				title:      "batch Job is recreated because it is completed and PodProfile is updated",
 				podprofile: patchedPodProfile,
-				status:     ptr.To(newBatchJobCompleteStatus(now, now)),
+				status:     new(newBatchJobCompleteStatus(now, now)),
 				recreated:  true,
 				assertJob:  assertPatchedPodProfile,
 			},
 			{
 				title:     "batch Job is not recreated because it is completed but no update",
-				status:    ptr.To(newBatchJobCompleteStatus(now, now)),
+				status:    new(newBatchJobCompleteStatus(now, now)),
 				recreated: false,
 			},
 			{
 				title:     "batch Job is recreated because it is completed and Job is updated",
 				job:       patchedJob,
-				status:    ptr.To(newBatchJobCompleteStatus(now, now)),
+				status:    new(newBatchJobCompleteStatus(now, now)),
 				recreated: true,
 				assertJob: assertPatchedJob,
 			},

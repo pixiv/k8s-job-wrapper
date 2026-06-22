@@ -24,7 +24,6 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -68,7 +67,7 @@ var _ = Describe("CronJob Controller", func() {
 							},
 						},
 						Params: pixivnetv1.JobParams{
-							Suspend: ptr.To(true),
+							Suspend: new(true),
 						},
 					},
 					Schedule: "* * * * *",
@@ -131,7 +130,7 @@ var _ = Describe("CronJob Controller", func() {
 			By("making sure the batch CronJob created successfully")
 			batchCronJob := getBatchCronJob(resourceName)
 			Expect(batchCronJob.Spec.Schedule).To(Equal("* * * * *"))
-			Expect(batchCronJob.Spec.JobTemplate.Spec.Suspend).Should(Equal(ptr.To(true)))
+			Expect(batchCronJob.Spec.JobTemplate.Spec.Suspend).Should(Equal(new(true)))
 			Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers).Should(HaveLen(1))
 			Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Name).Should(Equal("pi"))
 			Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image).Should(Equal("debian:bookworm-slim"))
