@@ -43,11 +43,7 @@
       "description": "Group docker dependencies",
       "groupName": "docker({{updateType}}): {{depName}}",
       "addLabels": ["docker"],
-      "matchDatasources": ["docker"],
-      "matchDepNames": [
-        "*",
-        "!golang"
-      ]
+      "matchDatasources": ["docker"]
     },
     {
       "description": "Group go dependencies",
@@ -58,25 +54,9 @@
         "*",
         "!go"
       ]
-    },
-    {
-      "description": "Group golang version",
-      "groupName": "go-version",
-      "addLabels": ["go-version"],
-      "matchDepNames": ["go", "golang"],
-      "matchDatasources": ["go", "docker"]
     }
   ],
   "customManagers":[
-    {
-      "description": "Manage go version",
-      "customType": "regex",
-      "fileMatch": ["^.github/.env$"],
-      "matchStrings": ["GO_VERSION=(?<currentValue>\\d+\\.\\d+)"],
-      "datasourceTemplate": "golang-version",
-      "depNameTemplate": "go",
-      "versioningTemplate": "go-mod"
-    },
     {
       "description": "Manage helm version",
       "customType": "regex",
