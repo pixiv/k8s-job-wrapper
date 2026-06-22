@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.0
+    controller-gen.kubebuilder.io/version: v0.20.1
   name: cronjobs.pixiv.net
 spec:
   group: pixiv.net
@@ -272,8 +272,6 @@ spec:
                                       running pods are terminated.
                                     - FailIndex: indicates that the pod's index is marked as Failed and will
                                       not be restarted.
-                                      This value is beta-level. It can be used when the
-                                      `JobBackoffLimitPerIndex` feature gate is enabled (enabled by default).
                                     - Ignore: indicates that the counter towards the .backoffLimit is not
                                       incremented and a replacement pod is created.
                                     - Count: indicates that the pod is handled in the default way - the
@@ -345,7 +343,6 @@ spec:
                                           it is required that specified type equals the pod condition type.
                                         type: string
                                     required:
-                                    - status
                                     - type
                                     type: object
                                   type: array
@@ -436,7 +433,7 @@ spec:
                             description: |-
                               rules represents the list of alternative rules for the declaring the Jobs
                               as successful before `.status.succeeded >= .spec.completions`. Once any of the rules are met,
-                              the "SucceededCriteriaMet" condition is added, and the lingering pods are removed.
+                              the "SuccessCriteriaMet" condition is added, and the lingering pods are removed.
                               The terminal state for such a Job has the "Complete" condition.
                               Additionally, these rules are evaluated in order; Once the Job meets one of the rules,
                               other rules are ignored. At most 20 elements are allowed.

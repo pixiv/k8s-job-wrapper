@@ -415,7 +415,7 @@ var _ = Describe("Job Controller", Serial, func() {
 				idx := slices.IndexFunc(batchJobs.Items, func(x batchv1.Job) bool {
 					return x.GetUID() == batchJob2UID
 				})
-				Expect(idx > 0).To(BeTrue())
+				Expect(idx >= 0).To(BeTrue())
 				batchJob := batchJobs.Items[idx]
 				Expect(batchJob.DeletionTimestamp).To(BeNil())
 				Expect(batchJob.GetAnnotations()["jobs.pixiv.net/ttl-expired"]).To(Equal("true")) // marked to be deleted
