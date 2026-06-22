@@ -56,6 +56,13 @@
       ]
     },
     {
+      "description": "Group go kubernetes dependencies",
+      "groupName": "kubernetes",
+      "addLabels": ["kubernetes"],
+      "matchManagers": ["gomod"],
+      "matchDepNames": ["/(sigs\\.)?k8s\\.io.+/"]
+    },
+    {
       "description": "Group docker dependencies",
       "groupName": "docker({{updateType}}): {{depName}}",
       "addLabels": ["docker"],
@@ -67,7 +74,7 @@
       "addLabels": ["go"],
       "matchDatasources": ["go"],
       "matchDepNames": [
-        "!go"
+        "!/(sigs\\.)?k8s\\.io.+/"
       ]
     }
   ],
