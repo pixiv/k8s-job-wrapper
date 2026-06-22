@@ -1,6 +1,6 @@
 module github.com/pixiv/k8s-job-wrapper
 
-go 1.25.5
+go 1.26.4
 
 godebug default=go1.23
 
