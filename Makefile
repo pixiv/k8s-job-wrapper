@@ -1,7 +1,16 @@
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+# Determine app version.
+ifeq (true,$(DEV))
+VERSION := 0.0.0
+else
+VERSION := $(shell ./hack/version.sh)
+endif
+
 # Image URL to use all building/pushing image targets
-IMG = $(CONTROLLER_IMAGE_NAME):$(CONTROLLER_IMAGE_TAG)
+IMAGE_NAME := $(IMAGE_REGISTRY)
+IMAGE_TAG := v$(VERSION)
+IMG := $(IMAGE_NAME):$(IMAGE_TAG)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -45,7 +54,7 @@ help: ## Display this help.
 
 .PHONY: clean
 clean: ## Clean dev tools and artifacts
-	find bin -type f -maxdepth 1 -delete
+	$(HACK)/tools.sh clean
 	rm -rf dist
 
 .PHONY: manifests
@@ -54,7 +63,11 @@ manifests: ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefin
 
 .PHONY: docs
 docs: ## Generate CRD documents.
-	$(HACK)/make-docs.sh $(CRD_DOCS_DIR)
+	$(HACK)/make-docs.sh
+
+.PHONY: pages
+pages: ## Generate CRD pages.
+	$(HACK)/make-pages.sh $(CRD_DOCS_DIR)
 
 .PHONY: generate
 generate: ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
@@ -77,7 +90,17 @@ test: manifests generate ## Run tests.
 # CertManager is installed by default; skip with:
 # - CERT_MANAGER_INSTALL_SKIP=true
 .PHONY: test-e2e
-test-e2e: manifests generate ## Run the e2e tests. Expected an isolated environment using Kind.
+test-e2e: manifests generate create-cluster ## Run the e2e tests. Expected an isolated environment using Kind.
+	go test ./test/e2e/ -v -ginkgo.v
+
+TEST_CHART ?= charts/k8s-job-wrapper
+
+.PHONY: test-chart
+test-chart: manifests generate create-cluster ## Run the chart tests. Expected an isolated environment using Kind.
+	$(HACK)/test-chart.sh $(TEST_CHART)
+
+.PHONY: create-cluster
+create-cluster: ## Create Kind cluster
 	@command -v kind >/dev/null 2>&1 || { \
 		echo "Kind is not installed. Please install Kind manually."; \
 		exit 1; \
@@ -89,26 +112,25 @@ ifeq ($(CI),true)
 	}
 else
 	@echo "To avoid errors caused by pre-existing resources in the kind cluster before make test-e2e, we will recreate the cluster."
-	kind delete cluster || true
-	kind create cluster --image $(KIND_NODE_IMAGE)
+	$(KIND) delete cluster || true
+	$(KIND) create cluster --image $(KIND_NODE_IMAGE)
 endif
-	go test ./test/e2e/ -v -ginkgo.v
+
+.PHONY: load-image
+load-image: ## Load the controller image into kind cluster
+	kind load docker-image $(IMG)
 
 .PHONY: lint
-lint: lint-plugins lint-licenses fmt vet ## Run golangci-lint linter
+lint: lint-licenses fmt vet ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run
 
 .PHONY: lint-fix
-lint-fix: lint-plugins fmt vet ## Run golangci-lint linter and perform fixes
+lint-fix: fmt vet ## Run golangci-lint linter and perform fixes
 	$(GOLANGCI_LINT) run --fix
 
 .PHONY: lint-config
-lint-config: lint-plugins ## Verify golangci-lint linter configuration
+lint-config: ## Verify golangci-lint linter configuration
 	$(GOLANGCI_LINT) config verify
-
-.PHONY: lint-plugins
-lint-plugins:
-	$(HACK)/setup-golangci-lint.sh
 
 .PHONY: lint-licenses
 lint-licenses:
@@ -129,11 +151,19 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build -t ${IMG} --build-arg GO_VERSION=$(GO_VERSION) --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) .
+	IMAGE_TAG=$(IMAGE_TAG) $(HACK)/build-image.sh
 
 .PHONY: chart-local
-chart-local: ## Build helm chart for development
-	$(HACK)/chart/make.sh 0.0.0 $(CONTROLLER_IMAGE_NAME) $(CONTROLLER_IMAGE_TAG) $(CHART_PACKAGE_DIR)
+chart-local: ## Build helm chart for devlopment.
+	DEV=true $(MAKE) chart-internal
+
+.PHONY: chart
+chart: ## Build helm chart for release.
+	DEV=false $(MAKE) chart-internal
+
+.PHONY: chart
+chart-internal: ## Build helm chart.
+	$(HACK)/build-chart.sh $(VERSION) $(IMG) $(CHART_PACKAGE_DIR)
 
 ##@ Deployment
 
@@ -151,12 +181,20 @@ uninstall: manifests ## Uninstall CRDs from the K8s cluster specified in ~/.kube
 
 .PHONY: deploy
 deploy: manifests delete-controller ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	($(KUBECTL) apply -k config/default) || ($(KUBECTL) replace -k config/default --force)
 
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUBECTL) delete -k config/default --ignore-not-found=$(ignore-not-found)
+
+.PHONY: deploy-chart
+deploy-chart: ## Deploy helm chart.
+	$(HELM) upgrade --install -n k8s-job-wrapper-system --create-namespace k8s-job-wrapper ./charts/k8s-job-wrapper --wait --timeout=5m --server-side=true
+
+.PHONY: undeploy-chart
+undeploy-chart: ## Undeploy helm chart.
+	$(HELM) uninstall -n k8s-job-wrapper-system k8s-job-wrapper
 
 .PHONY: sample
 sample: ## Deploy sample manifests
@@ -168,7 +206,18 @@ delete-controller:
 
 .PHONY: deploy-local
 deploy-local: ## Install CRDs and deploy controller into the kind cluster.
-	$(HACK)/deploy-local.sh $(KIND_NODE_IMAGE) ${IMG}
+	$(HACK)/deploy-local.sh $(KIND_NODE_IMAGE) $(IMG)
+
+##@ Releases
+
+.PHONY: release
+release: ## Release images, manifest and chart.
+	DEV=false $(MAKE) release-internal
+
+.PHONY: release-internal
+release-internal:
+	git tag -a -m "Version $(VERSION)" "v$(VERSION)"
+	git push origin "v$(VERSION)"
 
 ##@ Dependencies
 
@@ -180,3 +229,5 @@ KUSTOMIZE ?= $(TOOLS) kustomize
 CONTROLLER_GEN ?= $(TOOLS) controller-gen
 ENVTEST ?= $(TOOLS) setup-envtest
 GOLANGCI_LINT = $(TOOLS) golangci-lint
+KIND := $(TOOLS) kind
+HELM := $(TOOLS) helm

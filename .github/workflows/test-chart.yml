@@ -1,0 +1,29 @@
+name: Test chart
+permissions: {}
+on:
+  pull_request:
+  push:
+    branches:
+      - 'main'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    name: Test chart
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: "false"
+      - name: Setup common
+        uses: ./.github/actions/common
+      - name: Test chart
+        uses: ./.github/actions/test-chart
+        with:
+          chart: ./charts/k8s-job-wrapper
+          node-image: '${{ env.KIND_NODE_IMAGE }}'
+          docker-cache-dir: '${{ env.DOCKER_CACHE_DIR }}'

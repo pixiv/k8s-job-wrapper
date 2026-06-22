@@ -65,15 +65,22 @@ var _ = Describe("Manager", Ordered, func() {
 		_, err = utils.Run(cmd)
 		Expect(err).NotTo(HaveOccurred(), "Failed to label namespace with restricted policy")
 
-		By("installing CRDs")
-		cmd = exec.Command("make", "install")
-		_, err = utils.Run(cmd)
-		Expect(err).NotTo(HaveOccurred(), "Failed to install CRDs")
+		if !utils.IsEnvTrue("E2E_HELM") {
+			By("installing CRDs")
+			cmd = exec.Command("make", "install")
+			_, err = utils.Run(cmd)
+			Expect(err).NotTo(HaveOccurred(), "Failed to install CRDs")
 
-		By("deploying the controller-manager")
-		cmd = exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", projectImage))
-		_, err = utils.Run(cmd)
-		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
+			By("deploying the controller-manager")
+			cmd = exec.Command("make", "deploy")
+			_, err = utils.Run(cmd)
+			Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
+		} else {
+			By("deploying the chart")
+			cmd = exec.Command("make", "deploy-chart")
+			_, err = utils.Run(cmd)
+			Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
+		}
 	})
 
 	// After all tests have been executed, clean up by undeploying the controller, uninstalling CRDs,
@@ -83,13 +90,19 @@ var _ = Describe("Manager", Ordered, func() {
 		cmd := utils.KubectlCmd("delete", "pod", "curl-metrics", "-n", namespace)
 		_, _ = utils.Run(cmd)
 
-		By("undeploying the controller-manager")
-		cmd = exec.Command("make", "undeploy")
-		_, _ = utils.Run(cmd)
+		if !utils.IsEnvTrue("E2E_HELM") {
+			By("undeploying the controller-manager")
+			cmd = exec.Command("make", "undeploy")
+			_, _ = utils.Run(cmd)
 
-		By("uninstalling CRDs")
-		cmd = exec.Command("make", "uninstall")
-		_, _ = utils.Run(cmd)
+			By("uninstalling CRDs")
+			cmd = exec.Command("make", "uninstall")
+			_, _ = utils.Run(cmd)
+		} else {
+			By("undeploying the chart")
+			cmd = exec.Command("make", "undeploy-chart")
+			_, _ = utils.Run(cmd)
+		}
 
 		By("removing manager namespace")
 		cmd = utils.KubectlCmd("delete", "ns", namespace)

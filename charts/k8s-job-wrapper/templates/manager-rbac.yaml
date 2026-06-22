@@ -1,0 +1,82 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "k8s-job-wrapper.fullname" . }}-manager-role
+  labels:
+  {{- include "k8s-job-wrapper.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  - jobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs/status
+  verbs:
+  - get
+  - watch
+- apiGroups:
+  - pixiv.net
+  resources:
+  - cronjobs
+  - jobs
+  - podprofiles
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - pixiv.net
+  resources:
+  - cronjobs/finalizers
+  - jobs/finalizers
+  - podprofiles/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - pixiv.net
+  resources:
+  - cronjobs/status
+  - jobs/status
+  - podprofiles/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - pixiv.net
+  resources:
+  - podProfiles
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "k8s-job-wrapper.fullname" . }}-manager-rolebinding
+  labels:
+  {{- include "k8s-job-wrapper.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: '{{ include "k8s-job-wrapper.fullname" . }}-manager-role'
+subjects:
+- kind: ServiceAccount
+  name: '{{ include "k8s-job-wrapper.serviceAccountName" . }}'
+  namespace: '{{ .Release.Namespace }}'

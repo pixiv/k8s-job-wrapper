@@ -19,7 +19,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"os"
 	"slices"
 	"time"
 
@@ -39,6 +38,7 @@ import (
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
 	"github.com/pixiv/k8s-job-wrapper/internal/kubectl"
 	"github.com/pixiv/k8s-job-wrapper/internal/kustomize"
+	"github.com/pixiv/k8s-job-wrapper/test/utils"
 )
 
 var _ = Describe("Job Controller", Serial, func() {
@@ -49,7 +49,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			controllerReconciler := &JobReconciler{
 				Client:  k8sClient,
 				Scheme:  k8sClient.Scheme(),
-				Patcher: kustomize.NewPatchRunner(kubectl.NewCommand(os.Getenv("KUBECTL"))),
+				Patcher: kustomize.NewPatchRunner(kubectl.NewCommand(utils.Kubectl())),
 			}
 			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
 				NamespacedName: newKey(resourceName),

@@ -1,0 +1,33 @@
+name: Build and Push
+description: Build and Push
+inputs:
+  version:
+    required: true
+  arch:
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Build and push
+      uses: docker/bake-action@6614cfa25eff9a0b2b2697efb0b6159e7680d584 # v7.2.0
+      id: build-and-push
+      with:
+        push: true
+        no-cache: true
+        sbom: true
+        provenance: true
+        set: |
+          *.platform=linux/${{ inputs.arch }}
+      env:
+        IMAGE_TAG: ${{ inputs.version }}-${{ inputs.arch }}
+    - name: Sign the images with GitHub OIDC Token
+      shell: bash
+      env:
+        METADATA: ${{ steps.build-and-push.outputs.metadata }}
+      run: |
+        set -eo pipefail
+        images="$(mktemp)"
+        echo "$METADATA" |\
+          jq 'to_entries[].value | [(.["image.name"] | split(":")[0]), .["containerimage.digest"]] | join("@")' -r |\
+          xargs > "$images"
+        cosign sign --yes $(cat "$images")

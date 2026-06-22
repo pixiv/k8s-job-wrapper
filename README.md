@@ -30,7 +30,6 @@ helm show values oci://ghcr.io/pixiv/k8s-job-wrapper/charts/k8s-job-wrapper
 ### Prerequisites
 
 - [direnv](https://github.com/direnv/direnv)
-- [kind](https://github.com/kubernetes-sigs/kind)
 - go version v1.25.0+
 - docker version 28.3.2+
 
@@ -72,14 +71,23 @@ Edit following files:
 
 ### Release
 
-When you create and push a new tag, the following actions will be executed:
+1. Run [Create Update Version PR](https://github.com/pixiv/k8s-job-wrapper/actions/workflows/update-version.yml)
+2. Confirm the PR and merge it
+3. Confirm that CI on the main branch is green
+4. Create a PR, ensure that the CI passes, and then merge it. Then
+
+``` shell
+git switch main
+git pull
+make release
+```
+
+When `make release`, the following actions will be executed:
 
 - Build and push the controller image to ghcr.
 - Generate and push the Helm chart to ghcr.
 - Create a release.
 - Deploy the documentation for CRD to GitHub Pages.
-
-Confirm that CI on the main branch is green before creating a tag.
 
 ## License
 

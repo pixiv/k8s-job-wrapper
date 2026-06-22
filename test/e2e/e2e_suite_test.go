@@ -18,7 +18,6 @@ package e2e
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"testing"
 
@@ -33,13 +32,9 @@ var (
 	// - CERT_MANAGER_INSTALL_SKIP=true: Skips CertManager installation during test setup.
 	// These variables are useful if CertManager is already installed, avoiding
 	// re-installation and conflicts.
-	skipCertManagerInstall = os.Getenv("CERT_MANAGER_INSTALL_SKIP") == "true"
+	skipCertManagerInstall = utils.IsEnvTrue("CERT_MANAGER_INSTALL_SKIP")
 	// isCertManagerAlreadyInstalled will be set true when CertManager CRDs be found on the cluster
 	isCertManagerAlreadyInstalled = false
-
-	// projectImage is the name of the image which will be build and loaded
-	// with the code source changes to be tested.
-	projectImage = os.Getenv("CONTROLLER_IMAGE_NAME") + ":" + os.Getenv("CONTROLLER_IMAGE_TAG")
 )
 
 // TestE2E runs the end-to-end (e2e) test suite for the project. These tests execute in an isolated,
@@ -53,10 +48,10 @@ func TestE2E(t *testing.T) {
 }
 
 var _ = BeforeSuite(func() {
-	if os.Getenv("E2E_SKIP_BUILD") != "true" {
+	if !utils.IsEnvTrue("E2E_SKIP_BUILD") {
 		_, _ = fmt.Fprintf(GinkgoWriter, "If you want to skip docker-build, use E2E_SKIP_BUILD=true\n")
 		By("building the manager(Operator) image")
-		cmd := exec.Command("make", "docker-build", fmt.Sprintf("IMG=%s", projectImage))
+		cmd := exec.Command("make", "docker-build")
 		_, err := utils.Run(cmd)
 		ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to build the manager(Operator) image")
 	} else {
@@ -64,10 +59,11 @@ var _ = BeforeSuite(func() {
 	}
 	// TODO(user): If you want to change the e2e test vendor from Kind, ensure the image is
 	// built and available before running the tests. Also, remove the following block.
-	By("loading the manager(Operator) image on Kind")
-	ExpectWithOffset(1, utils.LoadImageToKindClusterWithName(projectImage)).
-		NotTo(HaveOccurred(), "Failed to load the manager(Operator) image into Kind")
-
+	if !utils.IsEnvTrue("E2E_SKIP_LOAD") {
+		By("loading the manager(Operator) image on Kind")
+		ExpectWithOffset(1, utils.LoadImageToKindCluster()).
+			NotTo(HaveOccurred(), "Failed to load the manager(Operator) image into Kind")
+	}
 	// The tests-e2e are intended to run on a temporary cluster that is created and destroyed for testing.
 	// To prevent errors when tests run in environments with CertManager already installed,
 	// we check for its presence before execution.

@@ -35,10 +35,26 @@
   "major": {
     "addLabels": ["major"]
   },
-  "github-actions": {
-    "enabled": false
-  },
   "packageRules": [
+    {
+      "automerge": true,
+      "matchUpdateTypes": ["patch"]
+    },
+    {
+      "automerge": true,
+      "matchUpdateTypes": ["minor"],
+      "matchManagers": ["github-actions"]
+    },
+    {
+      "automerge": true,
+      "matchUpdateTypes": ["minor"],
+      "matchDepNames": [
+        "golangci/golangci-lint",
+        "kubernetes-sigs/logtools",
+        "kubernetes-sigs/kind",
+        "helm/helm"
+      ]
+    },
     {
       "description": "Group docker dependencies",
       "groupName": "docker({{updateType}}): {{depName}}",
@@ -51,7 +67,6 @@
       "addLabels": ["go"],
       "matchDatasources": ["go"],
       "matchDepNames": [
-        "*",
         "!go"
       ]
     }
@@ -85,12 +100,92 @@
       "depNameTemplate": "kindest/node"
     },
     {
-      "description": "Manage pandoc version",
+      "description": "Manage crd-ref-docs version",
       "customType": "regex",
       "fileMatch": ["^.github/.env$"],
-      "matchStrings":["PANCOD_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
-      "datasourceTemplate": "github-tags",
-      "depNameTemplate": "jgm/pandoc"
+      "matchStrings":["CRD_REF_DOCS_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "elastic/crd-ref-docs"
+    },
+    {
+      "description": "Manage controller-gen version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["CONTROLLER_GEN_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "kubernetes-sigs/controller-tools"
+    },
+    {
+      "description": "Manage kustomize version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["KUSTOMIZE_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "kubernetes-sigs/kustomize"
+    },
+    {
+      "description": "Manage golangci-lint version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$", "^.custom-gcl.yml$"],
+      "matchStrings":["GOLANGCI_LINT_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)", "version: (?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "golangci/golangci-lint"
+    },
+    {
+      "description": "Manage golangci-lint plugin logtools version",
+      "customType": "regex",
+      "fileMatch": ["^.custom-gcl.yml$"],
+      "matchStrings": ["import: \"sigs.k8s.io/logtools/logcheck/gclplugin\"\\s+version: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "kubernetes-sigs/logtools"
+    },
+    {
+      "description": "Manage go-licenses version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["GO_LICENSES_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "google/go-licenses"
+    },
+    {
+      "description": "Manage kubebuilder version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["KUBEBUILDER_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "kubernetes-sigs/kubebuilder"
+    },
+    {
+      "description": "Manage kind version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["KIND_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "kubernetes-sigs/kind"
+    },
+    {
+      "description": "Manage helmify version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["HELMIFY_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "arttor/helmify"
+    },
+    {
+      "description": "Manage yq version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["YQ_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "mikefarah/yq"
+    },
+    {
+      "description": "Manage helm-schema version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["HELM_SCHEMA_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "dadav/helm-schema"
     }
   ]
 }
