@@ -69,7 +69,6 @@ Edit following files:
 - [.env](./.github/.env)
 - [Dockerfile](./Dockerfile)
 - [go.mod](./go.mod)
-- [tools/go.mod](./hack/tools/go.mod)
 
 ### Release
 
