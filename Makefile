@@ -120,12 +120,20 @@ endif
 load-image: ## Load the controller image into kind cluster
 	kind load docker-image $(IMG)
 
+.PHONY: go-fix-diff
+go-fix-diff: ## Run go fix -diff.
+	go fix -diff ./...
+
+.PHONY: go-fix
+go-fix: ## Run go fix.
+	go fix ./...
+
 .PHONY: lint
-lint: lint-licenses fmt vet ## Run golangci-lint linter
+lint: lint-licenses go-fix-diff fmt vet ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run
 
 .PHONY: lint-fix
-lint-fix: fmt vet ## Run golangci-lint linter and perform fixes
+lint-fix: go-fix fmt vet ## Run golangci-lint linter and perform fixes
 	$(GOLANGCI_LINT) run --fix
 
 .PHONY: lint-config

@@ -453,7 +453,7 @@ var _ = Describe("Manager", Ordered, func() {
 					}
 
 					owners := []string{}
-					for _, x := range strings.Split(xs[1], " ") {
+					for x := range strings.SplitSeq(xs[1], " ") {
 						s := strings.TrimSpace(x)
 						if s != "" {
 							owners = append(owners, s)

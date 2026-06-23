@@ -19,6 +19,7 @@ package construct
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strconv"
 
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
@@ -95,19 +96,13 @@ func BatchJob(ctx context.Context, job *pixivnetv1.Job, podProfile *pixivnetv1.P
 	batchJob.Labels = map[string]string{}
 	// Apply additional labels and annotations first.
 	// This is to avoid overwriting essential metadata required by the controller.
-	for k, v := range job.Spec.Profile.Metadata.Annotations {
-		batchJob.Annotations[k] = v
-	}
-	for k, v := range job.Spec.Profile.Metadata.Labels {
-		batchJob.Labels[k] = v
-	}
+	maps.Copy(batchJob.Annotations, job.Spec.Profile.Metadata.Annotations)
+	maps.Copy(batchJob.Labels, job.Spec.Profile.Metadata.Labels)
 	// Save TTL to the annotation.
 	if x := job.Spec.Profile.Params.TTLSecondsAfterFinished; x != nil {
 		batchJob.Annotations[BatchJobAnnotationTTLSecondsAfterFinished] = fmt.Sprintf("%d", *x)
 	}
-	for k, v := range BatchJobLabelsForList(job) {
-		batchJob.Labels[k] = v
-	}
+	maps.Copy(batchJob.Labels, BatchJobLabelsForList(job))
 	// Create the name of the job from the hash of spec.template.
 	podTemplateHash := controller.ComputeHash(&batchJob.Spec.Template, job.Status.CollisionCount)
 	batchJob.Labels["pod-template-hash"] = podTemplateHash

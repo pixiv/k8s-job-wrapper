@@ -32,7 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	applybatchv1 "k8s.io/client-go/applyconfigurations/batch/v1"
-	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -189,7 +188,7 @@ func (r *CronJobReconciler) applyBatchCronJob(ctx context.Context, cronJob *pixi
 	//nolint:staticcheck
 	if err := r.Patch(ctx, patch, client.Apply, &client.PatchOptions{
 		FieldManager: cronJobFieldManager,
-		Force:        ptr.To(true),
+		Force:        new(true),
 	}); err != nil {
 		logger.Error(err, "failed to apply batch CronJob", "patch", string(patchJSON))
 		return err
