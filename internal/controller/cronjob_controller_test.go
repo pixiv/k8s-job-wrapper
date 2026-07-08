@@ -43,7 +43,7 @@ var _ = Describe("CronJob Controller", func() {
 				Patcher: kustomize.NewPatchRunner(kubectl.NewCommand(utils.Kubectl())),
 			}
 			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: newKey(resourceName),
+				NamespacedName: newKey(testNamespace, resourceName),
 			})
 			return err
 		}
@@ -82,7 +82,7 @@ var _ = Describe("CronJob Controller", func() {
 		getBatchCronJob := func(resourceName string) *batchv1.CronJob {
 			batchCronJob := &batchv1.CronJob{}
 			Eventually(func() error {
-				return k8sClient.Get(ctx, newKey(batchCronJobName(resourceName)), batchCronJob)
+				return k8sClient.Get(ctx, newKey(testNamespace, batchCronJobName(resourceName)), batchCronJob)
 			}).Should(Succeed())
 			return batchCronJob
 		}
@@ -90,7 +90,7 @@ var _ = Describe("CronJob Controller", func() {
 		getCronJob := func(resourceName string) *pixivnetv1.CronJob {
 			cronJob := &pixivnetv1.CronJob{}
 			Eventually(func() error {
-				return k8sClient.Get(ctx, newKey(resourceName), cronJob)
+				return k8sClient.Get(ctx, newKey(testNamespace, resourceName), cronJob)
 			}).Should(Succeed())
 			return cronJob
 		}
@@ -117,7 +117,7 @@ var _ = Describe("CronJob Controller", func() {
 			assertCronJobStatus(resourceName, pixivnetv1.CronJobAvailable, metav1.ConditionFalse, "Reconciling", "PodProfile not found")
 			assertCronJobStatus(resourceName, pixivnetv1.CronJobDegraded, metav1.ConditionTrue, "Reconciling")
 			By("making sure no batch CronJobs are generated")
-			Expect(apierrors.IsNotFound(k8sClient.Get(ctx, newKey(batchCronJobName(resourceName)), &batchv1.CronJob{}))).To(BeTrue())
+			Expect(apierrors.IsNotFound(k8sClient.Get(ctx, newKey(testNamespace, batchCronJobName(resourceName)), &batchv1.CronJob{}))).To(BeTrue())
 		})
 
 		It("should successfully reconcile the resource", func() {
@@ -162,7 +162,7 @@ var _ = Describe("CronJob Controller", func() {
 
 			By("update the PodProfile")
 			{
-				podProfile := getPodProfile(resourceName)
+				podProfile := getPodProfile(testNamespace, resourceName)
 				podProfile.Spec.Template.Spec.Containers[0].Command = []string{"sleep", "10"}
 				Expect(k8sClient.Update(ctx, podProfile)).To(Succeed())
 			}

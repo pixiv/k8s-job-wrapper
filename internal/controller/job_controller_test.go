@@ -51,7 +51,7 @@ var _ = Describe("Job Controller", Serial, func() {
 				Patcher: kustomize.NewPatchRunner(kubectl.NewCommand(utils.Kubectl())),
 			}
 			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: newKey(resourceName),
+				NamespacedName: newKey(testNamespace, resourceName),
 			})
 			return err
 		}
@@ -228,7 +228,7 @@ var _ = Describe("Job Controller", Serial, func() {
 
 		assertJobStatus := func(resourceName string, key pixivnetv1.JobConditionType, status metav1.ConditionStatus, reason string, message ...string) {
 			job := &pixivnetv1.Job{}
-			Expect(k8sClient.Get(ctx, newKey(resourceName), job)).To(Succeed())
+			Expect(k8sClient.Get(ctx, newKey(testNamespace, resourceName), job)).To(Succeed())
 			assertStatus(job.Status.Conditions, string(key), status, reason, message...)
 		}
 
@@ -307,7 +307,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			By("making sure the Status updated successfully")
 			updated := &pixivnetv1.Job{}
 			Eventually(func(g Gomega) {
-				g.Expect(k8sClient.Get(ctx, newKey(resourceName), updated)).To(Succeed())
+				g.Expect(k8sClient.Get(ctx, newKey(testNamespace, resourceName), updated)).To(Succeed())
 				g.Expect(updated.Status.Conditions).ShouldNot(BeEmpty(), "status should be updated")
 			}).Should(Succeed())
 		})
@@ -378,7 +378,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			By("update the Job: ttl=1")
 			{
 				job := &pixivnetv1.Job{}
-				Expect(k8sClient.Get(ctx, newKey(resourceName), job)).To(Succeed())
+				Expect(k8sClient.Get(ctx, newKey(testNamespace, resourceName), job)).To(Succeed())
 				job.Spec.Profile.Patches = nil
 				job.Spec.Profile.Params.TTLSecondsAfterFinished = new(int32(1))
 				Expect(k8sClient.Update(ctx, job)).To(Succeed())
@@ -462,7 +462,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			By("set the Job patches empty")
 			{
 				job := &pixivnetv1.Job{}
-				Expect(k8sClient.Get(ctx, newKey(resourceName), job)).To(Succeed())
+				Expect(k8sClient.Get(ctx, newKey(testNamespace, resourceName), job)).To(Succeed())
 				job.Spec.Profile.Patches = nil
 				Expect(k8sClient.Update(ctx, job)).To(Succeed())
 			}
@@ -489,7 +489,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			By("update the Job patches")
 			{
 				job := &pixivnetv1.Job{}
-				Expect(k8sClient.Get(ctx, newKey(resourceName), job)).To(Succeed())
+				Expect(k8sClient.Get(ctx, newKey(testNamespace, resourceName), job)).To(Succeed())
 				job.Spec.Profile.Patches = newJobWithHistoryLimit(resourceName, 1).Spec.Profile.Patches
 				job.Spec.Profile.Patches[0].Value = apiextensionsv1.JSON{
 					Raw: []byte(`"debian:bookworm"`),
@@ -648,7 +648,7 @@ var _ = Describe("Job Controller", Serial, func() {
 				if job := tc.job; job != nil {
 					By("change the Job")
 					var current pixivnetv1.Job
-					Expect(k8sClient.Get(ctx, newKey(resourceName), &current)).To(Succeed())
+					Expect(k8sClient.Get(ctx, newKey(testNamespace, resourceName), &current)).To(Succeed())
 					x := job(resourceName)
 					x.ResourceVersion = current.ResourceVersion
 					Expect(k8sClient.Update(ctx, x)).To(Succeed())
@@ -656,7 +656,7 @@ var _ = Describe("Job Controller", Serial, func() {
 				if podprofile := tc.podprofile; podprofile != nil {
 					By("change the PodProfile")
 					var current pixivnetv1.PodProfile
-					Expect(k8sClient.Get(ctx, newKey(resourceName), &current)).To(Succeed())
+					Expect(k8sClient.Get(ctx, newKey(testNamespace, resourceName), &current)).To(Succeed())
 					x := podprofile(resourceName)
 					x.ResourceVersion = current.ResourceVersion
 					Expect(k8sClient.Update(ctx, x)).To(Succeed())

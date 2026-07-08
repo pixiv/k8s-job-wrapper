@@ -32,10 +32,10 @@ import (
 const testNamespace = "default"
 
 // Create a key for k8sClient.Get().
-func newKey(resourceName string) types.NamespacedName {
+func newKey(namespace, resourceName string) types.NamespacedName {
 	return types.NamespacedName{
 		Name:      resourceName,
-		Namespace: testNamespace,
+		Namespace: namespace,
 	}
 }
 
@@ -81,10 +81,10 @@ func assertStatus(got []metav1.Condition, key string, status metav1.ConditionSta
 	}
 }
 
-func getPodProfile(resourceName string) *pixivnetv1.PodProfile {
+func getPodProfile(namespace, resourceName string) *pixivnetv1.PodProfile {
 	podProfile := &pixivnetv1.PodProfile{}
 	Eventually(func() error {
-		return k8sClient.Get(ctx, newKey(resourceName), podProfile)
+		return k8sClient.Get(ctx, newKey(namespace, resourceName), podProfile)
 	}).Should(Succeed())
 	return podProfile
 }
