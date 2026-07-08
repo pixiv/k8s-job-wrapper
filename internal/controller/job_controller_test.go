@@ -210,7 +210,7 @@ var _ = Describe("Job Controller", Serial, func() {
 		// It generates resource names, ensuring they are unique for each test case.
 		beforeEach := func(resourceName string) {
 			By(fmt.Sprintf("creating the custom resource for the Kind PodProfile: %s", resourceName))
-			Expect(k8sClient.Create(ctx, newPodProfile(resourceName))).To(Succeed())
+			Expect(k8sClient.Create(ctx, newPodProfile(testNamespace, resourceName))).To(Succeed())
 			By(fmt.Sprintf("creating the custom resource for the Kind Job: %s", resourceName))
 			Expect(k8sClient.Create(ctx, newJob(resourceName))).To(Succeed())
 		}
@@ -248,7 +248,7 @@ var _ = Describe("Job Controller", Serial, func() {
 		It("should successfully reconile the resource with complex patches", func() {
 			const resourceName = "job-complex"
 			By("making sure the PodProfile created successfully")
-			Expect(k8sClient.Create(ctx, newPodProfile(resourceName))).To(Succeed())
+			Expect(k8sClient.Create(ctx, newPodProfile(testNamespace, resourceName))).To(Succeed())
 			By("making sure the Job with complex patches created successfully")
 			Expect(k8sClient.Create(ctx, newComplexJob(resourceName))).To(Succeed())
 			By("reconciling")
@@ -266,7 +266,7 @@ var _ = Describe("Job Controller", Serial, func() {
 		It("should successfully reconcile the resource with metadata patches", func() {
 			const resourceName = "job-meta"
 			By("making sure the PodProfile created successfully")
-			Expect(k8sClient.Create(ctx, newPodProfile(resourceName))).To(Succeed())
+			Expect(k8sClient.Create(ctx, newPodProfile(testNamespace, resourceName))).To(Succeed())
 			By("making sure the Job with metadata created successfully")
 			Expect(k8sClient.Create(ctx, newJobWithMeta(resourceName))).To(Succeed())
 			By("reconciling")
@@ -316,7 +316,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			const resourceName = "job-ttl-single-batch-job"
 			now := time.Now()
 			By("making sure the PodProfile created successfully")
-			Expect(k8sClient.Create(ctx, newPodProfile(resourceName))).To(Succeed())
+			Expect(k8sClient.Create(ctx, newPodProfile(testNamespace, resourceName))).To(Succeed())
 			By("making sure the Job with ttl created successfully")
 			Expect(k8sClient.Create(ctx, newJobWithTTL(resourceName, 1))).To(Succeed())
 			By("Reconciling the created resource")
@@ -350,7 +350,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			const resourceName = "job-ttl"
 			now := time.Now()
 			By("making sure the PodProfile created successfully")
-			Expect(k8sClient.Create(ctx, newPodProfile(resourceName))).To(Succeed())
+			Expect(k8sClient.Create(ctx, newPodProfile(testNamespace, resourceName))).To(Succeed())
 			By("making sure the Job with ttl created successfully")
 			Expect(k8sClient.Create(ctx, newJobWithTTL(resourceName, 3600))).To(Succeed())
 			By("Reconciling the created resource")
@@ -441,7 +441,7 @@ var _ = Describe("Job Controller", Serial, func() {
 			const resourceName = "job-delete-olds"
 			now := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 			By("making sure the PodProfile created successfully")
-			Expect(k8sClient.Create(ctx, newPodProfile(resourceName))).To(Succeed())
+			Expect(k8sClient.Create(ctx, newPodProfile(testNamespace, resourceName))).To(Succeed())
 			By("making sure the Job with history limit created successfully")
 			Expect(k8sClient.Create(ctx, newJobWithHistoryLimit(resourceName, 1))).To(Succeed())
 			By("Reconciling the created resource")
@@ -539,7 +539,7 @@ var _ = Describe("Job Controller", Serial, func() {
 				}
 			}
 			patchedPodProfile = func(resourceName string) *pixivnetv1.PodProfile {
-				x := newPodProfile(resourceName)
+				x := newPodProfile(testNamespace, resourceName)
 				x.Spec.Template.Spec.Containers[0].Name = "patched"
 				return x
 			}

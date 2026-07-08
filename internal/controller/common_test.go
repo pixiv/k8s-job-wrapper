@@ -39,11 +39,11 @@ func newKey(namespace, resourceName string) types.NamespacedName {
 	}
 }
 
-func newPodProfile(resourceName string) *pixivnetv1.PodProfile {
+func newPodProfile(namespace, resourceName string) *pixivnetv1.PodProfile {
 	return &pixivnetv1.PodProfile{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      resourceName,
-			Namespace: testNamespace,
+			Namespace: namespace,
 		},
 		Spec: pixivnetv1.PodProfileSpec{
 			Template: pixivnetv1.PodProfileTemplate{

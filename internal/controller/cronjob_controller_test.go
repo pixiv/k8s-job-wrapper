@@ -102,7 +102,7 @@ var _ = Describe("CronJob Controller", func() {
 
 		beforeEach := func(resourceName string) {
 			By(fmt.Sprintf("creating the custom resource for the Kind PodProfile %s", resourceName))
-			Expect(k8sClient.Create(ctx, newPodProfile(resourceName))).To(Succeed())
+			Expect(k8sClient.Create(ctx, newPodProfile(testNamespace, resourceName))).To(Succeed())
 			By(fmt.Sprintf("creating the custom resource for the Kind CronJob: %s", resourceName))
 			Expect(k8sClient.Create(ctx, newCronJob(resourceName))).To(Succeed())
 		}
