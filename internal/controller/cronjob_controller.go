@@ -204,36 +204,24 @@ func (r *CronJobReconciler) constructBatchCronJob(ctx context.Context, cronJob *
 }
 
 func (r *CronJobReconciler) getBatchCronJob(ctx context.Context, cronJob *pixivnetv1.CronJob) (*batchv1.CronJob, error) {
-	var batchCronJob batchv1.CronJob
-	if err := r.Get(ctx, client.ObjectKey{
+	return Get[*batchv1.CronJob](ctx, r.Client, client.ObjectKey{
 		Namespace: cronJob.Namespace,
 		Name:      construct.BatchCronJobName(cronJob),
-	}, &batchCronJob); err != nil {
-		return nil, err
-	}
-	return &batchCronJob, nil
+	})
 }
 
 func (r *CronJobReconciler) getCronJob(ctx context.Context, req ctrl.Request) (*pixivnetv1.CronJob, error) {
-	var cronJob pixivnetv1.CronJob
-	if err := r.Get(ctx, client.ObjectKey{
+	return Get[*pixivnetv1.CronJob](ctx, r.Client, client.ObjectKey{
 		Namespace: req.Namespace,
 		Name:      req.Name,
-	}, &cronJob); err != nil {
-		return nil, err
-	}
-	return &cronJob, nil
+	})
 }
 
 func (r *CronJobReconciler) getPodProfile(ctx context.Context, namespace, podProfileRef string) (*pixivnetv1.PodProfile, error) {
-	var profile pixivnetv1.PodProfile
-	if err := r.Get(ctx, client.ObjectKey{
+	return Get[*pixivnetv1.PodProfile](ctx, r.Client, client.ObjectKey{
 		Namespace: namespace,
 		Name:      podProfileRef,
-	}, &profile); err != nil {
-		return nil, err
-	}
-	return &profile, nil
+	})
 }
 
 func (r *CronJobReconciler) indexByPodProfileRef() client.IndexerFunc {
@@ -250,10 +238,12 @@ func (r *CronJobReconciler) watchPodProfileHandler() handler.EventHandler {
 		logger := log.FromContext(ctx).WithValues("podProfileRef", obj.GetName())
 
 		logger.Info("find cronjobs by podProfileRef")
-		var cronJobs pixivnetv1.CronJobList
-		if err := r.List(ctx, &cronJobs, client.InNamespace(obj.GetNamespace()), client.MatchingFields{
-			cronJobPodProfileRefKey: obj.GetName(),
-		}); err != nil {
+		cronJobs, err := List[*pixivnetv1.CronJobList](ctx, r.Client,
+			client.InNamespace(obj.GetNamespace()),
+			client.MatchingFields{
+				cronJobPodProfileRefKey: obj.GetName(),
+			})
+		if err != nil {
 			logger.Error(err, "failed to list cronjobs by podProfileRef")
 			return []reconcile.Request{}
 		}
