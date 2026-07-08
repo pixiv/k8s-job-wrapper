@@ -81,14 +81,6 @@ func assertStatus(got []metav1.Condition, key string, status metav1.ConditionSta
 	}
 }
 
-func getPodProfile(namespace, resourceName string) *pixivnetv1.PodProfile {
-	podProfile := &pixivnetv1.PodProfile{}
-	Eventually(func() error {
-		return k8sClient.Get(ctx, newKey(namespace, resourceName), podProfile)
-	}).Should(Succeed())
-	return podProfile
-}
-
 func newBatchJobCompleteStatus(startTime, completionTime metav1.Time) batchv1.JobStatus {
 	return batchv1.JobStatus{
 		StartTime:      &startTime,

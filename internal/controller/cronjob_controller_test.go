@@ -162,7 +162,8 @@ var _ = Describe("CronJob Controller", func() {
 
 			By("update the PodProfile")
 			{
-				podProfile := getPodProfile(testNamespace, resourceName)
+				podProfile, err := Get[*pixivnetv1.PodProfile](ctx, k8sClient, newKey(testNamespace, resourceName))
+				Expect(err).To(Succeed())
 				podProfile.Spec.Template.Spec.Containers[0].Command = []string{"sleep", "10"}
 				Expect(k8sClient.Update(ctx, podProfile)).To(Succeed())
 			}
