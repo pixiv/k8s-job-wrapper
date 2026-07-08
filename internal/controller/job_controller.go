@@ -466,11 +466,11 @@ func (r *JobReconciler) constructBatchJob(ctx context.Context, job *pixivnetv1.J
 }
 
 func (r *JobReconciler) listBatchJobsOrderByCreationTimestampDesc(ctx context.Context, job *pixivnetv1.Job) ([]batchv1.Job, error) {
-	var batchJobs batchv1.JobList
-	if err := r.List(ctx, &batchJobs, &client.ListOptions{
+	batchJobs, err := List[*batchv1.JobList](ctx, r.Client, &client.ListOptions{
 		Namespace:     job.Namespace,
 		LabelSelector: labels.SelectorFromSet(r.batchJobLabels(job)),
-	}); err != nil {
+	})
+	if err != nil {
 		return nil, err
 	}
 
@@ -489,25 +489,17 @@ func (r *JobReconciler) listBatchJobsOrderByCreationTimestampDesc(ctx context.Co
 }
 
 func (r *JobReconciler) getJob(ctx context.Context, req ctrl.Request) (*pixivnetv1.Job, error) {
-	var job pixivnetv1.Job
-	if err := r.Get(ctx, client.ObjectKey{
+	return Get[*pixivnetv1.Job](ctx, r.Client, client.ObjectKey{
 		Namespace: req.Namespace,
 		Name:      req.Name,
-	}, &job); err != nil {
-		return nil, err
-	}
-	return &job, nil
+	})
 }
 
 func (r *JobReconciler) getPodProfile(ctx context.Context, namespace, podProfileRef string) (*pixivnetv1.PodProfile, error) {
-	var profile pixivnetv1.PodProfile
-	if err := r.Get(ctx, client.ObjectKey{
+	return Get[*pixivnetv1.PodProfile](ctx, r.Client, client.ObjectKey{
 		Namespace: namespace,
 		Name:      podProfileRef,
-	}, &profile); err != nil {
-		return nil, err
-	}
-	return &profile, nil
+	})
 }
 
 /*
@@ -579,10 +571,11 @@ func (r *JobReconciler) watchPodProfileHandler() handler.EventHandler {
 		logger := log.FromContext(ctx).WithValues("podProfileRef", obj.GetName())
 
 		logger.Info("find jobs by podProfileRef")
-		var jobs pixivnetv1.JobList
-		if err := r.List(ctx, &jobs, client.InNamespace(obj.GetNamespace()), client.MatchingFields{
-			jobPodProfileRefKey: obj.GetName(),
-		}); err != nil {
+		jobs, err := List[*pixivnetv1.JobList](ctx, r.Client,
+			client.InNamespace(obj.GetNamespace()), client.MatchingFields{
+				jobPodProfileRefKey: obj.GetName(),
+			})
+		if err != nil {
 			logger.Error(err, "failed to list jobs by podProfileRef")
 			return []reconcile.Request{}
 		}
