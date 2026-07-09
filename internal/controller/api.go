@@ -20,7 +20,11 @@ import (
 	"context"
 	"reflect"
 
+	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
+	"github.com/pixiv/k8s-job-wrapper/internal/construct"
+	batchv1 "k8s.io/api/batch/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -58,4 +62,11 @@ func Exist[T client.Object](ctx context.Context, c client.Client, key client.Obj
 	default:
 		return false, err
 	}
+}
+
+func GetBatchCronJobFromPixivNetCronJob(ctx context.Context, c client.Client, cronJob *pixivnetv1.CronJob) (*batchv1.CronJob, error) {
+	return Get[*batchv1.CronJob](ctx, c, types.NamespacedName{
+		Namespace: cronJob.Namespace,
+		Name:      construct.BatchCronJobName(cronJob),
+	})
 }
