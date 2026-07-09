@@ -25,6 +25,38 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+type controllerTestBase struct{}
+
+func (controllerTestBase) newNSName(namespace, resourceName string) types.NamespacedName {
+	return types.NamespacedName{
+		Name:      resourceName,
+		Namespace: namespace,
+	}
+}
+
+func (controllerTestBase) newPodProfile(namespace, resourceName string) *pixivnetv1.PodProfile {
+	return &pixivnetv1.PodProfile{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.PodProfileSpec{
+			Template: pixivnetv1.PodProfileTemplate{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:    "pi",
+							Image:   "perl:5.34.0",
+							Command: []string{"perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"},
+						},
+					},
+					RestartPolicy: corev1.RestartPolicyNever,
+				},
+			},
+		},
+	}
+}
+
 //
 // Common functions for testing.
 //
