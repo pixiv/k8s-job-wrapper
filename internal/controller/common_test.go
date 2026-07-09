@@ -17,15 +17,27 @@ limitations under the License.
 package controller
 
 import (
+	"context"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 type controllerTestBase struct{}
+
+func (controllerTestBase) reconcile(ctx context.Context, r reconcile.Reconciler, req types.NamespacedName) error {
+	_, err := r.Reconcile(ctx, reconcile.Request{
+		NamespacedName: req,
+	})
+	return err
+}
 
 func (controllerTestBase) newNSName(namespace, resourceName string) types.NamespacedName {
 	return types.NamespacedName{
@@ -54,6 +66,53 @@ func (controllerTestBase) newPodProfile(namespace, resourceName string) *pixivne
 				},
 			},
 		},
+	}
+}
+
+func (controllerTestBase) newCronJob(namespace, resourceName, podProfileRef string) *pixivnetv1.CronJob {
+	return &pixivnetv1.CronJob{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.CronJobSpec{
+			Profile: pixivnetv1.JobProfileSpec{
+				PodProfileRef: podProfileRef,
+				Patches: []pixivnetv1.JobPatch{
+					{
+						Operation: "replace",
+						Path:      "/spec/containers/0/image",
+						Value: apiextensionsv1.JSON{
+							Raw: []byte(`"debian:bookworm-slim"`),
+						},
+					},
+				},
+				Params: pixivnetv1.JobParams{
+					Suspend: new(true),
+				},
+			},
+			Schedule: "* * * * *",
+		},
+	}
+}
+
+func (controllerTestBase) assertStatus(got []metav1.Condition, key string, status metav1.ConditionStatus, reason string, message ...string) {
+	GinkgoHelper()
+	var msg string
+	if len(message) > 0 {
+		msg = message[0]
+	}
+
+	Expect(got).Should(HaveLen(2))
+	statusMap := map[string]metav1.Condition{}
+	for _, c := range got {
+		statusMap[c.Type] = c
+	}
+	v, ok := statusMap[key]
+	if Expect(ok).To(BeTrue()) {
+		Expect(v.Status).To(Equal(status))
+		Expect(v.Reason).To(Equal(reason))
+		Expect(v.Message).To(Equal(msg))
 	}
 }
 

@@ -19,7 +19,6 @@ package controller
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
 )
@@ -75,10 +74,7 @@ func (p podProfileControllerTest) reconcileNormalTest() controllerTestContext {
 				By("Reconciling the created resource")
 				controllerReconciler := p.newReconciler()
 
-				_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-					NamespacedName: typeNamespacedName,
-				})
-				Expect(err).To(Succeed())
+				Expect(p.reconcile(ctx, controllerReconciler, typeNamespacedName)).To(Succeed())
 			})
 		},
 	}

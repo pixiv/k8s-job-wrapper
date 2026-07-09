@@ -21,10 +21,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	batchv1 "k8s.io/api/batch/v1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -34,151 +31,168 @@ import (
 	"github.com/pixiv/k8s-job-wrapper/test/utils"
 )
 
-var _ = Describe("CronJob Controller", func() {
-	Context("When reconciling a resource", func() {
-		reconcile := func(resourceName string) error {
-			controllerReconciler := &CronJobReconciler{
-				Client:  k8sClient,
-				Scheme:  k8sClient.Scheme(),
-				Patcher: kustomize.NewPatchRunner(kubectl.NewCommand(utils.Kubectl())),
-			}
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: newKey(testNamespace, resourceName),
-			})
-			return err
-		}
+var _ = new(cronJobControllerTest).run()
 
-		newCronJob := func(resourceName string) *pixivnetv1.CronJob {
-			return &pixivnetv1.CronJob{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      resourceName,
-					Namespace: testNamespace,
-				},
-				Spec: pixivnetv1.CronJobSpec{
-					Profile: pixivnetv1.JobProfileSpec{
-						PodProfileRef: resourceName,
-						Patches: []pixivnetv1.JobPatch{
-							{
-								Operation: "replace",
-								Path:      "/spec/containers/0/image",
-								Value: apiextensionsv1.JSON{
-									Raw: []byte(`"debian:bookworm-slim"`),
-								},
-							},
-						},
-						Params: pixivnetv1.JobParams{
-							Suspend: new(true),
-						},
-					},
-					Schedule: "* * * * *",
-				},
-			}
-		}
+type cronJobControllerTest struct {
+	controllerTestBase
+}
 
-		batchCronJobName := func(resourceName string) string {
-			return resourceName + "-pxvcjob"
-		}
+func (c cronJobControllerTest) run() bool {
+	return controllerTest{
+		name:            "CronJobController",
+		namespacePrefix: "cronjob",
+		contexts: []controllerTestContext{
+			c.reconcilePodProfileMissing(),
+			c.reconcileNormalTest(),
+		},
+	}.run()
+}
 
-		getBatchCronJob := func(resourceName string) *batchv1.CronJob {
-			batchCronJob := &batchv1.CronJob{}
-			Eventually(func() error {
-				return k8sClient.Get(ctx, newKey(testNamespace, batchCronJobName(resourceName)), batchCronJob)
-			}).Should(Succeed())
-			return batchCronJob
-		}
+func (cronJobControllerTest) newReconciler() *CronJobReconciler {
+	return &CronJobReconciler{
+		Client:  k8sClient,
+		Scheme:  k8sClient.Scheme(),
+		Patcher: kustomize.NewPatchRunner(kubectl.NewCommand(utils.Kubectl())),
+	}
+}
 
-		getCronJob := func(resourceName string) *pixivnetv1.CronJob {
-			cronJob := &pixivnetv1.CronJob{}
-			Eventually(func() error {
-				return k8sClient.Get(ctx, newKey(testNamespace, resourceName), cronJob)
-			}).Should(Succeed())
-			return cronJob
-		}
+func (c cronJobControllerTest) assertCronJobStatus(
+	namespace, resourceName string,
+	key pixivnetv1.CronJobConditionType,
+	status metav1.ConditionStatus,
+	reason string,
+	message ...string,
+) {
+	GinkgoHelper()
+	cronJob, err := Get[*pixivnetv1.CronJob](ctx, k8sClient, c.newNSName(namespace, resourceName))
+	Expect(err).To(Succeed())
+	c.assertStatus(cronJob.Status.Conditions, string(key), status, reason, message...)
+}
 
-		assertCronJobStatus := func(resourceName string, key pixivnetv1.CronJobConditionType, status metav1.ConditionStatus, reason string, message ...string) {
-			cronJob := getCronJob(resourceName)
-			assertStatus(cronJob.Status.Conditions, string(key), status, reason, message...)
-		}
-
-		beforeEach := func(resourceName string) {
-			By(fmt.Sprintf("creating the custom resource for the Kind PodProfile %s", resourceName))
-			Expect(k8sClient.Create(ctx, newPodProfile(testNamespace, resourceName))).To(Succeed())
+func (c cronJobControllerTest) reconcilePodProfileMissing() controllerTestContext {
+	const resourceName = "podprofile-missing"
+	return controllerTestContext{
+		name: "When reconciling a resource without PodProfile",
+		beforeEach: func(a *controllerTestContextArg) {
 			By(fmt.Sprintf("creating the custom resource for the Kind CronJob: %s", resourceName))
-			Expect(k8sClient.Create(ctx, newCronJob(resourceName))).To(Succeed())
-		}
-
-		It("should failed to reconcile the resource because the PodProfile is missing", func() {
-			const resourceName = "cronjob-missing"
-			By(fmt.Sprintf("creating the custom resource for the Kind CronJob: %s", resourceName))
-			Expect(k8sClient.Create(ctx, newCronJob(resourceName))).To(Succeed())
-			By("reconciling")
-			Expect(reconcile(resourceName)).Should(HaveOccurred())
-			By("making sure the Status")
-			assertCronJobStatus(resourceName, pixivnetv1.CronJobAvailable, metav1.ConditionFalse, "Reconciling", "PodProfile not found")
-			assertCronJobStatus(resourceName, pixivnetv1.CronJobDegraded, metav1.ConditionTrue, "Reconciling")
-			By("making sure no batch CronJobs are generated")
-			Expect(apierrors.IsNotFound(k8sClient.Get(ctx, newKey(testNamespace, batchCronJobName(resourceName)), &batchv1.CronJob{}))).To(BeTrue())
-		})
-
-		It("should successfully reconcile the resource", func() {
-			const resourceName = "cronjob-reconcile"
-			beforeEach(resourceName)
-
-			By("Reconciling the created resource")
-			Expect(reconcile(resourceName)).To(Succeed())
-
-			By("making sure the batch CronJob created successfully")
-			batchCronJob := getBatchCronJob(resourceName)
-			Expect(batchCronJob.Spec.Schedule).To(Equal("* * * * *"))
-			Expect(batchCronJob.Spec.JobTemplate.Spec.Suspend).Should(Equal(new(true)))
-			Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers).Should(HaveLen(1))
-			Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Name).Should(Equal("pi"))
-			Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image).Should(Equal("debian:bookworm-slim"))
-			Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command).Should(Equal([]string{
-				"perl", "-Mbignum=bpi", "-wle", "print bpi(2000)",
-			}))
-
-			By("making sure the Status updated successfully")
-			assertCronJobStatus(resourceName, pixivnetv1.CronJobAvailable, metav1.ConditionTrue, "OK")
-			assertCronJobStatus(resourceName, pixivnetv1.CronJobDegraded, metav1.ConditionFalse, "OK")
-
-			By("update the CronJob")
-			{
-				cronJob := getCronJob(resourceName)
-				cronJob.Spec.Profile.Patches[0].Value.Raw = []byte(`"nginx:latest"`)
-				Expect(k8sClient.Update(ctx, cronJob)).To(Succeed())
-			}
-
-			By("reconcling the updated resource")
-			Expect(reconcile(resourceName)).To(Succeed())
-
-			By("making sure the batch CronJob updated successfully")
-			batchCronJob = getBatchCronJob(resourceName)
-			Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image).Should(Equal("nginx:latest"))
-
-			By("making sure the Status keeps OK")
-			assertCronJobStatus(resourceName, pixivnetv1.CronJobAvailable, metav1.ConditionTrue, "OK")
-			assertCronJobStatus(resourceName, pixivnetv1.CronJobDegraded, metav1.ConditionFalse, "OK")
-
-			By("update the PodProfile")
-			{
-				podProfile, err := Get[*pixivnetv1.PodProfile](ctx, k8sClient, newKey(testNamespace, resourceName))
+			Expect(k8sClient.Create(ctx, c.newCronJob(a.namespace, resourceName, resourceName))).To(Succeed())
+		},
+		afterEach: func(a *controllerTestContextArg) {
+			cronJob, err := Get[*pixivnetv1.CronJob](ctx, k8sClient, c.newNSName(a.namespace, resourceName))
+			Expect(err).To(Succeed())
+			By("cleanup the specific resource instance CronJob")
+			Expect(k8sClient.Delete(ctx, cronJob)).To(Succeed())
+		},
+		test: func(a *controllerTestContextArg) {
+			typeNamespacedName := c.newNSName(a.namespace, resourceName)
+			It("should failed to reconcile the resource because the PodProfile is missing", func() {
+				reconciler := c.newReconciler()
+				By("reconciling")
+				Expect(c.reconcile(ctx, reconciler, typeNamespacedName)).Should(HaveOccurred())
+				By("making sure the Status")
+				c.assertCronJobStatus(a.namespace, resourceName, pixivnetv1.CronJobAvailable, metav1.ConditionFalse, "Reconciling", "PodProfile not found")
+				c.assertCronJobStatus(a.namespace, resourceName, pixivnetv1.CronJobDegraded, metav1.ConditionTrue, "Reconciling")
+				By("making sure no batch CronJobs are generated")
+				cronJob, err := Get[*pixivnetv1.CronJob](ctx, k8sClient, c.newNSName(a.namespace, resourceName))
 				Expect(err).To(Succeed())
-				podProfile.Spec.Template.Spec.Containers[0].Command = []string{"sleep", "10"}
-				Expect(k8sClient.Update(ctx, podProfile)).To(Succeed())
-			}
+				_, err = GetBatchCronJobFromPixivNetCronJob(ctx, k8sClient, cronJob)
+				Expect(apierrors.IsNotFound(err)).To(BeTrue())
+			})
+		},
+	}
+}
 
-			By("reconcling the updated resource")
-			Expect(reconcile(resourceName)).To(Succeed())
+func (c cronJobControllerTest) reconcileNormalTest() controllerTestContext {
+	const resourceName = "cronjob-reconcile"
+	return controllerTestContext{
+		name: "When reconciling a resource",
+		beforeEach: func(a *controllerTestContextArg) {
+			By(fmt.Sprintf("creating the custom resource for the Kind PodProfile %s", resourceName))
+			Expect(k8sClient.Create(ctx, c.newPodProfile(a.namespace, resourceName))).To(Succeed())
+			By(fmt.Sprintf("creating the custom resource for the Kind CronJob: %s", resourceName))
+			Expect(k8sClient.Create(ctx, c.newCronJob(a.namespace, resourceName, resourceName))).To(Succeed())
+		},
+		afterEach: func(a *controllerTestContextArg) {
+			cronJob, err := Get[*pixivnetv1.CronJob](ctx, k8sClient, c.newNSName(a.namespace, resourceName))
+			Expect(err).To(Succeed())
+			By("cleanup the specific resource instance CronJob")
+			Expect(k8sClient.Delete(ctx, cronJob)).To(Succeed())
 
-			By("making sure the batch CronJob updated successfully")
-			batchCronJob = getBatchCronJob(resourceName)
-			Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command).Should(Equal([]string{"sleep", "10"}))
+			podProfile, err := Get[*pixivnetv1.PodProfile](ctx, k8sClient, c.newNSName(a.namespace, resourceName))
+			Expect(err).To(Succeed())
+			By("cleanup the specific resource instance PodProfile")
+			Expect(k8sClient.Delete(ctx, podProfile)).To(Succeed())
+		},
+		test: func(a *controllerTestContextArg) {
+			typeNamespacedName := c.newNSName(a.namespace, resourceName)
 
-			By("making sure the Status keeps OK")
-			assertCronJobStatus(resourceName, pixivnetv1.CronJobAvailable, metav1.ConditionTrue, "OK")
-			assertCronJobStatus(resourceName, pixivnetv1.CronJobDegraded, metav1.ConditionFalse, "OK")
-		})
+			It("should successfully reconcile the resource", func() {
+				reconciler := c.newReconciler()
+				By("Reconciling the created resource")
+				Expect(c.reconcile(ctx, reconciler, typeNamespacedName)).To(Succeed())
 
-	})
-})
+				By("making sure the batch CronJob created successfully")
+				cronJob, err := Get[*pixivnetv1.CronJob](ctx, k8sClient, typeNamespacedName)
+				Expect(err).To(Succeed())
+				batchCronJob, err := GetBatchCronJobFromPixivNetCronJob(ctx, k8sClient, cronJob)
+				Expect(err).To(Succeed())
+				Expect(batchCronJob.Spec.Schedule).To(Equal("* * * * *"))
+				Expect(batchCronJob.Spec.JobTemplate.Spec.Suspend).Should(Equal(new(true)))
+				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers).Should(HaveLen(1))
+				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Name).Should(Equal("pi"))
+				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image).Should(Equal("debian:bookworm-slim"))
+				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command).Should(Equal([]string{
+					"perl", "-Mbignum=bpi", "-wle", "print bpi(2000)",
+				}))
+
+				By("making sure the Status updated successfully")
+				c.assertCronJobStatus(a.namespace, resourceName, pixivnetv1.CronJobAvailable, metav1.ConditionTrue, "OK")
+				c.assertCronJobStatus(a.namespace, resourceName, pixivnetv1.CronJobDegraded, metav1.ConditionFalse, "OK")
+
+				By("update the CronJob")
+				{
+					cronJob, err := Get[*pixivnetv1.CronJob](ctx, k8sClient, typeNamespacedName)
+					Expect(err).To(Succeed())
+					cronJob.Spec.Profile.Patches[0].Value.Raw = []byte(`"nginx:latest"`)
+					Expect(k8sClient.Update(ctx, cronJob)).To(Succeed())
+				}
+
+				By("reconcling the updated resource")
+				Expect(c.reconcile(ctx, reconciler, typeNamespacedName)).To(Succeed())
+
+				By("making sure the batch CronJob updated successfully")
+				cronJob, err = Get[*pixivnetv1.CronJob](ctx, k8sClient, typeNamespacedName)
+				Expect(err).To(Succeed())
+				batchCronJob, err = GetBatchCronJobFromPixivNetCronJob(ctx, k8sClient, cronJob)
+				Expect(err).To(Succeed())
+				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image).Should(Equal("nginx:latest"))
+
+				By("making sure the Status keeps OK")
+				c.assertCronJobStatus(a.namespace, resourceName, pixivnetv1.CronJobAvailable, metav1.ConditionTrue, "OK")
+				c.assertCronJobStatus(a.namespace, resourceName, pixivnetv1.CronJobDegraded, metav1.ConditionFalse, "OK")
+
+				By("update the PodProfile")
+				{
+					podProfile, err := Get[*pixivnetv1.PodProfile](ctx, k8sClient, newKey(a.namespace, resourceName))
+					Expect(err).To(Succeed())
+					podProfile.Spec.Template.Spec.Containers[0].Command = []string{"sleep", "10"}
+					Expect(k8sClient.Update(ctx, podProfile)).To(Succeed())
+				}
+
+				By("reconcling the updated resource")
+				Expect(c.reconcile(ctx, reconciler, typeNamespacedName)).To(Succeed())
+
+				By("making sure the batch CronJob updated successfully")
+				cronJob, err = Get[*pixivnetv1.CronJob](ctx, k8sClient, typeNamespacedName)
+				Expect(err).To(Succeed())
+				batchCronJob, err = GetBatchCronJobFromPixivNetCronJob(ctx, k8sClient, cronJob)
+				Expect(err).To(Succeed())
+				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command).Should(Equal([]string{"sleep", "10"}))
+
+				By("making sure the Status keeps OK")
+				c.assertCronJobStatus(a.namespace, resourceName, pixivnetv1.CronJobAvailable, metav1.ConditionTrue, "OK")
+				c.assertCronJobStatus(a.namespace, resourceName, pixivnetv1.CronJobDegraded, metav1.ConditionFalse, "OK")
+			})
+		},
+	}
+}
