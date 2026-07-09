@@ -42,7 +42,7 @@ func Get[T client.Object](ctx context.Context, c client.Client, key client.Objec
 func List[T client.ObjectList](ctx context.Context, c client.Client, opts ...client.ListOption) (T, error) {
 	x := ensureInstance[T]()
 	if err := c.List(ctx, x, opts...); err != nil {
-		return x, nil
+		return x, err
 	}
 	return x, nil
 }
