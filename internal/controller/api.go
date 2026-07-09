@@ -20,6 +20,7 @@ import (
 	"context"
 	"reflect"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -45,4 +46,16 @@ func List[T client.ObjectList](ctx context.Context, c client.Client, opts ...cli
 		return x, err
 	}
 	return x, nil
+}
+
+func Exist[T client.Object](ctx context.Context, c client.Client, key client.ObjectKey, opts ...client.GetOption) (bool, error) {
+	_, err := Get[T](ctx, c, key, opts...)
+	switch {
+	case err == nil:
+		return true, nil
+	case apierrors.IsNotFound(err):
+		return false, nil
+	default:
+		return false, err
+	}
 }
