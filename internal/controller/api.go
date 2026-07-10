@@ -24,6 +24,7 @@ import (
 	"github.com/pixiv/k8s-job-wrapper/internal/construct"
 	batchv1 "k8s.io/api/batch/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -68,5 +69,12 @@ func GetBatchCronJobFromPixivNetCronJob(ctx context.Context, c client.Client, cr
 	return Get[*batchv1.CronJob](ctx, c, types.NamespacedName{
 		Namespace: cronJob.Namespace,
 		Name:      construct.BatchCronJobName(cronJob),
+	})
+}
+
+func ListBatchJobsFromPixivNetJob(ctx context.Context, c client.Client, job *pixivnetv1.Job) (*batchv1.JobList, error) {
+	return List[*batchv1.JobList](ctx, c, &client.ListOptions{
+		Namespace:     job.Namespace,
+		LabelSelector: labels.SelectorFromSet(construct.BatchJobLabelsForList(job)),
 	})
 }

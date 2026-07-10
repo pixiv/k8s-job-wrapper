@@ -96,6 +96,143 @@ func (controllerTestBase) newCronJob(namespace, resourceName, podProfileRef stri
 	}
 }
 
+func (controllerTestBase) newJob(namespace, resourceName, podProfileRef string) *pixivnetv1.Job {
+	return &pixivnetv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.JobSpec{
+			Profile: pixivnetv1.JobProfileSpec{
+				PodProfileRef: podProfileRef,
+				Patches: []pixivnetv1.JobPatch{
+					{
+						Operation: "replace",
+						Path:      "/spec/containers/0/image",
+						Value: apiextensionsv1.JSON{
+							Raw: []byte(`"debian:bookworm-slim"`),
+						},
+					},
+				},
+				Params: pixivnetv1.JobParams{
+					Suspend: new(true),
+				},
+			},
+		},
+	}
+}
+
+func (controllerTestBase) newJobWithTTL(namespace, resourceName, podProfileRef string, ttl int) *pixivnetv1.Job {
+	return &pixivnetv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.JobSpec{
+			Profile: pixivnetv1.JobProfileSpec{
+				PodProfileRef: podProfileRef,
+				Patches: []pixivnetv1.JobPatch{
+					{
+						Operation: "replace",
+						Path:      "/spec/containers/0/image",
+						Value: apiextensionsv1.JSON{
+							Raw: []byte(`"debian:bookworm-slim"`),
+						},
+					},
+				},
+				Params: pixivnetv1.JobParams{
+					TTLSecondsAfterFinished: new(int32(ttl)),
+				},
+			},
+		},
+	}
+}
+
+func (controllerTestBase) newJobWithHistoryLimit(namespace, resourceName, podProfileRef string, limit int) *pixivnetv1.Job {
+	return &pixivnetv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.JobSpec{
+			JobsHistoryLimit: new(limit),
+			Profile: pixivnetv1.JobProfileSpec{
+				PodProfileRef: podProfileRef,
+				Patches: []pixivnetv1.JobPatch{
+					{
+						Operation: "replace",
+						Path:      "/spec/containers/0/image",
+						Value: apiextensionsv1.JSON{
+							Raw: []byte(`"debian:bookworm-slim"`),
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func (controllerTestBase) newJobWithComplexPatch(namespace, resourceName, podProfileRef string) *pixivnetv1.Job {
+	return &pixivnetv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.JobSpec{
+			Profile: pixivnetv1.JobProfileSpec{
+				PodProfileRef: podProfileRef,
+				Patches: []pixivnetv1.JobPatch{
+					{
+						Operation: "add",
+						Path:      "/spec/containers/-",
+						Value: apiextensionsv1.JSON{
+							Raw: []byte(`{
+  "name": "added",
+  "image": "debian:bookworm",
+  "command": ["sleep", "1"]
+}`),
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func (controllerTestBase) newJobWithMeta(namespace, resourceName, podProfileRef string) *pixivnetv1.Job {
+	return &pixivnetv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.JobSpec{
+			Profile: pixivnetv1.JobProfileSpec{
+				PodProfileRef: podProfileRef,
+				Patches: []pixivnetv1.JobPatch{
+					{
+						Operation: "replace",
+						Path:      "/spec/containers/0/image",
+						Value: apiextensionsv1.JSON{
+							Raw: []byte(`"debian:bookworm-slim"`),
+						},
+					},
+				},
+				Params: pixivnetv1.JobParams{
+					Suspend: new(true),
+				},
+				Metadata: pixivnetv1.JobMetadata{
+					Annotations: map[string]string{
+						"case": "withMeta",
+					},
+					Labels: map[string]string{
+						"additional": "label",
+					},
+				},
+			},
+		},
+	}
+}
+
 func (controllerTestBase) assertStatus(got []metav1.Condition, key string, status metav1.ConditionStatus, reason string, message ...string) {
 	GinkgoHelper()
 	var msg string
@@ -113,6 +250,47 @@ func (controllerTestBase) assertStatus(got []metav1.Condition, key string, statu
 		Expect(v.Status).To(Equal(status))
 		Expect(v.Reason).To(Equal(reason))
 		Expect(v.Message).To(Equal(msg))
+	}
+}
+
+func (controllerTestBase) newBatchJobCompleteStatus(startTime, completionTime metav1.Time) batchv1.JobStatus {
+	return batchv1.JobStatus{
+		StartTime:      &startTime,
+		CompletionTime: &completionTime,
+		Conditions: []batchv1.JobCondition{
+			{
+				Type:               batchv1.JobComplete,
+				Status:             corev1.ConditionTrue,
+				Reason:             "OK",
+				LastTransitionTime: completionTime,
+			},
+			{
+				Type:               batchv1.JobSuccessCriteriaMet,
+				Status:             corev1.ConditionTrue,
+				Reason:             "OK",
+				LastTransitionTime: completionTime,
+			},
+		},
+	}
+}
+
+func (controllerTestBase) newBatchJobFailedStatus(startTime metav1.Time) batchv1.JobStatus {
+	return batchv1.JobStatus{
+		StartTime: &startTime,
+		Conditions: []batchv1.JobCondition{
+			{
+				Type:               batchv1.JobFailed,
+				Status:             corev1.ConditionTrue,
+				Reason:             "JobFailed",
+				LastTransitionTime: startTime,
+			},
+			{
+				Type:               batchv1.JobFailureTarget,
+				Status:             corev1.ConditionTrue,
+				Reason:             "Failure",
+				LastTransitionTime: startTime,
+			},
+		},
 	}
 }
 
