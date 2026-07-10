@@ -173,7 +173,7 @@ func (c cronJobControllerTest) reconcileNormalTest() controllerTestContext {
 
 				By("update the PodProfile")
 				{
-					podProfile, err := Get[*pixivnetv1.PodProfile](ctx, k8sClient, newKey(a.namespace, resourceName))
+					podProfile, err := Get[*pixivnetv1.PodProfile](ctx, k8sClient, c.newNSName(a.namespace, resourceName))
 					Expect(err).To(Succeed())
 					podProfile.Spec.Template.Spec.Containers[0].Command = []string{"sleep", "10"}
 					Expect(k8sClient.Update(ctx, podProfile)).To(Succeed())

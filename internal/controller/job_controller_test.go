@@ -291,7 +291,7 @@ func (j jobControllerTest) reconcileTTLSingleBatchJob() controllerTestContext {
 					Expect(batchJob.Status.Conditions).Should(BeEmpty())
 					By("set the batch Job status complete")
 					metaNow := metav1.NewTime(now)
-					batchJob.Status = newBatchJobCompleteStatus(metaNow, metaNow)
+					batchJob.Status = j.newBatchJobCompleteStatus(metaNow, metaNow)
 					Expect(k8sClient.Status().Update(ctx, &batchJob)).To(Succeed())
 				}
 				By("wait a second to expire the batch Job")
@@ -353,7 +353,7 @@ func (j jobControllerTest) reconcileTTL() controllerTestContext {
 					Expect(batchJob.Status.Conditions).Should(BeEmpty())
 					By("set the batch Job status complete")
 					metaNow := metav1.NewTime(now)
-					batchJob.Status = newBatchJobCompleteStatus(metaNow, metaNow)
+					batchJob.Status = j.newBatchJobCompleteStatus(metaNow, metaNow)
 					Expect(k8sClient.Status().Update(ctx, &batchJob)).To(Succeed())
 				}
 				By("Reconciling the created resource")
@@ -629,31 +629,31 @@ func (j jobControllerTest) reconcileRecreateJobs() []controllerTestContext {
 		{
 			title:     "batch Job is recreated because it is failed and Job is updated",
 			job:       patchedJob,
-			status:    new(newBatchJobFailedStatus(now)),
+			status:    new(j.newBatchJobFailedStatus(now)),
 			recreated: true,
 			assertJob: assertPatchedJob,
 		},
 		{
 			title:     "batch Job is not recreated because it is failed but no update",
-			status:    new(newBatchJobFailedStatus(now)),
+			status:    new(j.newBatchJobFailedStatus(now)),
 			recreated: false,
 		},
 		{
 			title:      "batch Job is recreated because it is completed and PodProfile is updated",
 			podprofile: patchedPodProfile,
-			status:     new(newBatchJobCompleteStatus(now, now)),
+			status:     new(j.newBatchJobCompleteStatus(now, now)),
 			recreated:  true,
 			assertJob:  assertPatchedPodProfile,
 		},
 		{
 			title:     "batch Job is not recreated because it is completed but no update",
-			status:    new(newBatchJobCompleteStatus(now, now)),
+			status:    new(j.newBatchJobCompleteStatus(now, now)),
 			recreated: false,
 		},
 		{
 			title:     "batch Job is recreated because it is completed and Job is updated",
 			job:       patchedJob,
-			status:    new(newBatchJobCompleteStatus(now, now)),
+			status:    new(j.newBatchJobCompleteStatus(now, now)),
 			recreated: true,
 			assertJob: assertPatchedJob,
 		},
