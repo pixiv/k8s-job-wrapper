@@ -391,7 +391,7 @@ func (j jobControllerTest) reconcileTTL() controllerTestContext {
 					idx := slices.IndexFunc(batchJobs.Items, func(x batchv1.Job) bool {
 						return x.GetUID() != batchJob1UID
 					})
-					Expect(idx >= 0).To(BeTrue())
+					Expect(idx).To(BeNumerically(">=", 0))
 					batchJob := batchJobs.Items[idx]
 					batchJob2UID = batchJob.GetUID()
 					By("set the new batch Job status complete")
@@ -413,7 +413,7 @@ func (j jobControllerTest) reconcileTTL() controllerTestContext {
 					idx := slices.IndexFunc(batchJobs.Items, func(x batchv1.Job) bool {
 						return x.GetUID() == batchJob2UID
 					})
-					Expect(idx >= 0).To(BeTrue())
+					Expect(idx).To(BeNumerically(">=", 0))
 					batchJob := batchJobs.Items[idx]
 					Expect(batchJob.DeletionTimestamp).To(BeNil())
 					Expect(batchJob.GetAnnotations()["jobs.pixiv.net/ttl-expired"]).To(Equal("true")) // marked to be deleted
@@ -433,8 +433,8 @@ func (j jobControllerTest) reconcileTTL() controllerTestContext {
 					idx2 := slices.IndexFunc(batchJobs.Items, func(x batchv1.Job) bool {
 						return x.GetUID() == batchJob2UID
 					})
-					Expect(idx1 >= 0).To(BeTrue())
-					Expect(idx2 >= 0).To(BeFalse()) // deleted
+					Expect(idx1).To(BeNumerically(">=", 0))
+					Expect(idx2).To(Equal(-1)) // deleted
 					Expect(batchJobs.Items[idx1].DeletionTimestamp).To(BeNil())
 				}
 			})
@@ -508,7 +508,7 @@ func (j jobControllerTest) reconcileDeleteOldJobs() controllerTestContext {
 					idx := slices.IndexFunc(batchJobs.Items, func(x batchv1.Job) bool {
 						return x.GetUID() != batchJob1UID
 					})
-					Expect(idx >= 0).Should(BeTrue())
+					Expect(idx).Should(BeNumerically(">=", 0))
 					batchJob := batchJobs.Items[idx]
 					batchJob2UID = batchJob.GetUID()
 					By("set the batch Job status complete")
@@ -547,11 +547,11 @@ func (j jobControllerTest) reconcileDeleteOldJobs() controllerTestContext {
 				batchJob2Idx := slices.IndexFunc(items, func(x batchv1.Job) bool {
 					return x.GetUID() == batchJob2UID
 				})
-				Expect(batchJob2Idx >= 0).Should(BeTrue())
+				Expect(batchJob2Idx).Should(BeNumerically(">=", 0))
 				batchJob3Idx := slices.IndexFunc(items, func(x batchv1.Job) bool {
 					return !slices.Contains([]types.UID{batchJob1UID, batchJob2UID}, x.GetUID())
 				})
-				Expect(batchJob3Idx >= 0).Should(BeTrue())
+				Expect(batchJob3Idx).Should(BeNumerically(">=", 0))
 			})
 		},
 	}

@@ -61,9 +61,6 @@ linters:
           - lll
         path: internal/*
       - linters:
-          - ginkgolinter
-        path: test/*
-      - linters:
           - staticcheck
         path: test/
         text: "ST1001:"
