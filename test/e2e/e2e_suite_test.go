@@ -47,7 +47,7 @@ func TestE2E(t *testing.T) {
 	RunSpecs(t, "e2e suite")
 }
 
-var _ = BeforeSuite(func() {
+var _ = SynchronizedBeforeSuite(func() {
 	if !utils.IsEnvTrue("E2E_SKIP_BUILD") {
 		_, _ = fmt.Fprintf(GinkgoWriter, "If you want to skip docker-build, use E2E_SKIP_BUILD=true\n")
 		By("building the manager(Operator) image")
@@ -78,9 +78,64 @@ var _ = BeforeSuite(func() {
 			_, _ = fmt.Fprintf(GinkgoWriter, "WARNING: CertManager is already installed. Skipping installation...\n")
 		}
 	}
-})
 
-var _ = AfterSuite(func() {
+	// Before running the tests, set up the environment by creating the namespace,
+	// enforce the restricted security policy to the namespace, installing CRDs,
+	// and deploying the controller.
+	By("creating manager namespace")
+	cmd := utils.KubectlCmd("create", "ns", namespace)
+	_, err := utils.Run(cmd)
+	Expect(err).NotTo(HaveOccurred(), "Failed to create namespace")
+
+	By("labeling the namespace to enforce the restricted security policy")
+	cmd = utils.KubectlCmd("label", "--overwrite", "ns", namespace,
+		"pod-security.kubernetes.io/enforce=restricted")
+	_, err = utils.Run(cmd)
+	Expect(err).NotTo(HaveOccurred(), "Failed to label namespace with restricted policy")
+
+	if !utils.IsEnvTrue("E2E_HELM") {
+		By("installing CRDs")
+		cmd = exec.Command("make", "install")
+		_, err = utils.Run(cmd)
+		Expect(err).NotTo(HaveOccurred(), "Failed to install CRDs")
+
+		By("deploying the controller-manager")
+		cmd = exec.Command("make", "deploy")
+		_, err = utils.Run(cmd)
+		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
+	} else {
+		By("deploying the chart")
+		cmd = exec.Command("make", "deploy-chart")
+		_, err = utils.Run(cmd)
+		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
+	}
+}, func() {})
+
+var _ = SynchronizedAfterSuite(func() {}, func() {
+	// After all tests have been executed, clean up by undeploying the controller, uninstalling CRDs,
+	// and deleting the namespace.
+	By("cleaning up the curl pod for metrics")
+	cmd := utils.KubectlCmd("delete", "pod", "curl-metrics", "-n", namespace)
+	_, _ = utils.Run(cmd)
+
+	if !utils.IsEnvTrue("E2E_HELM") {
+		By("undeploying the controller-manager")
+		cmd = exec.Command("make", "undeploy")
+		_, _ = utils.Run(cmd)
+
+		By("uninstalling CRDs")
+		cmd = exec.Command("make", "uninstall")
+		_, _ = utils.Run(cmd)
+	} else {
+		By("undeploying the chart")
+		cmd = exec.Command("make", "undeploy-chart")
+		_, _ = utils.Run(cmd)
+	}
+
+	By("removing manager namespace")
+	cmd = utils.KubectlCmd("delete", "ns", namespace)
+	_, _ = utils.Run(cmd)
+
 	// Teardown CertManager after the suite if not skipped and if it was not already installed
 	if !skipCertManagerInstall && !isCertManagerAlreadyInstalled {
 		_, _ = fmt.Fprintf(GinkgoWriter, "Uninstalling CertManager...\n")

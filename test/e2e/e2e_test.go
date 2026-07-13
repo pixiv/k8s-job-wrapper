@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -49,65 +48,6 @@ const metricsRoleBindingName = "k8s-job-wrapper-metrics-binding"
 
 var _ = Describe("Manager", Ordered, func() {
 	var controllerPodName string
-
-	// Before running the tests, set up the environment by creating the namespace,
-	// enforce the restricted security policy to the namespace, installing CRDs,
-	// and deploying the controller.
-	BeforeAll(func() {
-		By("creating manager namespace")
-		cmd := utils.KubectlCmd("create", "ns", namespace)
-		_, err := utils.Run(cmd)
-		Expect(err).NotTo(HaveOccurred(), "Failed to create namespace")
-
-		By("labeling the namespace to enforce the restricted security policy")
-		cmd = utils.KubectlCmd("label", "--overwrite", "ns", namespace,
-			"pod-security.kubernetes.io/enforce=restricted")
-		_, err = utils.Run(cmd)
-		Expect(err).NotTo(HaveOccurred(), "Failed to label namespace with restricted policy")
-
-		if !utils.IsEnvTrue("E2E_HELM") {
-			By("installing CRDs")
-			cmd = exec.Command("make", "install")
-			_, err = utils.Run(cmd)
-			Expect(err).NotTo(HaveOccurred(), "Failed to install CRDs")
-
-			By("deploying the controller-manager")
-			cmd = exec.Command("make", "deploy")
-			_, err = utils.Run(cmd)
-			Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
-		} else {
-			By("deploying the chart")
-			cmd = exec.Command("make", "deploy-chart")
-			_, err = utils.Run(cmd)
-			Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
-		}
-	})
-
-	// After all tests have been executed, clean up by undeploying the controller, uninstalling CRDs,
-	// and deleting the namespace.
-	AfterAll(func() {
-		By("cleaning up the curl pod for metrics")
-		cmd := utils.KubectlCmd("delete", "pod", "curl-metrics", "-n", namespace)
-		_, _ = utils.Run(cmd)
-
-		if !utils.IsEnvTrue("E2E_HELM") {
-			By("undeploying the controller-manager")
-			cmd = exec.Command("make", "undeploy")
-			_, _ = utils.Run(cmd)
-
-			By("uninstalling CRDs")
-			cmd = exec.Command("make", "uninstall")
-			_, _ = utils.Run(cmd)
-		} else {
-			By("undeploying the chart")
-			cmd = exec.Command("make", "undeploy-chart")
-			_, _ = utils.Run(cmd)
-		}
-
-		By("removing manager namespace")
-		cmd = utils.KubectlCmd("delete", "ns", namespace)
-		_, _ = utils.Run(cmd)
-	})
 
 	// After each test, check for failures and collect logs, events,
 	// and pod descriptions for debugging.
