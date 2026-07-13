@@ -133,7 +133,7 @@ govulncheck: ## Run govulncheck.
 	$(GOVULNCHECK) ./...
 
 .PHONY: lint
-lint: lint-licenses go-fix-diff fmt vet golangci-lint ## Run linters
+lint: lint-licenses go-fix-diff fmt vet golangci-lint govulncheck ## Run linters
 
 .PHONY: golangci-lint
 golangci-lint: golangci-lint-config ## Run golangci-lint linter
