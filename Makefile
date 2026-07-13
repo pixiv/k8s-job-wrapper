@@ -128,6 +128,10 @@ go-fix-diff: ## Run go fix -diff.
 go-fix: ## Run go fix.
 	go fix ./...
 
+.PHONY: govulncheck
+govulncheck: ## Run govulncheck.
+	$(GOVULNCHECK) ./...
+
 .PHONY: lint
 lint: lint-licenses go-fix-diff fmt vet ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run
@@ -240,3 +244,4 @@ GOLANGCI_LINT = $(TOOLS) golangci-lint
 KIND := $(TOOLS) kind
 HELM := $(TOOLS) helm
 GINKGO := $(TOOLS) ginkgo
+GOVULNCHECK := $(TOOLS) govulncheck

@@ -201,6 +201,14 @@
       "matchStrings":["GINKGO_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "onsi/ginkgo/v2"
+    },
+    {
+      "description": "Manage govulncheck version",
+      "customType": "regex",
+      "fileMatch": ["^.github/.env$"],
+      "matchStrings":["GOVULNCHECK_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "go",
+      "depNameTemplate": "golang.org/x/vuln"
     }
   ]
 }
