@@ -61,8 +61,9 @@ linters:
           - lll
         path: internal/*
       - linters:
-          - ginkgolinter
-        path: test/*
+          - staticcheck
+        path: test/
+        text: "ST1001:"
     paths:
       - third_party$
       - builtin$

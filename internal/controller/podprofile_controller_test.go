@@ -17,83 +17,65 @@ limitations under the License.
 package controller
 
 import (
-	"context"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
 )
 
-var _ = Describe("PodProfile Controller", func() {
-	Context("When reconciling a resource", func() {
-		const (
-			resourceName  = "sample"
-			testNamespace = "default"
-		)
+var _ = new(podProfileControllerTest).run()
 
-		ctx := context.Background()
+type podProfileControllerTest struct {
+	controllerTestBase
+}
 
-		typeNamespacedName := types.NamespacedName{
-			Name:      resourceName,
-			Namespace: testNamespace,
-		}
+func (p podProfileControllerTest) run() bool {
+	return controllerTest{
+		name:            "PodProfileController",
+		namespacePrefix: "podprofile",
+		contexts: []controllerTestContext{
+			p.reconcileNormalTest(),
+		},
+	}.run()
+}
 
-		BeforeEach(func() {
+func (podProfileControllerTest) newReconciler() *PodProfileReconciler {
+	return &PodProfileReconciler{
+		Client: k8sClient,
+		Scheme: k8sClient.Scheme(),
+	}
+}
+
+func (p podProfileControllerTest) reconcileNormalTest() controllerTestContext {
+	const resourceName = "sample"
+	return controllerTestContext{
+		name: "When reconciling a resource",
+		beforeEach: func(a *controllerTestContextArg) {
+			typeNamespacedName := p.newNSName(a.namespace, resourceName)
 			By("creating the custom resource for the Kind PodProfile")
-			podprofile := &pixivnetv1.PodProfile{}
-			err := k8sClient.Get(ctx, typeNamespacedName, podprofile)
-			if err != nil && errors.IsNotFound(err) {
-				resource := &pixivnetv1.PodProfile{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: testNamespace,
-					},
-					Spec: pixivnetv1.PodProfileSpec{
-						Template: pixivnetv1.PodProfileTemplate{
-							Spec: corev1.PodSpec{
-								Containers: []corev1.Container{
-									{
-										Name:    "pi",
-										Image:   "perl:5.34.0",
-										Command: []string{"perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"},
-									},
-								},
-								RestartPolicy: corev1.RestartPolicyNever,
-							},
-						},
-					},
-				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
+			exist, err := Exist[*pixivnetv1.PodProfile](ctx, k8sClient, typeNamespacedName)
+			Expect(err).To(Succeed())
+			if !exist {
+				Expect(k8sClient.Create(ctx, p.newPodProfile(
+					typeNamespacedName.Namespace, typeNamespacedName.Name,
+				))).To(Succeed())
 			}
-		})
-
-		AfterEach(func() {
-			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &pixivnetv1.PodProfile{}
-			err := k8sClient.Get(ctx, typeNamespacedName, resource)
-			Expect(err).NotTo(HaveOccurred())
-
+		},
+		afterEach: func(a *controllerTestContextArg) {
+			typeNamespacedName := p.newNSName(a.namespace, resourceName)
+			resource, err := Get[*pixivnetv1.PodProfile](ctx, k8sClient, typeNamespacedName)
+			Expect(err).To(Succeed())
 			By("Cleanup the specific resource instance PodProfile")
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
-		})
+		},
+		test: func(a *controllerTestContextArg) {
+			typeNamespacedName := p.newNSName(a.namespace, resourceName)
+			It("should successfully reconcile the resource", func() {
+				By("Reconciling the created resource")
+				controllerReconciler := p.newReconciler()
 
-		It("should successfully reconcile the resource", func() {
-			By("Reconciling the created resource")
-			controllerReconciler := &PodProfileReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
-			}
-
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: typeNamespacedName,
+				Expect(p.reconcile(ctx, controllerReconciler, typeNamespacedName)).To(Succeed())
 			})
-			Expect(err).NotTo(HaveOccurred())
-		})
-	})
-})
+		},
+	}
+}

@@ -17,33 +17,40 @@ limitations under the License.
 package controller
 
 import (
+	"context"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pixivnetv1 "github.com/pixiv/k8s-job-wrapper/api/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-//
-// Common functions for testing.
-//
+type controllerTestBase struct{}
 
-const testNamespace = "default"
+func (controllerTestBase) reconcile(ctx context.Context, r reconcile.Reconciler, req types.NamespacedName) error {
+	_, err := r.Reconcile(ctx, reconcile.Request{
+		NamespacedName: req,
+	})
+	return err
+}
 
-// Create a key for k8sClient.Get().
-func newKey(resourceName string) types.NamespacedName {
+func (controllerTestBase) newNSName(namespace, resourceName string) types.NamespacedName {
 	return types.NamespacedName{
 		Name:      resourceName,
-		Namespace: testNamespace,
+		Namespace: namespace,
 	}
 }
 
-func newPodProfile(resourceName string) *pixivnetv1.PodProfile {
+func (controllerTestBase) newPodProfile(namespace, resourceName string) *pixivnetv1.PodProfile {
 	return &pixivnetv1.PodProfile{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      resourceName,
-			Namespace: testNamespace,
+			Namespace: namespace,
 		},
 		Spec: pixivnetv1.PodProfileSpec{
 			Template: pixivnetv1.PodProfileTemplate{
@@ -62,7 +69,172 @@ func newPodProfile(resourceName string) *pixivnetv1.PodProfile {
 	}
 }
 
-func assertStatus(got []metav1.Condition, key string, status metav1.ConditionStatus, reason string, message ...string) {
+func (controllerTestBase) newCronJob(namespace, resourceName, podProfileRef string) *pixivnetv1.CronJob {
+	return &pixivnetv1.CronJob{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.CronJobSpec{
+			Profile: pixivnetv1.JobProfileSpec{
+				PodProfileRef: podProfileRef,
+				Patches: []pixivnetv1.JobPatch{
+					{
+						Operation: "replace",
+						Path:      "/spec/containers/0/image",
+						Value: apiextensionsv1.JSON{
+							Raw: []byte(`"debian:bookworm-slim"`),
+						},
+					},
+				},
+				Params: pixivnetv1.JobParams{
+					Suspend: new(true),
+				},
+			},
+			Schedule: "* * * * *",
+		},
+	}
+}
+
+func (controllerTestBase) newJob(namespace, resourceName, podProfileRef string) *pixivnetv1.Job {
+	return &pixivnetv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.JobSpec{
+			Profile: pixivnetv1.JobProfileSpec{
+				PodProfileRef: podProfileRef,
+				Patches: []pixivnetv1.JobPatch{
+					{
+						Operation: "replace",
+						Path:      "/spec/containers/0/image",
+						Value: apiextensionsv1.JSON{
+							Raw: []byte(`"debian:bookworm-slim"`),
+						},
+					},
+				},
+				Params: pixivnetv1.JobParams{
+					Suspend: new(true),
+				},
+			},
+		},
+	}
+}
+
+func (controllerTestBase) newJobWithTTL(namespace, resourceName, podProfileRef string, ttl int) *pixivnetv1.Job {
+	return &pixivnetv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.JobSpec{
+			Profile: pixivnetv1.JobProfileSpec{
+				PodProfileRef: podProfileRef,
+				Patches: []pixivnetv1.JobPatch{
+					{
+						Operation: "replace",
+						Path:      "/spec/containers/0/image",
+						Value: apiextensionsv1.JSON{
+							Raw: []byte(`"debian:bookworm-slim"`),
+						},
+					},
+				},
+				Params: pixivnetv1.JobParams{
+					TTLSecondsAfterFinished: new(int32(ttl)),
+				},
+			},
+		},
+	}
+}
+
+func (controllerTestBase) newJobWithHistoryLimit(namespace, resourceName, podProfileRef string, limit int) *pixivnetv1.Job {
+	return &pixivnetv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.JobSpec{
+			JobsHistoryLimit: new(limit),
+			Profile: pixivnetv1.JobProfileSpec{
+				PodProfileRef: podProfileRef,
+				Patches: []pixivnetv1.JobPatch{
+					{
+						Operation: "replace",
+						Path:      "/spec/containers/0/image",
+						Value: apiextensionsv1.JSON{
+							Raw: []byte(`"debian:bookworm-slim"`),
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func (controllerTestBase) newJobWithComplexPatch(namespace, resourceName, podProfileRef string) *pixivnetv1.Job {
+	return &pixivnetv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.JobSpec{
+			Profile: pixivnetv1.JobProfileSpec{
+				PodProfileRef: podProfileRef,
+				Patches: []pixivnetv1.JobPatch{
+					{
+						Operation: "add",
+						Path:      "/spec/containers/-",
+						Value: apiextensionsv1.JSON{
+							Raw: []byte(`{
+  "name": "added",
+  "image": "debian:bookworm",
+  "command": ["sleep", "1"]
+}`),
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func (controllerTestBase) newJobWithMeta(namespace, resourceName, podProfileRef string) *pixivnetv1.Job {
+	return &pixivnetv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      resourceName,
+			Namespace: namespace,
+		},
+		Spec: pixivnetv1.JobSpec{
+			Profile: pixivnetv1.JobProfileSpec{
+				PodProfileRef: podProfileRef,
+				Patches: []pixivnetv1.JobPatch{
+					{
+						Operation: "replace",
+						Path:      "/spec/containers/0/image",
+						Value: apiextensionsv1.JSON{
+							Raw: []byte(`"debian:bookworm-slim"`),
+						},
+					},
+				},
+				Params: pixivnetv1.JobParams{
+					Suspend: new(true),
+				},
+				Metadata: pixivnetv1.JobMetadata{
+					Annotations: map[string]string{
+						"case": "withMeta",
+					},
+					Labels: map[string]string{
+						"additional": "label",
+					},
+				},
+			},
+		},
+	}
+}
+
+func (controllerTestBase) assertStatus(got []metav1.Condition, key string, status metav1.ConditionStatus, reason string, message ...string) {
+	GinkgoHelper()
 	var msg string
 	if len(message) > 0 {
 		msg = message[0]
@@ -81,15 +253,7 @@ func assertStatus(got []metav1.Condition, key string, status metav1.ConditionSta
 	}
 }
 
-func getPodProfile(resourceName string) *pixivnetv1.PodProfile {
-	podProfile := &pixivnetv1.PodProfile{}
-	Eventually(func() error {
-		return k8sClient.Get(ctx, newKey(resourceName), podProfile)
-	}).Should(Succeed())
-	return podProfile
-}
-
-func newBatchJobCompleteStatus(startTime, completionTime metav1.Time) batchv1.JobStatus {
+func (controllerTestBase) newBatchJobCompleteStatus(startTime, completionTime metav1.Time) batchv1.JobStatus {
 	return batchv1.JobStatus{
 		StartTime:      &startTime,
 		CompletionTime: &completionTime,
@@ -110,7 +274,7 @@ func newBatchJobCompleteStatus(startTime, completionTime metav1.Time) batchv1.Jo
 	}
 }
 
-func newBatchJobFailedStatus(startTime metav1.Time) batchv1.JobStatus {
+func (controllerTestBase) newBatchJobFailedStatus(startTime metav1.Time) batchv1.JobStatus {
 	return batchv1.JobStatus{
 		StartTime: &startTime,
 		Conditions: []batchv1.JobCondition{

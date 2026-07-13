@@ -91,6 +91,10 @@ install_helm_schema() {
   install "github.com/dadav/helm-schema/cmd/helm-schema@${version}"
 }
 
+install_ginkgo() {
+  install "github.com/onsi/ginkgo/v2/ginkgo@${version}"
+}
+
 if [[ "$name" = "setup-envtest" ]] ; then
   install_setup_envtest
   exit
@@ -110,6 +114,7 @@ case "$name" in
   "kubebuilder") install_kubebuilder ;;
   "helmify") install_helmify ;;
   "helm-schema") install_helm_schema ;;
+  "ginkgo") install_ginkgo ;;
   *)
     log "Unknown name!: ${name}"
     exit 1
