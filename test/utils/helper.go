@@ -238,11 +238,15 @@ func EnsureBatchJobCompleted(namespace, jobName string) {
 // If so, return the name of that batch Job.
 func EnsureOnlyOneBatchJobCreated(namespace, jobName string) string {
 	GinkgoHelper()
-	By(fmt.Sprintf("making ensure the Job %s created only one batch Job", jobName))
-	names, err := ListBatchJobs(namespace, jobName)
-	Expect(err).To(Succeed())
-	Expect(names).Should(HaveLen(1))
-	return names[0]
+	var name string
+	Eventually(func(g Gomega) {
+		By(fmt.Sprintf("making ensure the Job %s created only one batch Job", jobName))
+		names, err := ListBatchJobs(namespace, jobName)
+		g.Expect(err).To(Succeed())
+		g.Expect(names).Should(HaveLen(1))
+		name = names[0]
+	}).To(Succeed())
+	return name
 }
 
 // Get a list of Pod names spwned from a batch Job.
@@ -264,9 +268,35 @@ func ListBatchJobPods(namespace, batchJobName string) ([]string, error) {
 // If so, return the name the Pod.
 func EnsureOnlyOneBatchJobManagedPodCreated(namespace, batchJobName string) string {
 	GinkgoHelper()
-	By(fmt.Sprintf("making ensure the batch Job %s created only one Pod", batchJobName))
-	names, err := ListBatchJobPods(namespace, batchJobName)
-	Expect(err).To(Succeed())
-	Expect(names).Should(HaveLen(1))
-	return names[0]
+	var name string
+	Eventually(func(g Gomega) {
+		By(fmt.Sprintf("making ensure the batch Job %s created only one Pod", batchJobName))
+		names, err := ListBatchJobPods(namespace, batchJobName)
+		g.Expect(err).To(Succeed())
+		g.Expect(names).Should(HaveLen(1))
+		name = names[0]
+	}).To(Succeed())
+	return name
+}
+
+type Namespace string
+
+func (n Namespace) Create() error {
+	_, err := Run(KubectlCmd("create", "namespace", string(n)))
+	return err
+}
+
+func (n Namespace) Delete(wait bool) error {
+	_, err := Run(KubectlCmd("delete", "namespace", string(n), "--ignore-not-found=true", fmt.Sprintf("--wait=%v", wait)))
+	return err
+}
+
+func (n Namespace) Ensure() {
+	GinkgoHelper()
+	Eventually(func(g Gomega) {
+		g.Expect(n.Delete(true)).To(Succeed())
+		g.Expect(n.Create()).To(Succeed())
+		_, err := Run(KubectlCmd("get", "namespace", string(n)))
+		g.Expect(err).To(Succeed())
+	}).To(Succeed())
 }

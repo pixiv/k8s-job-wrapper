@@ -35,23 +35,6 @@ func (s Suite) namespace(i int) string {
 	return fmt.Sprintf("%s-%d", s.NamespacePrefix, i)
 }
 
-func (s Suite) createNamespace(namespace string) error {
-	_, err := Run(KubectlCmd("create", "namespace", namespace))
-	return err
-}
-
-func (s Suite) deleteNamespace(namespace string, wait bool) error {
-	_, err := Run(KubectlCmd("delete", "namespace", namespace, "--ignore-not-found=true", fmt.Sprintf("--wait=%v", wait)))
-	return err
-}
-
-func (s Suite) ensureNamespace(namespace string) error {
-	if err := s.deleteNamespace(namespace, true); err != nil {
-		return err
-	}
-	return s.createNamespace(namespace)
-}
-
 func (s Suite) testcaseArg(i int) *TestcaseArg {
 	return &TestcaseArg{
 		Namespace:     s.namespace(i),
@@ -61,19 +44,9 @@ func (s Suite) testcaseArg(i int) *TestcaseArg {
 
 func (s Suite) Run() bool {
 	return Context(s.Name, func() {
-		It("should successfully create namespace", func() {
-			for i := range s.Testcases {
-				Expect(s.ensureNamespace(s.namespace(i))).To(Succeed())
-			}
-		})
 		for i, tc := range s.Testcases {
 			tc.run(s.testcaseArg(i))
 		}
-		It("should successfully delete namespace", func() {
-			for i := range s.Testcases {
-				Expect(s.deleteNamespace(s.namespace(i), false)).To(Succeed())
-			}
-		})
 	})
 }
 
@@ -95,19 +68,25 @@ func (t Testcase) stepArg(a *TestcaseArg) *StepArg {
 	}
 }
 
-func (t Testcase) cleanup(a *TestcaseArg) error {
+func (t Testcase) setup(a *TestcaseArg) {
+	GinkgoHelper()
+	Namespace(a.Namespace).Ensure()
+}
+
+func (t Testcase) cleanup(a *TestcaseArg) {
+	GinkgoHelper()
 	for _, s := range t.Steps {
-		if err := s.deleteManifest(t.stepArg(a), false); err != nil {
-			return err
-		}
+		Expect(s.deleteManifest(t.stepArg(a), false, true)).To(Succeed())
 	}
-	return nil
+	Expect(Namespace(a.Namespace).Delete(false)).To(Succeed())
 }
 
 func (t Testcase) run(a *TestcaseArg) {
 	Context(t.Name, Ordered, func() {
+		BeforeAll(func() {
+			t.setup(a)
+		})
 		AfterAll(func() {
-			By("cleanup")
 			t.cleanup(a)
 		})
 		for _, s := range t.Steps {
@@ -132,16 +111,17 @@ func (s Step) manifestPath(kustomizeRoot string) string {
 	return filepath.Join(kustomizeRoot, s.KustomizeDir)
 }
 
-func (s Step) deleteManifest(a *StepArg, wait bool) error {
+func (s Step) deleteManifest(a *StepArg, wait, ignoreNotFound bool) error {
 	_, err := Run(KubectlCmd("-n", a.Namespace, "delete", "-k", s.manifestPath(a.KustomizeRoot),
 		fmt.Sprintf("--wait=%v", wait),
+		fmt.Sprintf("--ignore-not-found=%v", ignoreNotFound),
 	))
 	return err
 }
 
 func (s Step) applyManifest(a *StepArg) error {
 	if s.DeleteBeforeApply {
-		if err := s.deleteManifest(a, true); err != nil {
+		if err := s.deleteManifest(a, true, false); err != nil {
 			return err
 		}
 	}

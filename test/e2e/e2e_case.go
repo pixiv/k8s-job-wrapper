@@ -178,7 +178,7 @@ func (e2eTest) reconcileSuccessfully() []utils.Testcase {
 							"get", "job", name, "-o", "jsonpath={.spec.template.spec.containers[0].command}",
 						))
 						Expect(err).To(Succeed())
-						Expect(output).To(Equal(`["perl","-Mbignum=bpi","-wle","print bpi(100)"]`))
+						Expect(output).To(Equal(`["perl","-Mbignum=bpi","-wle","print bpi(11)"]`))
 
 						pod := utils.EnsureOnlyOneBatchJobManagedPodCreated(a.Namespace, name)
 						for _, check := range []struct {
@@ -211,12 +211,30 @@ func (e2eTest) reconcileSuccessfully() []utils.Testcase {
 				{
 					Name: "reconcile",
 					Assert: func(a *utils.StepArg) {
+						utils.EnsurePodProfile(a.Namespace, "podprofile-sample")
+						utils.EnsureJob(a.Namespace, "job-sample")
+						utils.EnsureBatchJobCompleted(a.Namespace, "job-sample")
+
 						name := utils.EnsureOnlyOneBatchJobCreated(a.Namespace, "job-sample")
 						output, err := utils.Run(utils.KubectlCmd("-n", a.Namespace,
 							"get", "job", name, "-o", "jsonpath={.spec.template.spec.containers[0].command}",
 						))
 						Expect(err).To(Succeed())
 						Expect(output).To(Equal(`["perl","-Mbignum=bpi","-wle","print bpi(100)"]`))
+					},
+				},
+			},
+		},
+		{
+			Name:         "sample-cronjob",
+			KustomizeDir: "sample",
+			Steps: []utils.Step{
+				{
+					Name: "reconcile",
+					Assert: func(a *utils.StepArg) {
+						utils.EnsurePodProfile(a.Namespace, "podprofile-sample")
+						utils.EnsureJob(a.Namespace, "job-sample")
+						utils.EnsureBatchJobCompleted(a.Namespace, "job-sample")
 
 						utils.EnsureCronJob(a.Namespace, "cronjob-sample")
 						utils.EnsureBatchCronJob(a.Namespace, "cronjob-sample")
@@ -232,6 +250,10 @@ func (e2eTest) reconcileSuccessfully() []utils.Testcase {
 				{
 					Name: "reconcile",
 					Assert: func(a *utils.StepArg) {
+						utils.EnsurePodProfile(a.Namespace, "podprofile-simple")
+						utils.EnsureJob(a.Namespace, "job-simple")
+						utils.EnsureBatchJobCompleted(a.Namespace, "job-simple")
+
 						name := utils.EnsureOnlyOneBatchJobCreated(a.Namespace, "job-simple")
 						output, err := utils.Run(utils.KubectlCmd("-n", a.Namespace,
 							"get", "job", name, "-o", "jsonpath={.spec.template.spec.containers[0].name}",
@@ -249,6 +271,10 @@ func (e2eTest) reconcileSuccessfully() []utils.Testcase {
 				{
 					Name: "reconcile",
 					Assert: func(a *utils.StepArg) {
+						utils.EnsurePodProfile(a.Namespace, "podprofile-complex")
+						utils.EnsureJob(a.Namespace, "job-complex")
+						utils.EnsureBatchJobCompleted(a.Namespace, "job-complex")
+
 						name := utils.EnsureOnlyOneBatchJobCreated(a.Namespace, "job-complex")
 						output, err := utils.Run(utils.KubectlCmd("-n", a.Namespace,
 							"get", "job", name, "-o", "jsonpath={.spec.template.spec.containers[*].name}",

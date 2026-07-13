@@ -28,10 +28,13 @@ import (
 	"github.com/pixiv/k8s-job-wrapper/test/utils"
 )
 
-var _ = Describe("Manager", Ordered, func() {
+var _ = Describe("Manager", func() {
+	setupEventually()
+
 	// After each test, check for failures and collect logs, events,
 	// and pod descriptions for debugging.
 	AfterEach(func() {
+		controllerPodName := ensureControllerPodName()
 		specReport := CurrentSpecReport()
 		if specReport.Failed() {
 			By("Fetching controller manager pod logs")
@@ -52,14 +55,14 @@ var _ = Describe("Manager", Ordered, func() {
 				_, _ = fmt.Fprintf(GinkgoWriter, "Failed to get Kubernetes events: %s", err)
 			}
 
-			By("Fetching curl-metrics logs")
-			cmd = utils.KubectlCmd("logs", "curl-metrics", "-n", namespace)
-			metricsOutput, err := utils.Run(cmd)
-			if err == nil {
-				_, _ = fmt.Fprintf(GinkgoWriter, "Metrics logs:\n %s", metricsOutput)
-			} else {
-				_, _ = fmt.Fprintf(GinkgoWriter, "Failed to get curl-metrics logs: %s", err)
-			}
+			// By("Fetching curl-metrics logs")
+			// cmd = utils.KubectlCmd("logs", "curl-metrics", "-n", namespace)
+			// metricsOutput, err := utils.Run(cmd)
+			// if err == nil {
+			// 	_, _ = fmt.Fprintf(GinkgoWriter, "Metrics logs:\n %s", metricsOutput)
+			// } else {
+			// 	_, _ = fmt.Fprintf(GinkgoWriter, "Failed to get curl-metrics logs: %s", err)
+			// }
 
 			By("Fetching controller manager pod description")
 			cmd = utils.KubectlCmd("describe", "pod", controllerPodName, "-n", namespace)

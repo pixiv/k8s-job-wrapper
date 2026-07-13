@@ -91,7 +91,7 @@ test: manifests generate ## Run tests.
 # - CERT_MANAGER_INSTALL_SKIP=true
 .PHONY: test-e2e
 test-e2e: manifests generate create-cluster ## Run the e2e tests. Expected an isolated environment using Kind.
-	$(GINKGO) run -v ./test/e2e/
+	$(GINKGO) run -p -v ./test/e2e/
 
 TEST_CHART ?= charts/k8s-job-wrapper
 
