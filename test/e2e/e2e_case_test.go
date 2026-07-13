@@ -90,16 +90,19 @@ func (e2eTest) reconcileChanges() []utils.Testcase {
 						By("ensure cronjob schedule")
 						utils.EnsureResourceValue(a.Namespace, utils.CronJobResource, cronJobName, "{.spec.schedule}", "* * * * *")
 						By("ensure batch cronjob schedule")
-						utils.EnsureResourceValue(a.Namespace, "cronjob", utils.BatchCronJobName(cronJobName), "{.spec.schedule}", "* * * * *")
+						utils.EnsureResourceValue(a.Namespace, "cronjob", utils.BatchCronJobName(cronJobName),
+							"{.spec.schedule}", "* * * * *")
 						By("ensure job activeDealineSeconds")
-						utils.EnsureResourceValue(a.Namespace, utils.JobResource, jobName, "{.spec.profile.jobParams.activeDeadlineSeconds}", "120")
+						utils.EnsureResourceValue(a.Namespace, utils.JobResource, jobName,
+							"{.spec.profile.jobParams.activeDeadlineSeconds}", "120")
 						By("ensure batch job activeDeadlineSeconds")
 						{
 							name := getBatchJobName(a.Namespace)
 							utils.EnsureResourceValue(a.Namespace, "job", name, "{.spec.activeDeadlineSeconds}", "120")
 						}
 						By("ensure podprofile image")
-						utils.EnsureResourceValue(a.Namespace, utils.PodProfileResource, podProfileName, "{.spec.template.spec.containers[0].image}", "perl:5.34.0")
+						utils.EnsureResourceValue(a.Namespace, utils.PodProfileResource, podProfileName,
+							"{.spec.template.spec.containers[0].image}", "perl:5.34.0")
 						By("ensure batch cronjob container image")
 						utils.EnsureResourceValue(a.Namespace, "cronjob", utils.BatchCronJobName(cronJobName),
 							"{.spec.jobTemplate.spec.template.spec.containers[0].image}", "perl:5.34.0")
@@ -119,7 +122,8 @@ func (e2eTest) reconcileChanges() []utils.Testcase {
 						By("ensure cronjob schedule change")
 						utils.EnsureResourceValue(a.Namespace, utils.CronJobResource, cronJobName, "{.spec.schedule}", "0 0 31 2 *")
 						By("ensure batch cronjob schedule change")
-						utils.EnsureResourceValue(a.Namespace, "cronjob", utils.BatchCronJobName(cronJobName), "{.spec.schedule}", "0 0 31 2 *")
+						utils.EnsureResourceValue(a.Namespace, "cronjob", utils.BatchCronJobName(cronJobName),
+							"{.spec.schedule}", "0 0 31 2 *")
 					},
 				},
 				{
@@ -128,7 +132,8 @@ func (e2eTest) reconcileChanges() []utils.Testcase {
 					Assert: func(a *utils.StepArg) {
 						ensureResources(a.Namespace)
 						By("ensure job activeDeadlineSeconds change")
-						utils.EnsureResourceValue(a.Namespace, utils.JobResource, jobName, "{.spec.profile.jobParams.activeDeadlineSeconds}", "1200")
+						utils.EnsureResourceValue(a.Namespace, utils.JobResource, jobName,
+							"{.spec.profile.jobParams.activeDeadlineSeconds}", "1200")
 						By("ensure batch job activeDeadlineSeconds change")
 						{
 							name := getBatchJobName(a.Namespace)
@@ -143,7 +148,8 @@ func (e2eTest) reconcileChanges() []utils.Testcase {
 					Assert: func(a *utils.StepArg) {
 						ensureResources(a.Namespace)
 						By("ensure podprofile container image change")
-						utils.EnsureResourceValue(a.Namespace, utils.PodProfileResource, podProfileName, "{.spec.template.spec.containers[0].image}", "perl:5.42.0")
+						utils.EnsureResourceValue(a.Namespace, utils.PodProfileResource, podProfileName,
+							"{.spec.template.spec.containers[0].image}", "perl:5.42.0")
 						By("ensure batch cronjob container image change")
 						utils.EnsureResourceValue(a.Namespace, "cronjob", utils.BatchCronJobName(cronJobName),
 							"{.spec.jobTemplate.spec.template.spec.containers[0].image}", "perl:5.42.0")
