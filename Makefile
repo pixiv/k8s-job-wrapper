@@ -128,16 +128,29 @@ go-fix-diff: ## Run go fix -diff.
 go-fix: ## Run go fix.
 	go fix ./...
 
+.PHONY: govulncheck
+govulncheck: ## Run govulncheck.
+	$(GOVULNCHECK) ./...
+
+LINT_TASKS := lint-licenses go-fix-diff fmt vet golangci-lint govulncheck
+
 .PHONY: lint
-lint: lint-licenses go-fix-diff fmt vet ## Run golangci-lint linter
+lint: ## Run linters
+	$(MAKE) -j $(words $(LINT_TASKS)) $(LINT_TASKS)
+
+.PHONY: golangci-lint
+golangci-lint: golangci-lint-config ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run
 
 .PHONY: lint-fix
-lint-fix: go-fix fmt vet ## Run golangci-lint linter and perform fixes
+lint-fix: go-fix fmt vet golangci-lint-fix ## Run linters and perform fixes
+
+.PHONY: golangci-lint-fix
+golangci-lint-fix: golangci-lint-config ## Run golangci-lint linter and perform fixes
 	$(GOLANGCI_LINT) run --fix
 
-.PHONY: lint-config
-lint-config: ## Verify golangci-lint linter configuration
+.PHONY: golangci-lint-config
+golangci-lint-config: ## Verify golangci-lint linter configuration
 	$(GOLANGCI_LINT) config verify
 
 .PHONY: lint-licenses
@@ -240,3 +253,4 @@ GOLANGCI_LINT = $(TOOLS) golangci-lint
 KIND := $(TOOLS) kind
 HELM := $(TOOLS) helm
 GINKGO := $(TOOLS) ginkgo
+GOVULNCHECK := $(HACK)/govulncheck.sh

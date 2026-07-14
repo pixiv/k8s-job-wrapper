@@ -95,6 +95,10 @@ install_ginkgo() {
   install "github.com/onsi/ginkgo/v2/ginkgo@${version}"
 }
 
+install_govulncheck() {
+  install "golang.org/x/vuln/cmd/govulncheck@${version}"
+}
+
 if [[ "$name" = "setup-envtest" ]] ; then
   install_setup_envtest
   exit
@@ -115,6 +119,7 @@ case "$name" in
   "helmify") install_helmify ;;
   "helm-schema") install_helm_schema ;;
   "ginkgo") install_ginkgo ;;
+  "govulncheck") install_govulncheck ;;
   *)
     log "Unknown name!: ${name}"
     exit 1
