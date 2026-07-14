@@ -52,23 +52,17 @@ set +e
 fixable_count=$(grep "Fixed in:" "$out" | grep -vc "N/A")
 set -e
 
-cat "$out"
-
 if [[ "$fixable_count" -gt 0 ]] ; then
-  cat <<EOS
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-FAIL: Found ${fixable_count} vulnerabilities with available fixes.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-EOS
+  echo "::error title=govulncheck::Found ${fixable_count} vulnerabilities with available fixes."
 else
-  cat <<EOS
-**********************************************************************
-WARNING: Found vulnerabilities, but none have known fixes. CI will pass.
-**********************************************************************
-EOS
+  echo "::warning title=govulncheck::Found vulnerabilities, but none have known fixes. CI will pass."
 fi
 
 summary < "$out"
+
+echo "::group::govulncheckのログを表示する"
+cat "$out"
+echo "::endgroup::"
 
 # Exit with 0 (success) if there are no fixable vulnerabilities, allowing the CI to pass.
 # Otherwise, exit with a non-zero code to fail the CI run.
