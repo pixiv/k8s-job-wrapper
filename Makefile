@@ -132,8 +132,11 @@ go-fix: ## Run go fix.
 govulncheck: ## Run govulncheck.
 	$(GOVULNCHECK) ./...
 
+LINT_TASKS := lint-licenses go-fix-diff fmt vet golangci-lint govulncheck
+
 .PHONY: lint
-lint: lint-licenses go-fix-diff fmt vet golangci-lint govulncheck ## Run linters
+lint: ## Run linters
+	$(MAKE) -j $(words $(LINT_TASKS)) $(LINT_TASKS)
 
 .PHONY: golangci-lint
 golangci-lint: golangci-lint-config ## Run golangci-lint linter
