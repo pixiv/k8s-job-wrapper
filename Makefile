@@ -250,4 +250,4 @@ GOLANGCI_LINT = $(TOOLS) golangci-lint
 KIND := $(TOOLS) kind
 HELM := $(TOOLS) helm
 GINKGO := $(TOOLS) ginkgo
-GOVULNCHECK := $(TOOLS) govulncheck
+GOVULNCHECK := $(HACK)/govulncheck.sh
