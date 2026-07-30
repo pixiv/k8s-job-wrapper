@@ -79,7 +79,7 @@ if [[ ! -x "$binary" ]] ; then
     "helmify") setup_go "$HELMIFY_VERSION" ;;
     "yq") setup "$YQ_VERSION" ;;
     "helm-schema") setup_go "$HELM_SCHEMA_VERSION" ;;
-    "ginkgo") setup_go "$GINKGO_VERSION" ;;
+    "ginkgo") setup_go ;;
     "govulncheck") setup_go "$GOVULNCHECK_VERSION" ;;
     *)
       log "Unknown tool!: ${name}"

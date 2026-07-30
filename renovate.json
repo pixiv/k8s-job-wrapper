@@ -195,14 +195,6 @@
       "depNameTemplate": "dadav/helm-schema"
     },
     {
-      "description": "Manage ginkgo version",
-      "customType": "regex",
-      "fileMatch": ["^.github/.env$"],
-      "matchStrings":["GINKGO_VERSION=(?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
-      "datasourceTemplate": "github-releases",
-      "depNameTemplate": "onsi/ginkgo/v2"
-    },
-    {
       "description": "Manage govulncheck version",
       "customType": "regex",
       "fileMatch": ["^.github/.env$"],

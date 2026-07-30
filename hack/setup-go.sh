@@ -91,18 +91,22 @@ install_helm_schema() {
   install "github.com/dadav/helm-schema/cmd/helm-schema@${version}"
 }
 
+ginkgo_version() {
+  gomodver "github.com/onsi/ginkgo/v2"
+}
+
 install_ginkgo() {
-  install "github.com/onsi/ginkgo/v2/ginkgo@${version}"
+  install "github.com/onsi/ginkgo/v2/ginkgo@$(ginkgo_version)"
 }
 
 install_govulncheck() {
   install "golang.org/x/vuln/cmd/govulncheck@${version}"
 }
 
-if [[ "$name" = "setup-envtest" ]] ; then
-  install_setup_envtest
-  exit
-fi
+case "$name" in
+  "setup-envtest") install_setup_envtest ; exit ;;
+  "ginkgo") install_ginkgo ; exit ;;
+esac
 
 if [[ -z "$version" ]] ; then
   log "No version!"
@@ -118,7 +122,6 @@ case "$name" in
   "kubebuilder") install_kubebuilder ;;
   "helmify") install_helmify ;;
   "helm-schema") install_helm_schema ;;
-  "ginkgo") install_ginkgo ;;
   "govulncheck") install_govulncheck ;;
   *)
     log "Unknown name!: ${name}"
