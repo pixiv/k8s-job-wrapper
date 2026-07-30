@@ -73,8 +73,7 @@ Edit following files:
 
 1. Run [Create Update Version PR](https://github.com/pixiv/k8s-job-wrapper/actions/workflows/update-version.yml)
 2. Confirm the PR and merge it
-3. Confirm that CI on the main branch is green
-4. Create a PR, ensure that the CI passes, and then merge it. Then
+3. Confirm that CI on the main branch is green. Then
 
 ``` shell
 git switch main
