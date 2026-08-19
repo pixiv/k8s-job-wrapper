@@ -178,6 +178,9 @@ type JobParams struct {
 	//
 	// When CRD [Job] uses this, even if the TTL is expired, one [Job](https://kubernetes.io/ja/docs/concepts/workloads/controllers/job/) will remain. It will be reflected in
 	// the `jobs.pixiv.net/ttl-seconds-after-finished` annotation instead of `jobs.v1.batch.spec.ttlSecondsAfterFinished`.
+	//
+	// When CRD CronJob uses this, it is reflected in `cronjobs.v1.batch.spec.jobTemplate.spec.ttlSecondsAfterFinished`
+	// as is, and finished Jobs are deleted by the built-in TTL-after-finished controller.
 	// +optional
 	TTLSecondsAfterFinished *int32 `json:"ttlSecondsAfterFinished,omitempty"`
 
