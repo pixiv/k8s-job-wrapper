@@ -112,6 +112,7 @@ func BatchCronJob(ctx context.Context, cronJob *pixivnetv1.CronJob, podProfile *
 	}
 	spec.JobTemplate.Annotations = cronJob.Spec.Profile.Metadata.Annotations
 	spec.JobTemplate.Labels = cronJob.Spec.Profile.Metadata.Labels
+	spec.JobTemplate.Spec.TTLSecondsAfterFinished = cronJob.Spec.Profile.Params.TTLSecondsAfterFinished
 
 	return &batchCronJob, nil
 }
