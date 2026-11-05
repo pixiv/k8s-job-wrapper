@@ -138,6 +138,7 @@ func (c cronJobControllerTest) reconcileNormalTest() controllerTestContext {
 				Expect(err).To(Succeed())
 				Expect(batchCronJob.Spec.Schedule).To(Equal("* * * * *"))
 				Expect(batchCronJob.Spec.JobTemplate.Spec.Suspend).Should(Equal(new(true)))
+				Expect(batchCronJob.Spec.JobTemplate.Spec.TTLSecondsAfterFinished).Should(Equal(new(int32(1800))))
 				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers).Should(HaveLen(1))
 				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Name).Should(Equal("pi"))
 				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image).Should(Equal("debian:bookworm-slim"))

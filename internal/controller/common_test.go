@@ -88,7 +88,8 @@ func (controllerTestBase) newCronJob(namespace, resourceName, podProfileRef stri
 					},
 				},
 				Params: pixivnetv1.JobParams{
-					Suspend: new(true),
+					Suspend:                 new(true),
+					TTLSecondsAfterFinished: new(int32(1800)),
 				},
 			},
 			Schedule: "* * * * *",
