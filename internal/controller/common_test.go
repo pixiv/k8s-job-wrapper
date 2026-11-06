@@ -48,10 +48,8 @@ func (controllerTestBase) newNSName(namespace, resourceName string) types.Namesp
 
 func (controllerTestBase) newPodProfile(namespace, resourceName string) *pixivnetv1.PodProfile {
 	return &pixivnetv1.PodProfile{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.PodProfileSpec{
 			Template: pixivnetv1.PodProfileTemplate{
 				Spec: corev1.PodSpec{
@@ -71,10 +69,8 @@ func (controllerTestBase) newPodProfile(namespace, resourceName string) *pixivne
 
 func (controllerTestBase) newCronJob(namespace, resourceName, podProfileRef string) *pixivnetv1.CronJob {
 	return &pixivnetv1.CronJob{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.CronJobSpec{
 			Profile: pixivnetv1.JobProfileSpec{
 				PodProfileRef: podProfileRef,
@@ -98,10 +94,8 @@ func (controllerTestBase) newCronJob(namespace, resourceName, podProfileRef stri
 
 func (controllerTestBase) newJob(namespace, resourceName, podProfileRef string) *pixivnetv1.Job {
 	return &pixivnetv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.JobSpec{
 			Profile: pixivnetv1.JobProfileSpec{
 				PodProfileRef: podProfileRef,
@@ -124,10 +118,8 @@ func (controllerTestBase) newJob(namespace, resourceName, podProfileRef string) 
 
 func (controllerTestBase) newJobWithTTL(namespace, resourceName, podProfileRef string, ttl int) *pixivnetv1.Job {
 	return &pixivnetv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.JobSpec{
 			Profile: pixivnetv1.JobProfileSpec{
 				PodProfileRef: podProfileRef,
@@ -150,10 +142,8 @@ func (controllerTestBase) newJobWithTTL(namespace, resourceName, podProfileRef s
 
 func (controllerTestBase) newJobWithHistoryLimit(namespace, resourceName, podProfileRef string, limit int) *pixivnetv1.Job {
 	return &pixivnetv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.JobSpec{
 			JobsHistoryLimit: new(limit),
 			Profile: pixivnetv1.JobProfileSpec{
@@ -174,10 +164,8 @@ func (controllerTestBase) newJobWithHistoryLimit(namespace, resourceName, podPro
 
 func (controllerTestBase) newJobWithComplexPatch(namespace, resourceName, podProfileRef string) *pixivnetv1.Job {
 	return &pixivnetv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.JobSpec{
 			Profile: pixivnetv1.JobProfileSpec{
 				PodProfileRef: podProfileRef,
@@ -201,10 +189,8 @@ func (controllerTestBase) newJobWithComplexPatch(namespace, resourceName, podPro
 
 func (controllerTestBase) newJobWithMeta(namespace, resourceName, podProfileRef string) *pixivnetv1.Job {
 	return &pixivnetv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.JobSpec{
 			Profile: pixivnetv1.JobProfileSpec{
 				PodProfileRef: podProfileRef,
