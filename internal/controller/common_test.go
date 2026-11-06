@@ -30,7 +30,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+const (
+	replacePatchOperation           = "replace"
+	containerImagePatchPath         = "/spec/containers/0/image"
+	reconcileResourceContext        = "When reconciling a resource"
+	reconcileResourceWithTTLContext = "When reconciling a resource with TTL"
+	sleepCommand                    = "sleep"
+)
+
 type controllerTestBase struct{}
+
+func piCommand() []string {
+	return []string{"perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"}
+}
 
 func (controllerTestBase) reconcile(ctx context.Context, r reconcile.Reconciler, req types.NamespacedName) error {
 	_, err := r.Reconcile(ctx, reconcile.Request{
@@ -48,10 +60,8 @@ func (controllerTestBase) newNSName(namespace, resourceName string) types.Namesp
 
 func (controllerTestBase) newPodProfile(namespace, resourceName string) *pixivnetv1.PodProfile {
 	return &pixivnetv1.PodProfile{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.PodProfileSpec{
 			Template: pixivnetv1.PodProfileTemplate{
 				Spec: corev1.PodSpec{
@@ -59,7 +69,7 @@ func (controllerTestBase) newPodProfile(namespace, resourceName string) *pixivne
 						{
 							Name:    "pi",
 							Image:   "perl:5.34.0",
-							Command: []string{"perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"},
+							Command: piCommand(),
 						},
 					},
 					RestartPolicy: corev1.RestartPolicyNever,
@@ -71,17 +81,15 @@ func (controllerTestBase) newPodProfile(namespace, resourceName string) *pixivne
 
 func (controllerTestBase) newCronJob(namespace, resourceName, podProfileRef string) *pixivnetv1.CronJob {
 	return &pixivnetv1.CronJob{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.CronJobSpec{
 			Profile: pixivnetv1.JobProfileSpec{
 				PodProfileRef: podProfileRef,
 				Patches: []pixivnetv1.JobPatch{
 					{
-						Operation: "replace",
-						Path:      "/spec/containers/0/image",
+						Operation: replacePatchOperation,
+						Path:      containerImagePatchPath,
 						Value: apiextensionsv1.JSON{
 							Raw: []byte(`"debian:bookworm-slim"`),
 						},
@@ -98,17 +106,15 @@ func (controllerTestBase) newCronJob(namespace, resourceName, podProfileRef stri
 
 func (controllerTestBase) newJob(namespace, resourceName, podProfileRef string) *pixivnetv1.Job {
 	return &pixivnetv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.JobSpec{
 			Profile: pixivnetv1.JobProfileSpec{
 				PodProfileRef: podProfileRef,
 				Patches: []pixivnetv1.JobPatch{
 					{
-						Operation: "replace",
-						Path:      "/spec/containers/0/image",
+						Operation: replacePatchOperation,
+						Path:      containerImagePatchPath,
 						Value: apiextensionsv1.JSON{
 							Raw: []byte(`"debian:bookworm-slim"`),
 						},
@@ -124,17 +130,15 @@ func (controllerTestBase) newJob(namespace, resourceName, podProfileRef string) 
 
 func (controllerTestBase) newJobWithTTL(namespace, resourceName, podProfileRef string, ttl int) *pixivnetv1.Job {
 	return &pixivnetv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.JobSpec{
 			Profile: pixivnetv1.JobProfileSpec{
 				PodProfileRef: podProfileRef,
 				Patches: []pixivnetv1.JobPatch{
 					{
-						Operation: "replace",
-						Path:      "/spec/containers/0/image",
+						Operation: replacePatchOperation,
+						Path:      containerImagePatchPath,
 						Value: apiextensionsv1.JSON{
 							Raw: []byte(`"debian:bookworm-slim"`),
 						},
@@ -150,18 +154,16 @@ func (controllerTestBase) newJobWithTTL(namespace, resourceName, podProfileRef s
 
 func (controllerTestBase) newJobWithHistoryLimit(namespace, resourceName, podProfileRef string, limit int) *pixivnetv1.Job {
 	return &pixivnetv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.JobSpec{
 			JobsHistoryLimit: new(limit),
 			Profile: pixivnetv1.JobProfileSpec{
 				PodProfileRef: podProfileRef,
 				Patches: []pixivnetv1.JobPatch{
 					{
-						Operation: "replace",
-						Path:      "/spec/containers/0/image",
+						Operation: replacePatchOperation,
+						Path:      containerImagePatchPath,
 						Value: apiextensionsv1.JSON{
 							Raw: []byte(`"debian:bookworm-slim"`),
 						},
@@ -174,10 +176,8 @@ func (controllerTestBase) newJobWithHistoryLimit(namespace, resourceName, podPro
 
 func (controllerTestBase) newJobWithComplexPatch(namespace, resourceName, podProfileRef string) *pixivnetv1.Job {
 	return &pixivnetv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.JobSpec{
 			Profile: pixivnetv1.JobProfileSpec{
 				PodProfileRef: podProfileRef,
@@ -201,17 +201,15 @@ func (controllerTestBase) newJobWithComplexPatch(namespace, resourceName, podPro
 
 func (controllerTestBase) newJobWithMeta(namespace, resourceName, podProfileRef string) *pixivnetv1.Job {
 	return &pixivnetv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resourceName,
-			Namespace: namespace,
-		},
+		Name:      resourceName,
+		Namespace: namespace,
 		Spec: pixivnetv1.JobSpec{
 			Profile: pixivnetv1.JobProfileSpec{
 				PodProfileRef: podProfileRef,
 				Patches: []pixivnetv1.JobPatch{
 					{
-						Operation: "replace",
-						Path:      "/spec/containers/0/image",
+						Operation: replacePatchOperation,
+						Path:      containerImagePatchPath,
 						Value: apiextensionsv1.JSON{
 							Raw: []byte(`"debian:bookworm-slim"`),
 						},

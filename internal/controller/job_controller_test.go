@@ -43,7 +43,7 @@ type jobControllerTest struct {
 }
 
 func (j jobControllerTest) run() bool {
-	contexts := []controllerTestContext{
+	contexts := slices.Concat([]controllerTestContext{
 		j.reconcilePodProfileMissing(),
 		j.reconcileComplexPatch(),
 		j.reconcileMeta(),
@@ -51,8 +51,7 @@ func (j jobControllerTest) run() bool {
 		j.reconcileTTLSingleBatchJob(),
 		j.reconcileTTL(),
 		j.reconcileDeleteOldJobs(),
-	}
-	contexts = append(contexts, j.reconcileRecreateJobs()...)
+	}, j.reconcileRecreateJobs())
 	return controllerTest{
 		name:            "JobController",
 		namespacePrefix: "job",
@@ -152,7 +151,7 @@ func (j jobControllerTest) reconcileComplexPatch() controllerTestContext {
 				Expect(batchJob.Spec.Template.Spec.Containers).Should(HaveLen(2))
 				Expect(batchJob.Spec.Template.Spec.Containers[1].Name).To(Equal("added"))
 				Expect(batchJob.Spec.Template.Spec.Containers[1].Image).To(Equal("debian:bookworm"))
-				Expect(batchJob.Spec.Template.Spec.Containers[1].Command).To(Equal([]string{"sleep", "1"}))
+				Expect(batchJob.Spec.Template.Spec.Containers[1].Command).To(Equal([]string{sleepCommand, "1"}))
 			})
 		},
 	}
@@ -206,7 +205,7 @@ func (j jobControllerTest) reconcileMeta() controllerTestContext {
 func (j jobControllerTest) reconcileNormal() controllerTestContext {
 	const resourceName = "job-reconcile"
 	return controllerTestContext{
-		name: "When reconciling a resource",
+		name: reconcileResourceContext,
 		beforeEach: func(a *controllerTestContextArg) {
 			By(fmt.Sprintf("creating the custom resource for the Kind PodProfile: %s", resourceName))
 			Expect(k8sClient.Create(ctx, j.newPodProfile(a.namespace, resourceName))).To(Succeed())
@@ -242,9 +241,7 @@ func (j jobControllerTest) reconcileNormal() controllerTestContext {
 				Expect(batchJob.Spec.Template.Spec.Containers).Should(HaveLen(1))
 				Expect(batchJob.Spec.Template.Spec.Containers[0].Name).Should(Equal("pi"))
 				Expect(batchJob.Spec.Template.Spec.Containers[0].Image).Should(Equal("debian:bookworm-slim"))
-				Expect(batchJob.Spec.Template.Spec.Containers[0].Command).Should(Equal([]string{
-					"perl", "-Mbignum=bpi", "-wle", "print bpi(2000)",
-				}))
+				Expect(batchJob.Spec.Template.Spec.Containers[0].Command).Should(Equal(piCommand()))
 				By("making sure the Status updated successfully")
 				Expect(job.Status.Conditions).ShouldNot(BeEmpty(), "status should be updated")
 			})
@@ -255,7 +252,7 @@ func (j jobControllerTest) reconcileNormal() controllerTestContext {
 func (j jobControllerTest) reconcileTTLSingleBatchJob() controllerTestContext {
 	const resourceName = "job-ttl-single-batch-job"
 	return controllerTestContext{
-		name: "When reconciling a resource with TTL",
+		name: reconcileResourceWithTTLContext,
 		beforeEach: func(a *controllerTestContextArg) {
 			By(fmt.Sprintf("creating the custom resource for the Kind PodProfile: %s", resourceName))
 			Expect(k8sClient.Create(ctx, j.newPodProfile(a.namespace, resourceName))).To(Succeed())
@@ -317,7 +314,7 @@ func (j jobControllerTest) reconcileTTLSingleBatchJob() controllerTestContext {
 func (j jobControllerTest) reconcileTTL() controllerTestContext {
 	const resourceName = "job-ttl"
 	return controllerTestContext{
-		name: "When reconciling a resource with TTL",
+		name: reconcileResourceWithTTLContext,
 		beforeEach: func(a *controllerTestContextArg) {
 			By(fmt.Sprintf("creating the custom resource for the Kind PodProfile: %s", resourceName))
 			Expect(k8sClient.Create(ctx, j.newPodProfile(a.namespace, resourceName))).To(Succeed())
@@ -446,7 +443,7 @@ func (j jobControllerTest) reconcileDeleteOldJobs() controllerTestContext {
 	const resourceName = "job-delete-olds"
 	now := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
 	return controllerTestContext{
-		name: "When reconciling a resource with TTL",
+		name: reconcileResourceWithTTLContext,
 		beforeEach: func(a *controllerTestContextArg) {
 			By(fmt.Sprintf("creating the custom resource for the Kind PodProfile: %s", resourceName))
 			Expect(k8sClient.Create(ctx, j.newPodProfile(a.namespace, resourceName))).To(Succeed())

@@ -33,7 +33,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -44,6 +43,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
+
+const reasonReconciling = "Reconciling"
 
 // JobReconciler reconciles a Job object
 type JobReconciler struct {
@@ -102,13 +103,13 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			setCondition(metav1.Condition{
 				Type:    string(pixivnetv1.JobAvailable),
 				Status:  metav1.ConditionFalse,
-				Reason:  "Reconciling",
+				Reason:  reasonReconciling,
 				Message: message, // Set the message to `Available`.
 			})
 			setCondition(metav1.Condition{
 				Type:   string(pixivnetv1.JobDegraded),
 				Status: metav1.ConditionTrue,
-				Reason: "Reconciling",
+				Reason: reasonReconciling,
 			})
 		}
 	)
@@ -516,10 +517,8 @@ func (r *JobReconciler) watchBatchJobHandler() handler.EventHandler {
 
 		return []reconcile.Request{
 			{
-				NamespacedName: types.NamespacedName{
-					Namespace: obj.GetNamespace(),
-					Name:      name,
-				},
+				Namespace: obj.GetNamespace(),
+				Name:      name,
 			},
 		}
 	})
@@ -584,10 +583,8 @@ func (r *JobReconciler) watchPodProfileHandler() handler.EventHandler {
 		for i, x := range jobs.Items {
 			logger.V(2).Info("found job by podProfileRef", "job", x.GetName())
 			requests[i] = reconcile.Request{
-				NamespacedName: types.NamespacedName{
-					Namespace: x.GetNamespace(),
-					Name:      x.GetName(),
-				},
+				Namespace: x.GetNamespace(),
+				Name:      x.GetName(),
 			}
 		}
 		return requests

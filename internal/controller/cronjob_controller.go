@@ -30,7 +30,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	applybatchv1 "k8s.io/client-go/applyconfigurations/batch/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -95,13 +94,13 @@ func (r *CronJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			setCondition(metav1.Condition{
 				Type:    string(pixivnetv1.CronJobAvailable),
 				Status:  metav1.ConditionFalse,
-				Reason:  "Reconciling",
+				Reason:  reasonReconciling,
 				Message: message, // Set the message to `Available`.
 			})
 			setCondition(metav1.Condition{
 				Type:   string(pixivnetv1.CronJobDegraded),
 				Status: metav1.ConditionTrue,
-				Reason: "Reconciling",
+				Reason: reasonReconciling,
 			})
 		}
 	)
@@ -252,10 +251,8 @@ func (r *CronJobReconciler) watchPodProfileHandler() handler.EventHandler {
 		for i, x := range cronJobs.Items {
 			logger.V(2).Info("found cronjob by podProfileRef", "cronjob", x.GetName())
 			requests[i] = reconcile.Request{
-				NamespacedName: types.NamespacedName{
-					Namespace: x.GetNamespace(),
-					Name:      x.GetName(),
-				},
+				Namespace: x.GetNamespace(),
+				Name:      x.GetName(),
 			}
 		}
 		return requests

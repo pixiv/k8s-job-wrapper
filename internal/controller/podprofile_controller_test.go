@@ -49,7 +49,7 @@ func (podProfileControllerTest) newReconciler() *PodProfileReconciler {
 func (p podProfileControllerTest) reconcileNormalTest() controllerTestContext {
 	const resourceName = "sample"
 	return controllerTestContext{
-		name: "When reconciling a resource",
+		name: reconcileResourceContext,
 		beforeEach: func(a *controllerTestContextArg) {
 			typeNamespacedName := p.newNSName(a.namespace, resourceName)
 			By("creating the custom resource for the Kind PodProfile")
