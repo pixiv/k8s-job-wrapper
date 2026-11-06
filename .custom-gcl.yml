@@ -3,4 +3,4 @@ destination: ./bin
 plugins:
   - module: "sigs.k8s.io/logtools"
     import: "sigs.k8s.io/logtools/logcheck/gclplugin"
-    version: v0.10.1
+    version: v0.11.0

@@ -366,7 +366,7 @@ func (r *JobReconciler) processBatchJobTTL(ctx context.Context, now time.Time, j
 			job: job,
 		}
 	}
-	logger = logger.WithValues("expireAt", expireAt)
+	logger = logger.WithValues("expireAt", *expireAt)
 
 	if delay := expireAt.Sub(now); delay > 0 {
 		// Delete this in a later reconcile, not now.
