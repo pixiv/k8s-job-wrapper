@@ -167,13 +167,19 @@ func (e2eTest) reconcileChanges() []utils.Testcase {
 }
 
 func (e2eTest) reconcileSuccessfully() []utils.Testcase {
+	const (
+		podMetadataTestName = "pod-metadata"
+		sampleTestName      = "sample"
+		reconcileStepName   = "reconcile"
+	)
+
 	return []utils.Testcase{
 		{
-			Name:         "pod-metadata",
-			KustomizeDir: "pod-metadata",
+			Name:         podMetadataTestName,
+			KustomizeDir: podMetadataTestName,
 			Steps: []utils.Step{
 				{
-					Name: "reconcile",
+					Name: reconcileStepName,
 					Assert: func(a *utils.StepArg) {
 						utils.EnsurePodProfile(a.Namespace, "podprofile-pod-metadata")
 						utils.EnsureJob(a.Namespace, "job-pod-metadata")
@@ -193,7 +199,7 @@ func (e2eTest) reconcileSuccessfully() []utils.Testcase {
 						}{
 							{
 								path: `{.metadata.labels.app}`,
-								want: "pod-metadata",
+								want: podMetadataTestName,
 							},
 							{
 								path: `{.metadata.annotations.desc}`,
@@ -211,11 +217,11 @@ func (e2eTest) reconcileSuccessfully() []utils.Testcase {
 			},
 		},
 		{
-			Name:         "sample",
-			KustomizeDir: "sample",
+			Name:         sampleTestName,
+			KustomizeDir: sampleTestName,
 			Steps: []utils.Step{
 				{
-					Name: "reconcile",
+					Name: reconcileStepName,
 					Assert: func(a *utils.StepArg) {
 						utils.EnsurePodProfile(a.Namespace, "podprofile-sample")
 						utils.EnsureJob(a.Namespace, "job-sample")
@@ -233,10 +239,10 @@ func (e2eTest) reconcileSuccessfully() []utils.Testcase {
 		},
 		{
 			Name:         "sample-cronjob",
-			KustomizeDir: "sample",
+			KustomizeDir: sampleTestName,
 			Steps: []utils.Step{
 				{
-					Name: "reconcile",
+					Name: reconcileStepName,
 					Assert: func(a *utils.StepArg) {
 						utils.EnsurePodProfile(a.Namespace, "podprofile-sample")
 						utils.EnsureJob(a.Namespace, "job-sample")
@@ -254,7 +260,7 @@ func (e2eTest) reconcileSuccessfully() []utils.Testcase {
 			KustomizeDir: "simple",
 			Steps: []utils.Step{
 				{
-					Name: "reconcile",
+					Name: reconcileStepName,
 					Assert: func(a *utils.StepArg) {
 						utils.EnsurePodProfile(a.Namespace, "podprofile-simple")
 						utils.EnsureJob(a.Namespace, "job-simple")
@@ -275,7 +281,7 @@ func (e2eTest) reconcileSuccessfully() []utils.Testcase {
 			KustomizeDir: "complex",
 			Steps: []utils.Step{
 				{
-					Name: "reconcile",
+					Name: reconcileStepName,
 					Assert: func(a *utils.StepArg) {
 						utils.EnsurePodProfile(a.Namespace, "podprofile-complex")
 						utils.EnsureJob(a.Namespace, "job-complex")

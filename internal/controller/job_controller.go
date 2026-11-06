@@ -44,6 +44,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+const reasonReconciling = "Reconciling"
+
 // JobReconciler reconciles a Job object
 type JobReconciler struct {
 	client.Client
@@ -101,13 +103,13 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			setCondition(metav1.Condition{
 				Type:    string(pixivnetv1.JobAvailable),
 				Status:  metav1.ConditionFalse,
-				Reason:  "Reconciling",
+				Reason:  reasonReconciling,
 				Message: message, // Set the message to `Available`.
 			})
 			setCondition(metav1.Condition{
 				Type:   string(pixivnetv1.JobDegraded),
 				Status: metav1.ConditionTrue,
-				Reason: "Reconciling",
+				Reason: reasonReconciling,
 			})
 		}
 	)

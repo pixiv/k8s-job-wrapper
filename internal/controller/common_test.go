@@ -30,7 +30,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
+const (
+	replacePatchOperation           = "replace"
+	containerImagePatchPath         = "/spec/containers/0/image"
+	reconcileResourceContext        = "When reconciling a resource"
+	reconcileResourceWithTTLContext = "When reconciling a resource with TTL"
+	sleepCommand                    = "sleep"
+)
+
 type controllerTestBase struct{}
+
+func piCommand() []string {
+	return []string{"perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"}
+}
 
 func (controllerTestBase) reconcile(ctx context.Context, r reconcile.Reconciler, req types.NamespacedName) error {
 	_, err := r.Reconcile(ctx, reconcile.Request{
@@ -57,7 +69,7 @@ func (controllerTestBase) newPodProfile(namespace, resourceName string) *pixivne
 						{
 							Name:    "pi",
 							Image:   "perl:5.34.0",
-							Command: []string{"perl", "-Mbignum=bpi", "-wle", "print bpi(2000)"},
+							Command: piCommand(),
 						},
 					},
 					RestartPolicy: corev1.RestartPolicyNever,
@@ -76,8 +88,8 @@ func (controllerTestBase) newCronJob(namespace, resourceName, podProfileRef stri
 				PodProfileRef: podProfileRef,
 				Patches: []pixivnetv1.JobPatch{
 					{
-						Operation: "replace",
-						Path:      "/spec/containers/0/image",
+						Operation: replacePatchOperation,
+						Path:      containerImagePatchPath,
 						Value: apiextensionsv1.JSON{
 							Raw: []byte(`"debian:bookworm-slim"`),
 						},
@@ -101,8 +113,8 @@ func (controllerTestBase) newJob(namespace, resourceName, podProfileRef string) 
 				PodProfileRef: podProfileRef,
 				Patches: []pixivnetv1.JobPatch{
 					{
-						Operation: "replace",
-						Path:      "/spec/containers/0/image",
+						Operation: replacePatchOperation,
+						Path:      containerImagePatchPath,
 						Value: apiextensionsv1.JSON{
 							Raw: []byte(`"debian:bookworm-slim"`),
 						},
@@ -125,8 +137,8 @@ func (controllerTestBase) newJobWithTTL(namespace, resourceName, podProfileRef s
 				PodProfileRef: podProfileRef,
 				Patches: []pixivnetv1.JobPatch{
 					{
-						Operation: "replace",
-						Path:      "/spec/containers/0/image",
+						Operation: replacePatchOperation,
+						Path:      containerImagePatchPath,
 						Value: apiextensionsv1.JSON{
 							Raw: []byte(`"debian:bookworm-slim"`),
 						},
@@ -150,8 +162,8 @@ func (controllerTestBase) newJobWithHistoryLimit(namespace, resourceName, podPro
 				PodProfileRef: podProfileRef,
 				Patches: []pixivnetv1.JobPatch{
 					{
-						Operation: "replace",
-						Path:      "/spec/containers/0/image",
+						Operation: replacePatchOperation,
+						Path:      containerImagePatchPath,
 						Value: apiextensionsv1.JSON{
 							Raw: []byte(`"debian:bookworm-slim"`),
 						},
@@ -196,8 +208,8 @@ func (controllerTestBase) newJobWithMeta(namespace, resourceName, podProfileRef 
 				PodProfileRef: podProfileRef,
 				Patches: []pixivnetv1.JobPatch{
 					{
-						Operation: "replace",
-						Path:      "/spec/containers/0/image",
+						Operation: replacePatchOperation,
+						Path:      containerImagePatchPath,
 						Value: apiextensionsv1.JSON{
 							Raw: []byte(`"debian:bookworm-slim"`),
 						},

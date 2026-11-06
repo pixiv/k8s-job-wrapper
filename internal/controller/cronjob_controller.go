@@ -94,13 +94,13 @@ func (r *CronJobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			setCondition(metav1.Condition{
 				Type:    string(pixivnetv1.CronJobAvailable),
 				Status:  metav1.ConditionFalse,
-				Reason:  "Reconciling",
+				Reason:  reasonReconciling,
 				Message: message, // Set the message to `Available`.
 			})
 			setCondition(metav1.Condition{
 				Type:   string(pixivnetv1.CronJobDegraded),
 				Status: metav1.ConditionTrue,
-				Reason: "Reconciling",
+				Reason: reasonReconciling,
 			})
 		}
 	)

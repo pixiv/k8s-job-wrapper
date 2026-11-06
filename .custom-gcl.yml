@@ -1,4 +1,4 @@
-version: v2.7.2
+version: v2.14.0
 destination: ./bin
 plugins:
   - module: "sigs.k8s.io/logtools"

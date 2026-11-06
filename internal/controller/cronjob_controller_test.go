@@ -105,7 +105,7 @@ func (c cronJobControllerTest) reconcilePodProfileMissing() controllerTestContex
 func (c cronJobControllerTest) reconcileNormalTest() controllerTestContext {
 	const resourceName = "cronjob-reconcile"
 	return controllerTestContext{
-		name: "When reconciling a resource",
+		name: reconcileResourceContext,
 		beforeEach: func(a *controllerTestContextArg) {
 			By(fmt.Sprintf("creating the custom resource for the Kind PodProfile %s", resourceName))
 			Expect(k8sClient.Create(ctx, c.newPodProfile(a.namespace, resourceName))).To(Succeed())
@@ -141,9 +141,7 @@ func (c cronJobControllerTest) reconcileNormalTest() controllerTestContext {
 				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers).Should(HaveLen(1))
 				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Name).Should(Equal("pi"))
 				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Image).Should(Equal("debian:bookworm-slim"))
-				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command).Should(Equal([]string{
-					"perl", "-Mbignum=bpi", "-wle", "print bpi(2000)",
-				}))
+				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command).Should(Equal(piCommand()))
 
 				By("making sure the Status updated successfully")
 				c.assertCronJobStatus(a.namespace, resourceName, pixivnetv1.CronJobAvailable, metav1.ConditionTrue, "OK")
@@ -175,7 +173,7 @@ func (c cronJobControllerTest) reconcileNormalTest() controllerTestContext {
 				{
 					podProfile, err := Get[*pixivnetv1.PodProfile](ctx, k8sClient, c.newNSName(a.namespace, resourceName))
 					Expect(err).To(Succeed())
-					podProfile.Spec.Template.Spec.Containers[0].Command = []string{"sleep", "10"}
+					podProfile.Spec.Template.Spec.Containers[0].Command = []string{sleepCommand, "10"}
 					Expect(k8sClient.Update(ctx, podProfile)).To(Succeed())
 				}
 
@@ -187,7 +185,7 @@ func (c cronJobControllerTest) reconcileNormalTest() controllerTestContext {
 				Expect(err).To(Succeed())
 				batchCronJob, err = GetBatchCronJobFromPixivNetCronJob(ctx, k8sClient, cronJob)
 				Expect(err).To(Succeed())
-				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command).Should(Equal([]string{"sleep", "10"}))
+				Expect(batchCronJob.Spec.JobTemplate.Spec.Template.Spec.Containers[0].Command).Should(Equal([]string{sleepCommand, "10"}))
 
 				By("making sure the Status keeps OK")
 				c.assertCronJobStatus(a.namespace, resourceName, pixivnetv1.CronJobAvailable, metav1.ConditionTrue, "OK")
