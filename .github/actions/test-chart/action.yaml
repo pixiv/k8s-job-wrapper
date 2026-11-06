@@ -15,18 +15,18 @@ runs:
   using: "composite"
   steps:
     - name: Setup kind
-      uses: ./.github/actions/setup-kind
+      uses: $/.github/actions/setup-kind
       with:
         node-image: '${{ inputs.node-image }}'
     - name: Cache docker local
       id: cache-docker-local
-      uses: ./.github/actions/cache-docker-local
+      uses: $/.github/actions/cache-docker-local
       with:
         path: ${{ inputs.docker-cache-dir }}
         restore-only: true
       if: ${{ inputs.docker-cache-dir != '' }}
     - name: Setup buildx
-      uses: ./.github/actions/setup-buildx
+      uses: $/.github/actions/setup-buildx
       if: ${{ inputs.build-image == 'true' }}
     - name: Test chart
       shell: bash
