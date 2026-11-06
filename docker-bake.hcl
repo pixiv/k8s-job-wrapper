@@ -7,7 +7,7 @@ variable "IMAGE_REGISTRY" {
 }
 
 variable "GO_VERSION" {
-  default = "1.25"
+  default = "1.27.3"
 }
 
 variable "KUBECTL_VERSION" {
