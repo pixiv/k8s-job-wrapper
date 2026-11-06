@@ -20,18 +20,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone the code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: true
           fetch-depth: 0
       - name: Setup common
-        uses: ./.github/actions/common
+        uses: $/.github/actions/common
       - name: Validate inputs
         env:
           VERSION: ${{ inputs.version }}
         run: ./hack/validate-version.sh "$VERSION"
       - name: Setup go
-        uses: ./.github/actions/setup-go
+        uses: $/.github/actions/setup-go
         with:
           cache: false
       - name: Update VERSION file
