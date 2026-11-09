@@ -73,7 +73,7 @@
                   "type": "string"
                 },
                 "tag": {
-                  "default": "v0.0.7",
+                  "default": "v0.0.8",
                   "title": "tag",
                   "type": "string"
                 }

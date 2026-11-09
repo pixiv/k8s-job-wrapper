@@ -11,7 +11,7 @@ controllerManager:
           - ALL
     image:
       repository: ghcr.io/pixiv/k8s-job-wrapper
-      tag: v0.0.7
+      tag: v0.0.8
     imagePullPolicy: IfNotPresent
     resources:
       limits:
