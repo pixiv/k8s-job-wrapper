@@ -36,6 +36,8 @@ workflows:
     '.github/workflows/update-version.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/setup-go@v7.0.0'
+    '.github/workflows/verify-actions-lockfile.yml':
+        - 'actions/checkout@v7.0.1'
 dependencies:
     'actions/cache@v6.1.0':
         ref: 'v6.1.0'
