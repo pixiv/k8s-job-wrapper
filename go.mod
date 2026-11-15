@@ -6,7 +6,7 @@ godebug default=go1.23
 
 require (
 	al.essio.dev/pkg/shellescape v1.6.1
-	github.com/onsi/ginkgo/v2 v2.33.1
+	github.com/onsi/ginkgo/v2 v2.34.0
 	github.com/onsi/gomega v1.44.0
 	github.com/stretchr/testify v1.12.1
 	k8s.io/api v0.35.5
