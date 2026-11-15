@@ -69,7 +69,7 @@ jobs:
       - name: Setup buildx
         uses: $/.github/actions/setup-buildx
       - name: Install Cosign
-        uses: sigstore/cosign-installer@v4.1.2
+        uses: sigstore/cosign-installer@v4.1.3
       - name: Build and push
         uses: $/.github/actions/build-and-push
         with:
@@ -105,7 +105,7 @@ jobs:
       - name: Setup buildx
         uses: $/.github/actions/setup-buildx
       - name: Install Cosign
-        uses: sigstore/cosign-installer@v4.1.2
+        uses: sigstore/cosign-installer@v4.1.3
       - name: Create manifest
         id: create-manifest
         env:
